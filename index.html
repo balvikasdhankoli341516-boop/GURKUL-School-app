@@ -32,6 +32,12 @@
     @keyframes popIn { 0% { transform: scale(0.94); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
     .modal-animate { animation: popIn 0.18s ease-out forwards; }
     button, a, input, select, textarea { touch-action: manipulation; }
+    .admin-grid-card.active-card {
+      ring: 3px solid #1d4ed8;
+      background-color: #eff6ff;
+      border-color: #2563eb;
+      transform: translateY(-2px);
+    }
   </style>
 </head>
 <body class="text-slate-800 min-h-screen flex flex-col">
@@ -118,7 +124,7 @@
               Gurukul Senior Secondary School, Dhankoli
             </h2>
             <p class="text-xs sm:text-sm text-blue-100 leading-relaxed" data-i18n="hero_desc">
-              All-in-One Smart Portal for Online Admissions, Live CBT Exams, Results, Attendance, Homework, PYQ Solutions, Scholarship Exams & Fee Management.
+              All-in-One Smart Portal for Online Admissions, Live CBT Exams, Results, Annual Report Cards, Admit Cards, Attendance, Homework & PYQ Solutions.
             </p>
             <div class="flex flex-wrap gap-2.5 pt-2">
               <button type="button" onclick="openPublicModal('admissionFormModal', false)" class="bg-amber-400 hover:bg-amber-300 active:scale-95 text-slate-950 font-extrabold px-4 py-3 rounded-xl text-xs sm:text-sm shadow-lg flex items-center gap-2 transition cursor-pointer">
@@ -132,7 +138,7 @@
             </div>
           </div>
 
-          <!-- Unified Login Card (Student + Secret Admin) -->
+          <!-- Unified Login Card -->
           <div class="bg-white text-slate-800 rounded-2xl p-5 shadow-2xl border border-slate-100">
             <div class="flex items-center gap-2.5 border-b border-slate-100 pb-3 mb-4">
               <div class="w-10 h-10 rounded-xl bg-blue-700 text-white flex items-center justify-center text-base shadow">
@@ -169,8 +175,11 @@
       </div>
     </section>
 
-    <!-- VIEW 2: ADMIN MASTER CONTROL PORTAL -->
+    <!-- ======================================================= -->
+    <!-- VIEW 2: ADMIN MASTER CONTROL PORTAL (BUTTON GRID UI)    -->
+    <!-- ======================================================= -->
     <section id="adminDashboardView" class="hidden space-y-5">
+      <!-- Admin Header Bar -->
       <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 flex flex-wrap items-center justify-between gap-3">
         <div class="flex items-center gap-3">
           <div class="w-11 h-11 rounded-xl bg-blue-700 text-white flex items-center justify-center text-lg font-bold shadow">
@@ -191,7 +200,7 @@
             <span id="quotaStatusLabel">3-Email Engine: Ready</span>
           </button>
           <button type="button" onclick="openMay1PromotionModal(true)" class="bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 text-xs font-bold px-3 py-2 rounded-xl flex items-center gap-1.5">
-            <i class="fa-solid fa-calendar-check"></i> Test 1st May Alert
+            <i class="fa-solid fa-calendar-check"></i> 1st May Alert
           </button>
           <button type="button" onclick="openPublicModal('admissionFormModal', true)" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl shadow flex items-center gap-1.5">
             <i class="fa-solid fa-user-plus"></i> + Direct Admission
@@ -201,53 +210,91 @@
 
       <!-- KPI Cards -->
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
-          <span class="text-xs font-bold text-slate-400 uppercase">Active Students</span>
-          <div class="text-2xl font-extrabold text-slate-900 mt-1" id="statTotalStudents">0</div>
+        <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-slate-200">
+          <span class="text-[11px] font-bold text-slate-400 uppercase">Active Students</span>
+          <div class="text-2xl font-extrabold text-slate-900 mt-0.5" id="statTotalStudents">0</div>
         </div>
-        <div class="bg-white p-4 rounded-2xl shadow-sm border border-amber-200 bg-amber-50/30">
-          <span class="text-xs font-bold text-amber-700 uppercase">Pending Admissions</span>
-          <div class="text-2xl font-extrabold text-amber-600 mt-1" id="statPendingAdmissions">0</div>
+        <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-amber-200 bg-amber-50/30">
+          <span class="text-[11px] font-bold text-amber-700 uppercase">Pending Admissions</span>
+          <div class="text-2xl font-extrabold text-amber-600 mt-0.5" id="statPendingAdmissions">0</div>
         </div>
-        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
-          <span class="text-xs font-bold text-slate-400 uppercase">Today's Attendance</span>
-          <div class="text-2xl font-extrabold text-blue-600 mt-1" id="statTodayAttendance">0</div>
+        <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-slate-200">
+          <span class="text-[11px] font-bold text-slate-400 uppercase">Published Results</span>
+          <div class="text-2xl font-extrabold text-emerald-600 mt-0.5" id="statPublishedResults">0</div>
         </div>
-        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
-          <span class="text-xs font-bold text-slate-400 uppercase">Homework & PYQs</span>
-          <div class="text-2xl font-extrabold text-purple-600 mt-1" id="statTotalContent">0</div>
+        <div class="bg-white p-3.5 rounded-2xl shadow-sm border border-slate-200">
+          <span class="text-[11px] font-bold text-slate-400 uppercase">Today's Attendance</span>
+          <div class="text-2xl font-extrabold text-blue-600 mt-0.5" id="statTodayAttendance">0</div>
         </div>
       </div>
 
-      <!-- Admin Navigation Tabs -->
-      <div class="flex overflow-x-auto gap-2 bg-white p-2 rounded-2xl shadow-sm border border-slate-200 custom-scroll">
-        <button type="button" onclick="switchAdminTab('tabAdmissions')" id="btn_tabAdmissions" class="admin-tab-btn bg-blue-700 text-white px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap flex items-center gap-1.5 shadow">
-          <i class="fa-solid fa-file-signature"></i> Admissions Desk
-        </button>
-        <button type="button" onclick="switchAdminTab('tabStudentsList')" id="btn_tabStudentsList" class="admin-tab-btn text-slate-600 hover:bg-slate-100 px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap flex items-center gap-1.5">
-          <i class="fa-solid fa-users"></i> Master Students & Locks
-        </button>
-        <button type="button" onclick="switchAdminTab('tabAttendanceAdmin')" id="btn_tabAttendanceAdmin" class="admin-tab-btn text-slate-600 hover:bg-slate-100 px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap flex items-center gap-1.5">
-          <i class="fa-solid fa-calendar-check"></i> Smart Attendance
-        </button>
-        <button type="button" onclick="switchAdminTab('tabHomeworkAdmin')" id="btn_tabHomeworkAdmin" class="admin-tab-btn text-slate-600 hover:bg-slate-100 px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap flex items-center gap-1.5">
-          <i class="fa-solid fa-book-open"></i> Homework & PYQ
-        </button>
-        <button type="button" onclick="switchAdminTab('tabNotificationsAdmin')" id="btn_tabNotificationsAdmin" class="admin-tab-btn text-slate-600 hover:bg-slate-100 px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap flex items-center gap-1.5">
-          <i class="fa-solid fa-bell"></i> Vibrating Alerts
-        </button>
-        <button type="button" onclick="switchAdminTab('tabMasterLocks')" id="btn_tabMasterLocks" class="admin-tab-btn text-slate-600 hover:bg-slate-100 px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap flex items-center gap-1.5">
-          <i class="fa-solid fa-lock"></i> 3-Level Portal Locks
-        </button>
-        <button type="button" onclick="switchAdminTab('tabPendingMonitor')" id="btn_tabPendingMonitor" class="admin-tab-btn text-slate-600 hover:bg-slate-100 px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap flex items-center gap-1.5">
-          <i class="fa-solid fa-triangle-exclamation"></i> Red Alert Monitor
-        </button>
+      <!-- ===================================================== -->
+      <!-- ALL-IN-ONE ADMIN BUTTON GRID (REPLACES LINE MENU)     -->
+      <!-- ===================================================== -->
+      <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="text-xs font-extrabold uppercase tracking-wider text-slate-500">
+            <i class="fa-solid fa-grip text-blue-700 mr-1"></i> All Admin Portals & Controls (Tap Any Button)
+          </h3>
+          <span class="text-[11px] font-bold text-emerald-600"><i class="fa-solid fa-shield-halved"></i> Persistent Admin Session Active</span>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-3">
+          <button type="button" onclick="switchAdminTab('tabAdmissions')" id="btn_tabAdmissions" class="admin-grid-card active-card p-3 rounded-xl border border-slate-200 bg-white hover:bg-blue-50/50 transition flex items-center gap-3 text-left shadow-sm">
+            <div class="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow"><i class="fa-solid fa-file-signature"></i></div>
+            <div><div class="font-extrabold text-xs text-slate-900">Admissions Desk</div><div class="text-[10px] text-slate-500">Approve & PDF</div></div>
+          </button>
+
+          <button type="button" onclick="switchAdminTab('tabStudentsList')" id="btn_tabStudentsList" class="admin-grid-card p-3 rounded-xl border border-slate-200 bg-white hover:bg-blue-50/50 transition flex items-center gap-3 text-left shadow-sm">
+            <div class="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center shrink-0 shadow"><i class="fa-solid fa-users"></i></div>
+            <div><div class="font-extrabold text-xs text-slate-900">Master Students</div><div class="text-[10px] text-slate-500">Directory & Locks</div></div>
+          </button>
+
+          <button type="button" onclick="switchAdminTab('tabResultsAdmin')" id="btn_tabResultsAdmin" class="admin-grid-card p-3 rounded-xl border border-slate-200 bg-white hover:bg-blue-50/50 transition flex items-center gap-3 text-left shadow-sm">
+            <div class="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow"><i class="fa-solid fa-award"></i></div>
+            <div><div class="font-extrabold text-xs text-slate-900">Exam & Results</div><div class="text-[10px] text-slate-500">Daily, Half & Yearly</div></div>
+          </button>
+
+          <button type="button" onclick="switchAdminTab('tabAdmitCardAdmin')" id="btn_tabAdmitCardAdmin" class="admin-grid-card p-3 rounded-xl border border-slate-200 bg-white hover:bg-blue-50/50 transition flex items-center gap-3 text-left shadow-sm">
+            <div class="w-10 h-10 rounded-xl bg-purple-600 text-white flex items-center justify-center shrink-0 shadow"><i class="fa-solid fa-id-card"></i></div>
+            <div><div class="font-extrabold text-xs text-slate-900">Admit Cards</div><div class="text-[10px] text-slate-500">Schedule & Roll No</div></div>
+          </button>
+
+          <button type="button" onclick="switchAdminTab('tabAttendanceAdmin')" id="btn_tabAttendanceAdmin" class="admin-grid-card p-3 rounded-xl border border-slate-200 bg-white hover:bg-blue-50/50 transition flex items-center gap-3 text-left shadow-sm">
+            <div class="w-10 h-10 rounded-xl bg-teal-600 text-white flex items-center justify-center shrink-0 shadow"><i class="fa-solid fa-calendar-check"></i></div>
+            <div><div class="font-extrabold text-xs text-slate-900">Smart Attendance</div><div class="text-[10px] text-slate-500">Mark & Absent Alert</div></div>
+          </button>
+
+          <button type="button" onclick="switchAdminTab('tabHomeworkAdmin')" id="btn_tabHomeworkAdmin" class="admin-grid-card p-3 rounded-xl border border-slate-200 bg-white hover:bg-blue-50/50 transition flex items-center gap-3 text-left shadow-sm">
+            <div class="w-10 h-10 rounded-xl bg-orange-600 text-white flex items-center justify-center shrink-0 shadow"><i class="fa-solid fa-book-open"></i></div>
+            <div><div class="font-extrabold text-xs text-slate-900">Homework & PYQ</div><div class="text-[10px] text-slate-500">Notes & Solutions</div></div>
+          </button>
+
+          <button type="button" onclick="switchAdminTab('tabNotificationsAdmin')" id="btn_tabNotificationsAdmin" class="admin-grid-card p-3 rounded-xl border border-slate-200 bg-white hover:bg-blue-50/50 transition flex items-center gap-3 text-left shadow-sm">
+            <div class="w-10 h-10 rounded-xl bg-rose-600 text-white flex items-center justify-center shrink-0 shadow"><i class="fa-solid fa-bell"></i></div>
+            <div><div class="font-extrabold text-xs text-slate-900">Vibrating Alerts</div><div class="text-[10px] text-slate-500">All / Class / Student</div></div>
+          </button>
+
+          <button type="button" onclick="switchAdminTab('tabMasterLocks')" id="btn_tabMasterLocks" class="admin-grid-card p-3 rounded-xl border border-slate-200 bg-white hover:bg-blue-50/50 transition flex items-center gap-3 text-left shadow-sm">
+            <div class="w-10 h-10 rounded-xl bg-slate-800 text-amber-300 flex items-center justify-center shrink-0 shadow"><i class="fa-solid fa-lock"></i></div>
+            <div><div class="font-extrabold text-xs text-slate-900">3-Level Locks</div><div class="text-[10px] text-slate-500">Open / Half / Full</div></div>
+          </button>
+
+          <button type="button" onclick="switchAdminTab('tabPendingMonitor')" id="btn_tabPendingMonitor" class="admin-grid-card p-3 rounded-xl border border-slate-200 bg-white hover:bg-blue-50/50 transition flex items-center gap-3 text-left shadow-sm">
+            <div class="w-10 h-10 rounded-xl bg-red-600 text-white flex items-center justify-center shrink-0 shadow"><i class="fa-solid fa-triangle-exclamation"></i></div>
+            <div><div class="font-extrabold text-xs text-slate-900">Red Alert Monitor</div><div class="text-[10px] text-slate-500">Pending Tasks</div></div>
+          </button>
+        </div>
       </div>
+
+      <!-- ===================================================== -->
+      <!-- ADMIN WORKSPACE PANELS                                -->
+      <!-- ===================================================== -->
 
       <!-- TAB 1: ADMISSIONS -->
       <div id="tabAdmissions" class="admin-tab-pane bg-white rounded-2xl p-4 shadow-sm border border-slate-200 space-y-4">
         <div class="flex flex-wrap items-center justify-between gap-2">
-          <h3 class="text-sm sm:text-base font-extrabold text-slate-900">Online & Direct Admission Applications</h3>
+          <h3 class="text-sm sm:text-base font-extrabold text-slate-900"><i class="fa-solid fa-file-signature text-blue-600 mr-1.5"></i>Online & Direct Admission Applications</h3>
           <select id="filterAdmissionStatus" onchange="renderAdminAdmissions()" class="bg-slate-100 border border-slate-300 rounded-xl px-3 py-1.5 text-xs font-bold">
             <option value="ALL">All Applications</option>
             <option value="PENDING">Pending Review</option>
@@ -277,7 +324,7 @@
       <!-- TAB 2: MASTER STUDENTS -->
       <div id="tabStudentsList" class="admin-tab-pane hidden bg-white rounded-2xl p-4 shadow-sm border border-slate-200 space-y-4">
         <div class="flex flex-wrap items-center justify-between gap-2">
-          <h3 class="text-sm sm:text-base font-extrabold text-slate-900">Enrolled Students Directory (GSSS Master Database)</h3>
+          <h3 class="text-sm sm:text-base font-extrabold text-slate-900"><i class="fa-solid fa-users text-indigo-600 mr-1.5"></i>Enrolled Students Directory (GSSS Master Database)</h3>
           <input type="text" id="searchStudentInput" oninput="renderMasterStudents()" placeholder="Search Name, ID or Class..." class="bg-slate-50 border border-slate-300 rounded-xl px-3 py-1.5 text-xs font-semibold w-full sm:w-60" />
         </div>
         <div class="overflow-x-auto border rounded-xl">
@@ -286,10 +333,10 @@
               <tr>
                 <th class="p-2.5">Master ID & Pass</th>
                 <th class="p-2.5">Student Name</th>
-                <th class="p-2.5">Class</th>
+                <th class="p-2.5">Class & Roll No</th>
                 <th class="p-2.5">Father & Mobile</th>
                 <th class="p-2.5">Personal Locks</th>
-                <th class="p-2.5 text-right">PDFs</th>
+                <th class="p-2.5 text-right">Official PDFs</th>
               </tr>
             </thead>
             <tbody id="masterStudentTableBody" class="divide-y divide-slate-200"></tbody>
@@ -297,7 +344,175 @@
         </div>
       </div>
 
-      <!-- TAB 3: ATTENDANCE -->
+      <!-- TAB 3 (PHASE 3): EXAM & RESULT UPLOAD ENGINE (DAILY, HALF-YEARLY, YEARLY) -->
+      <div id="tabResultsAdmin" class="admin-tab-pane hidden bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-200 space-y-5">
+        <div class="flex flex-wrap items-center justify-between gap-2 border-b pb-3">
+          <div>
+            <h3 class="text-sm sm:text-base font-extrabold text-slate-900"><i class="fa-solid fa-award text-emerald-600 mr-1.5"></i>Master Result Uploader (Daily Test, Half-Yearly, Yearly & Annual Report)</h3>
+            <p class="text-xs text-slate-500">Marks entered here automatically connect to Student Portals and generate the Combined Annual Report Card PDF.</p>
+          </div>
+          <div class="flex rounded-xl bg-slate-100 p-1 gap-1">
+            <button type="button" id="resSubTab_DAILY" onclick="switchResultMode('DAILY')" class="px-3 py-1.5 rounded-lg text-xs font-extrabold bg-emerald-600 text-white shadow">1. Daily Test</button>
+            <button type="button" id="resSubTab_TERM" onclick="switchResultMode('TERM')" class="px-3 py-1.5 rounded-lg text-xs font-extrabold text-slate-700">2. Half-Yearly & Yearly Exam</button>
+          </div>
+        </div>
+
+        <!-- MODE A: DAILY TEST UPLOADER -->
+        <div id="dailyTestAdminBox" class="space-y-4">
+          <div class="grid sm:grid-cols-5 gap-2.5 bg-emerald-50/60 p-3.5 rounded-xl border border-emerald-200 items-end">
+            <div>
+              <label class="block text-[11px] font-bold text-slate-700 mb-1">Select Class</label>
+              <select id="dt_class" onchange="loadDailyTestMarksTable()" class="w-full px-3 py-2 border rounded-xl text-xs font-bold bg-white">
+                <option value="Nursery">Nursery</option><option value="LKG">LKG</option><option value="UKG">UKG</option>
+                <option value="Class 1">Class 1</option><option value="Class 2">Class 2</option><option value="Class 3">Class 3</option>
+                <option value="Class 4">Class 4</option><option value="Class 5">Class 5</option><option value="Class 6">Class 6</option>
+                <option value="Class 7">Class 7</option><option value="Class 8">Class 8</option><option value="Class 9">Class 9</option>
+                <option value="Class 10" selected>Class 10</option><option value="Class 11">Class 11</option><option value="Class 12">Class 12</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-[11px] font-bold text-slate-700 mb-1">Test Date</label>
+              <input type="date" id="dt_date" class="w-full px-3 py-2 border rounded-xl text-xs font-bold bg-white" />
+            </div>
+            <div>
+              <label class="block text-[11px] font-bold text-slate-700 mb-1">Subject & Topic *</label>
+              <input type="text" id="dt_subject" placeholder="e.g. Science Test - 1" class="w-full px-3 py-2 border rounded-xl text-xs font-bold bg-white" />
+            </div>
+            <div>
+              <label class="block text-[11px] font-bold text-slate-700 mb-1">Max Marks *</label>
+              <input type="number" id="dt_maxMarks" value="20" class="w-full px-3 py-2 border rounded-xl text-xs font-bold bg-white" />
+            </div>
+            <button type="button" onclick="saveDailyTestResult()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-2 px-4 rounded-xl text-xs shadow">
+              <i class="fa-solid fa-cloud-arrow-up"></i> Publish Daily Result
+            </button>
+          </div>
+
+          <div class="overflow-x-auto border rounded-xl">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead class="bg-slate-900 text-white">
+                <tr>
+                  <th class="p-2.5">Master ID</th>
+                  <th class="p-2.5">Student Name</th>
+                  <th class="p-2.5">Father's Name</th>
+                  <th class="p-2.5 w-44">Obtained Marks (or AB)</th>
+                </tr>
+              </thead>
+              <tbody id="dailyTestEntryBody" class="divide-y"></tbody>
+            </table>
+          </div>
+
+          <div>
+            <h4 class="font-extrabold text-xs text-slate-600 uppercase mb-2">Recently Uploaded Daily Tests</h4>
+            <div id="publishedDailyTestsList" class="space-y-1.5 max-h-48 overflow-y-auto"></div>
+          </div>
+        </div>
+
+        <!-- MODE B: HALF-YEARLY & YEARLY EXAM UPLOADER -->
+        <div id="termExamAdminBox" class="hidden space-y-4">
+          <div class="grid sm:grid-cols-4 gap-3 bg-purple-50/60 p-3.5 rounded-xl border border-purple-200 items-end">
+            <div>
+              <label class="block text-[11px] font-bold text-slate-700 mb-1">Select Exam Term</label>
+              <select id="term_examType" onchange="loadTermExamMarksTable()" class="w-full px-3 py-2 border rounded-xl text-xs font-bold bg-white">
+                <option value="HALF_YEARLY">Half-Yearly Exam (अर्धवार्षिक परीक्षा)</option>
+                <option value="YEARLY">Yearly / Annual Exam (वार्षिक परीक्षा)</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-[11px] font-bold text-slate-700 mb-1">Select Class</label>
+              <select id="term_class" onchange="loadTermExamMarksTable()" class="w-full px-3 py-2 border rounded-xl text-xs font-bold bg-white">
+                <option value="Nursery">Nursery</option><option value="LKG">LKG</option><option value="UKG">UKG</option>
+                <option value="Class 1">Class 1</option><option value="Class 2">Class 2</option><option value="Class 3">Class 3</option>
+                <option value="Class 4">Class 4</option><option value="Class 5">Class 5</option><option value="Class 6">Class 6</option>
+                <option value="Class 7">Class 7</option><option value="Class 8">Class 8</option><option value="Class 9">Class 9</option>
+                <option value="Class 10" selected>Class 10</option><option value="Class 11">Class 11</option><option value="Class 12">Class 12</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-[11px] font-bold text-slate-700 mb-1">Max Marks Per Subject</label>
+              <input type="number" id="term_maxPerSubject" value="100" class="w-full px-3 py-2 border rounded-xl text-xs font-bold bg-white" />
+            </div>
+            <button type="button" onclick="saveTermExamMarks()" class="bg-purple-700 hover:bg-purple-800 text-white font-extrabold py-2 px-4 rounded-xl text-xs shadow">
+              <i class="fa-solid fa-floppy-disk"></i> Save & Publish Term Marks
+            </button>
+          </div>
+
+          <div class="overflow-x-auto border rounded-xl">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead class="bg-slate-900 text-white">
+                <tr>
+                  <th class="p-2">Student (ID)</th>
+                  <th class="p-2">Hindi</th>
+                  <th class="p-2">English</th>
+                  <th class="p-2">Maths / Opt-1</th>
+                  <th class="p-2">Science / Opt-2</th>
+                  <th class="p-2">SST / Opt-3</th>
+                  <th class="p-2">3rd Lang / Comp</th>
+                  <th class="p-2 text-right">Annual PDF</th>
+                </tr>
+              </thead>
+              <tbody id="termExamEntryBody" class="divide-y"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 4 (PHASE 3): EXAM ADMIT CARD GENERATOR -->
+      <div id="tabAdmitCardAdmin" class="admin-tab-pane hidden bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-200 space-y-5">
+        <div class="border-b pb-3">
+          <h3 class="text-sm sm:text-base font-extrabold text-slate-900"><i class="fa-solid fa-id-card text-purple-600 mr-1.5"></i>Official Exam Admit Card & Time-Table Generator</h3>
+          <p class="text-xs text-slate-500">Set the Exam Schedule for any class to automatically generate Signed Admit Cards with Photo, Roll No & Time-Table.</p>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-5">
+          <div class="bg-slate-50 p-4 rounded-xl border space-y-3">
+            <h4 class="font-extrabold text-xs uppercase text-purple-900">1. Configure Exam & Class Schedule</h4>
+            <div class="grid grid-cols-2 gap-2.5">
+              <div>
+                <label class="block text-[11px] font-bold text-slate-700 mb-1">Exam Title *</label>
+                <input type="text" id="ac_examTitle" value="Half-Yearly Examination" class="w-full px-3 py-2 border rounded-xl text-xs font-bold bg-white" />
+              </div>
+              <div>
+                <label class="block text-[11px] font-bold text-slate-700 mb-1">Select Class *</label>
+                <select id="ac_class" onchange="loadAdmitCardConfigForClass()" class="w-full px-3 py-2 border rounded-xl text-xs font-bold bg-white">
+                  <option value="Nursery">Nursery</option><option value="LKG">LKG</option><option value="UKG">UKG</option>
+                  <option value="Class 1">Class 1</option><option value="Class 2">Class 2</option><option value="Class 3">Class 3</option>
+                  <option value="Class 4">Class 4</option><option value="Class 5">Class 5</option><option value="Class 6">Class 6</option>
+                  <option value="Class 7">Class 7</option><option value="Class 8">Class 8</option><option value="Class 9">Class 9</option>
+                  <option value="Class 10" selected>Class 10</option><option value="Class 11">Class 11</option><option value="Class 12">Class 12</option>
+                </select>
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-2.5">
+              <div>
+                <label class="block text-[11px] font-bold text-slate-700 mb-1">Exam Timing / Shift *</label>
+                <input type="text" id="ac_shiftTime" value="09:00 AM to 12:15 PM" class="w-full px-3 py-2 border rounded-xl text-xs font-bold bg-white" />
+              </div>
+              <div>
+                <label class="block text-[11px] font-bold text-slate-700 mb-1">Starting Roll No Series</label>
+                <input type="number" id="ac_rollStart" value="1001" class="w-full px-3 py-2 border rounded-xl text-xs font-bold bg-white" />
+              </div>
+            </div>
+            <div>
+              <label class="block text-[11px] font-bold text-slate-700 mb-1">Subject-wise Date Sheet (One Subject per line: Date - Subject - Day) *</label>
+              <textarea id="ac_timetableText" rows="5" class="w-full px-3 py-2 border rounded-xl text-xs font-semibold bg-white" placeholder="10-12-2026 | English Compulsory | Monday&#10;12-12-2026 | Hindi Compulsory | Wednesday&#10;14-12-2026 | Mathematics | Friday&#10;16-12-2026 | Science | Monday&#10;18-12-2026 | Social Science | Wednesday">10-12-2026 | English Compulsory | Thursday
+12-12-2026 | Hindi Compulsory | Saturday
+14-12-2026 | Mathematics | Monday
+16-12-2026 | Science | Wednesday
+18-12-2026 | Social Science | Friday</textarea>
+            </div>
+            <button type="button" onclick="saveAndPublishAdmitCards()" class="w-full bg-purple-700 hover:bg-purple-800 text-white font-extrabold py-2.5 rounded-xl text-xs shadow">
+              <i class="fa-solid fa-wand-magic-sparkles"></i> Assign Roll Numbers & Publish Admit Cards
+            </button>
+          </div>
+
+          <div class="space-y-3">
+            <h4 class="font-extrabold text-xs uppercase text-slate-700">2. Download Student Admit Cards (Selected Class)</h4>
+            <div id="adminAdmitCardStudentList" class="space-y-2 max-h-80 overflow-y-auto border rounded-xl p-3 bg-slate-50"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 5: ATTENDANCE -->
       <div id="tabAttendanceAdmin" class="admin-tab-pane hidden bg-white rounded-2xl p-4 shadow-sm border border-slate-200 space-y-4">
         <div class="flex flex-wrap items-end justify-between gap-3 bg-slate-50 p-3 rounded-xl border">
           <div class="flex flex-wrap gap-2.5">
@@ -336,7 +551,7 @@
         </div>
       </div>
 
-      <!-- TAB 4: HOMEWORK & PYQ -->
+      <!-- TAB 6: HOMEWORK & PYQ -->
       <div id="tabHomeworkAdmin" class="admin-tab-pane hidden bg-white rounded-2xl p-4 shadow-sm border border-slate-200 space-y-5">
         <div class="grid md:grid-cols-2 gap-4">
           <div class="bg-slate-50 p-4 rounded-xl border space-y-2.5">
@@ -377,7 +592,7 @@
         <div id="adminContentListContainer" class="space-y-2 max-h-60 overflow-y-auto"></div>
       </div>
 
-      <!-- TAB 5: VIBRATING NOTIFICATIONS -->
+      <!-- TAB 7: VIBRATING NOTIFICATIONS -->
       <div id="tabNotificationsAdmin" class="admin-tab-pane hidden bg-white rounded-2xl p-4 shadow-sm border border-slate-200 space-y-4">
         <div class="grid md:grid-cols-2 gap-4">
           <div class="bg-slate-50 p-4 rounded-xl border space-y-3">
@@ -398,13 +613,13 @@
         </div>
       </div>
 
-      <!-- TAB 6: 3-LEVEL LOCKS -->
+      <!-- TAB 8: 3-LEVEL LOCKS -->
       <div id="tabMasterLocks" class="admin-tab-pane hidden bg-white rounded-2xl p-4 shadow-sm border border-slate-200 space-y-4">
         <h3 class="text-sm font-extrabold text-slate-900">Global Portal Lock Controller (Full Lock / Half Lock / Open)</h3>
         <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3" id="masterLockCardsContainer"></div>
       </div>
 
-      <!-- TAB 7: RED ALERT MONITOR -->
+      <!-- TAB 9: RED ALERT MONITOR -->
       <div id="tabPendingMonitor" class="admin-tab-pane hidden bg-white rounded-2xl p-4 shadow-sm border border-slate-200 space-y-4">
         <div class="flex items-center justify-between">
           <h3 class="text-sm font-extrabold text-slate-900">Admin Red Alert Reminder Settings</h3>
@@ -425,18 +640,21 @@
             <p id="stuDashMeta" class="text-xs text-blue-200">Class: 10th</p>
           </div>
         </div>
-        <div class="flex gap-2 w-full sm:w-auto">
+        <div class="flex flex-wrap gap-2 w-full sm:w-auto">
           <button type="button" onclick="generateStudentDigitalIdCardPDF()" class="flex-1 sm:flex-initial bg-amber-400 text-slate-950 text-xs font-extrabold px-3.5 py-2.5 rounded-xl shadow flex items-center justify-center gap-1.5">
-            <i class="fa-solid fa-id-card"></i> Digital ID Card
+            <i class="fa-solid fa-id-card"></i> ID Card
+          </button>
+          <button type="button" onclick="generateStudentAnnualReportPDF()" class="flex-1 sm:flex-initial bg-emerald-500 text-white text-xs font-extrabold px-3.5 py-2.5 rounded-xl shadow flex items-center justify-center gap-1.5">
+            <i class="fa-solid fa-award"></i> Report Card PDF
           </button>
           <button type="button" onclick="downloadCurrentStudentAdmissionPDF()" class="flex-1 sm:flex-initial bg-white/15 border border-white/30 text-white text-xs font-bold px-3.5 py-2.5 rounded-xl flex items-center justify-center gap-1.5">
-            <i class="fa-solid fa-file-pdf text-amber-300"></i> Admission Form
+            <i class="fa-solid fa-file-pdf text-amber-300"></i> Form
           </button>
         </div>
       </div>
 
       <div>
-        <h3 class="text-xs font-extrabold text-slate-500 uppercase tracking-wider mb-3" data-i18n="student_modules_heading">Connected Student Modules</h3>
+        <h3 class="text-xs font-extrabold text-slate-500 uppercase tracking-wider mb-3" data-i18n="student_modules_heading">Connected Student Modules (Tap to Open)</h3>
         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3" id="studentModulesGrid"></div>
       </div>
     </section>
@@ -444,7 +662,7 @@
   </main>
 
   <!-- ========================================================= -->
-  <!-- ALL MODALS (ADMISSION, TRACK, HELPLINE, 1 MAY, TASKS)     -->
+  <!-- MODALS                                                    -->
   <!-- ========================================================= -->
 
   <!-- ADMISSION FORM MODAL -->
@@ -582,7 +800,7 @@
           </div>
         </div>
 
-         <div id="emailOtpSection" class="bg-blue-50 p-3.5 rounded-xl border border-blue-200 space-y-2.5">
+        <div id="emailOtpSection" class="bg-blue-50 p-3.5 rounded-xl border border-blue-200 space-y-2.5">
           <h4 class="text-xs font-extrabold uppercase text-blue-900">4. Email & OTP Verification</h4>
           <div class="grid sm:grid-cols-3 gap-2.5 items-end">
             <div class="sm:col-span-2">
@@ -729,13 +947,13 @@
     </div>
   </div>
 
-  <!-- HIDDEN PRINT CONTAINER (STRICTLY DISPLAY:NONE UNTIL PDF EXPORT) -->
+  <!-- HIDDEN PRINT CONTAINER -->
   <div id="pdfPrintWrapper" class="hidden">
     <div id="pdfPrintArea" style="width:794px;min-height:1122px;background:#fff;color:#0f172a;padding:28px;"></div>
   </div>
 
   <!-- ========================================================= -->
-  <!-- SCRIPT PART 1: CORE ENGINE, POPUPS, AUTH & FIREBASE INIT  -->
+  <!-- SCRIPT PART 1: CORE ENGINE, PERSISTENT ADMIN & AUTH       -->
   <!-- ========================================================= -->
   <script>
     const firebaseConfig = {
@@ -758,9 +976,7 @@
       "https://script.google.com/macros/s/AKfycbxgLDN7y1yg4lgg8dyB1yduFfQmwo9awRn8IynnXZcMNwFFfdQ4TUeb-cby6r5eWUR9QA/exec"
     ];
 
-    const SCHOOL_INFO = {
-      logo: "https://gsssdhankoli.github.io/Logo.png/logo.png"
-    };
+    const SCHOOL_INFO = { logo: "https://gsssdhankoli.github.io/Logo.png/logo.png" };
 
     function getDynamicAcademicSession() {
       const now = new Date();
@@ -771,11 +987,12 @@
     }
 
     const CURRENT_SESSION = getDynamicAcademicSession();
+    const todayIso = new Date().toISOString().split("T")[0];
     document.getElementById("liveSessionBadge").innerText = CURRENT_SESSION.sessionString;
     document.getElementById("adminSessionText").innerText = CURRENT_SESSION.sessionString;
-    document.getElementById("attAdminDate").value = new Date().toISOString().split("T")[0];
+    document.getElementById("attAdminDate").value = todayIso;
+    document.getElementById("dt_date").value = todayIso;
 
-    // Custom In-App Dialogs
     function showCustomAlert(message, title = "Gurukul Official Alert", type = "INFO") {
       return new Promise(resolve => {
         const overlay = document.getElementById("customDialogOverlay");
@@ -850,7 +1067,7 @@
       } catch (e) {}
     }
 
-   // Global State
+     // Global State
     let secretAdminCreds = { id: "ADMIN", pass: "GSSS@123" };
     let globalPortalLocks = {};
     let allAdmissions = {};
@@ -858,21 +1075,37 @@
     let allAttendance = {};
     let allHomeworkAndPYQ = {};
     let allNotifications = {};
+    let allDailyTests = {};
+    let allTermMarks = {};
+    let allAdmitConfigs = {};
     let adminTasksChecklist = {};
+
     let loggedInStudent = null;
+    let isAdminLoggedIn = false;
     let activeStudentDeviceListener = null;
+    let activeAdminAlertListener = null;
+    let adminSessionOpenedAt = Date.now();
     let knownNotifCount = null;
     let currentLang = "EN";
 
+    function getMyAdminDeviceId() {
+      let dId = localStorage.getItem("GSSS_ADMIN_DEVICE_ID");
+      if (!dId) {
+        dId = "ADM_DEV_" + Date.now() + "_" + Math.random().toString(36).slice(2, 6);
+        localStorage.setItem("GSSS_ADMIN_DEVICE_ID", dId);
+      }
+      return dId;
+    }
+
     const ALL_MODULES = [
-      { id: "ATTENDANCE", nameEN: "Smart Attendance Calendar", nameHI: "मासिक उपस्थिति कैलेंडर", icon: "fa-calendar-check", color: "bg-teal-600" },
-      { id: "HOMEWORK_PYQ", nameEN: "Homework & Notes", nameHI: "होमवर्क एवं स्टडी नोट्स", icon: "fa-book-open", color: "bg-orange-600" },
-      { id: "PYQ_PAPERS", nameEN: "PYQ Papers & Solutions", nameHI: "पुराने पेपर एवं सॉल्यूशन", icon: "fa-file-pdf", color: "bg-amber-600" },
-      { id: "NOTIFICATIONS", nameEN: "Notice Board & Alerts", nameHI: "नोटिस बोर्ड एवं पर्सनल अलर्ट", icon: "fa-bell", color: "bg-rose-600" },
       { id: "DAILY_TEST", nameEN: "Daily Test Results", nameHI: "डेली टेस्ट रिजल्ट", icon: "fa-chart-line", color: "bg-indigo-600" },
       { id: "HALF_YEARLY", nameEN: "Half-Yearly Exam Result", nameHI: "अर्धवार्षिक परीक्षा परिणाम", icon: "fa-file-invoice", color: "bg-purple-600" },
       { id: "YEARLY_RESULT", nameEN: "Yearly & Annual Report", nameHI: "वार्षिक परीक्षा एवं रिपोर्ट कार्ड", icon: "fa-award", color: "bg-emerald-600" },
       { id: "ADMIT_CARD", nameEN: "Exam Admit Cards", nameHI: "परीक्षा प्रवेश पत्र", icon: "fa-id-card", color: "bg-blue-600" },
+      { id: "ATTENDANCE", nameEN: "Smart Attendance Calendar", nameHI: "मासिक उपस्थिति कैलेंडर", icon: "fa-calendar-check", color: "bg-teal-600" },
+      { id: "HOMEWORK_PYQ", nameEN: "Homework & Notes", nameHI: "होमवर्क एवं स्टडी नोट्स", icon: "fa-book-open", color: "bg-orange-600" },
+      { id: "PYQ_PAPERS", nameEN: "PYQ Papers & Solutions", nameHI: "पुराने पेपर एवं सॉल्यूशन", icon: "fa-file-pdf", color: "bg-amber-600" },
+      { id: "NOTIFICATIONS", nameEN: "Notice Board & Alerts", nameHI: "नोटिस बोर्ड एवं पर्सनल अलर्ट", icon: "fa-bell", color: "bg-rose-600" },
       { id: "LIVE_CBT", nameEN: "Live CBT & Mock Tests", nameHI: "लाइव CBT एवं मॉक टेस्ट", icon: "fa-laptop-code", color: "bg-pink-600" },
       { id: "SCHOLARSHIP", nameEN: "Scholarship Exam (Phase 1 & 2)", nameHI: "स्कॉलरशिप परीक्षा (फेज 1 व 2)", icon: "fa-graduation-cap", color: "bg-cyan-600" },
       { id: "FEES", nameEN: "Fee Status & Receipts", nameHI: "फीस स्टेटस एवं रसीद", icon: "fa-indian-rupee-sign", color: "bg-green-600" },
@@ -924,14 +1157,16 @@
 
       // 1. Check Secret Admin Login
       if (userId.toUpperCase() === secretAdminCreds.id.toUpperCase() && pass === secretAdminCreds.pass) {
-        document.getElementById("publicAuthView").classList.add("hidden");
-        document.getElementById("studentDashboardView").classList.add("hidden");
-        document.getElementById("adminDashboardView").classList.remove("hidden");
-        document.getElementById("logoutBtn").classList.remove("hidden");
-        document.getElementById("logoutBtn").classList.add("flex");
-        document.getElementById("studentNotifBellBtn").classList.add("hidden");
-        checkMay1PromotionPopup();
-        checkAndShowPendingTasksPopup(false);
+        localStorage.setItem("GSSS_ADMIN_LOGGED_IN", "true");
+        const myDevId = getMyAdminDeviceId();
+        const devName = navigator.platform || "Mobile/PC Browser";
+        await db.ref("adminConfig/lastLoginActivity").set({
+          deviceId: myDevId,
+          deviceName: devName,
+          loginTime: new Date().toLocaleString("en-IN"),
+          timestamp: Date.now()
+        });
+        startAdminSession();
         return;
       }
 
@@ -946,6 +1181,40 @@
       } else {
         await showCustomAlert("Invalid ID or Password! Please check and try again.", "Login Failed", "DANGER");
       }
+    }
+
+    function startAdminSession() {
+      isAdminLoggedIn = true;
+      adminSessionOpenedAt = Date.now();
+      document.getElementById("publicAuthView").classList.add("hidden");
+      document.getElementById("studentDashboardView").classList.add("hidden");
+      document.getElementById("adminDashboardView").classList.remove("hidden");
+      document.getElementById("logoutBtn").classList.remove("hidden");
+      document.getElementById("logoutBtn").classList.add("flex");
+      document.getElementById("studentNotifBellBtn").classList.add("hidden");
+
+      checkMay1PromotionPopup();
+      checkAndShowPendingTasksPopup(false);
+      loadDailyTestMarksTable();
+      loadTermExamMarksTable();
+      loadAdmitCardConfigForClass();
+
+        // Multi-Device Admin Login Alert Listener (Alerts WITHOUT logging out!)
+      const myDevId = getMyAdminDeviceId();
+      if (activeAdminAlertListener) activeAdminAlertListener.off();
+      const alertRef = db.ref("adminConfig/lastLoginActivity");
+      activeAdminAlertListener = alertRef;
+      alertRef.on("value", async snap => {
+        const act = snap.val();
+        if (act && act.deviceId !== myDevId && act.timestamp > adminSessionOpenedAt) {
+          triggerPhoneVibrationAndSound();
+          await showCustomAlert(
+            `⚠️ Security Alert: Admin Portal has just been opened on another device!\n\nTime: ${act.loginTime}\nDevice: ${act.deviceName}\n\n(Your current Admin session remains active and has NOT been logged out.)`,
+            "Admin Opened on Another Device!",
+            "DANGER"
+          );
+        }
+      });
     }
 
     function startStudentSession(stu, myToken) {
@@ -975,9 +1244,13 @@
 
     function logoutUser() {
       if (activeStudentDeviceListener) { activeStudentDeviceListener.off(); activeStudentDeviceListener = null; }
+      if (activeAdminAlertListener) { activeAdminAlertListener.off(); activeAdminAlertListener = null; }
       loggedInStudent = null;
+      isAdminLoggedIn = false;
       localStorage.removeItem("GSSS_SAVED_STUDENT_ID");
       localStorage.removeItem("GSSS_SAVED_DEVICE_TOKEN");
+      localStorage.removeItem("GSSS_ADMIN_LOGGED_IN");
+
       document.getElementById("adminDashboardView").classList.add("hidden");
       document.getElementById("studentDashboardView").classList.add("hidden");
       document.getElementById("publicAuthView").classList.remove("hidden");
@@ -1293,7 +1566,8 @@
       const wrap = document.getElementById("pdfPrintWrapper");
       const area = document.getElementById("pdfPrintArea");
       wrap.classList.remove("hidden");
-area.innerHTML = `
+
+      area.innerHTML = `
         <div style="border:3px solid #1e3a8a;padding:22px;min-height:1040px;font-family:Arial,sans-serif;position:relative;">
           <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:3px double #1e3a8a;padding-bottom:12px;">
             <img src="${SCHOOL_INFO.logo}" crossorigin="anonymous" style="width:80px;height:80px;" />
@@ -1376,7 +1650,514 @@ area.innerHTML = `
   </script>
 
   <!-- ========================================================= -->
-  <!-- SCRIPT PART 3: PHASE 2 (ATTENDANCE, HW, PYQ, NOTIFS, ID)  -->
+  <!-- SCRIPT PART 3: PHASE 3 (RESULTS, ANNUAL REPORT & ADMIT)   -->
+  <!-- ========================================================= -->
+  <script>
+    function switchResultMode(mode) {
+      const isDaily = mode === "DAILY";
+      document.getElementById("dailyTestAdminBox").classList.toggle("hidden", !isDaily);
+      document.getElementById("termExamAdminBox").classList.toggle("hidden", isDaily);
+      document.getElementById("resSubTab_DAILY").className = isDaily ? "px-3 py-1.5 rounded-lg text-xs font-extrabold bg-emerald-600 text-white shadow" : "px-3 py-1.5 rounded-lg text-xs font-extrabold text-slate-700";
+      document.getElementById("resSubTab_TERM").className = !isDaily ? "px-3 py-1.5 rounded-lg text-xs font-extrabold bg-purple-700 text-white shadow" : "px-3 py-1.5 rounded-lg text-xs font-extrabold text-slate-700";
+      if (isDaily) loadDailyTestMarksTable();
+      else loadTermExamMarksTable();
+    }
+
+    function loadDailyTestMarksTable() {
+      const cls = document.getElementById("dt_class")?.value;
+      const tbody = document.getElementById("dailyTestEntryBody");
+      if (!tbody || !cls) return;
+      const list = Object.values(allStudents).filter(s => s.status !== "LEFT" && s.currentClass === cls);
+      if (!list.length) {
+        tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-400 font-bold">No active students in ${cls}.</td></tr>`;
+        return;
+      }
+      tbody.innerHTML = list.map(s => `
+        <tr>
+          <td class="p-2.5 font-extrabold text-blue-700">${s.masterId}</td>
+          <td class="p-2.5 font-bold">${s.studentName}</td>
+          <td class="p-2.5 text-slate-500">${s.fatherName}</td>
+          <td class="p-2.5">
+            <input type="text" id="dtMark_${s.masterId}" placeholder="Marks or AB" class="w-full px-3 py-1.5 border rounded-lg text-xs font-extrabold bg-slate-50 focus:bg-white" />
+          </td>
+        </tr>
+      `).join("");
+    }
+
+    async function saveDailyTestResult() {
+      const cls = document.getElementById("dt_class").value;
+      const date = document.getElementById("dt_date").value;
+      const subject = document.getElementById("dt_subject").value.trim();
+      const maxMarks = Number(document.getElementById("dt_maxMarks").value) || 20;
+      if (!subject || !date) {
+        await showCustomAlert("Please enter Subject/Topic and Date for the Daily Test.", "Missing Info", "DANGER");
+        return;
+      }
+
+      const list = Object.values(allStudents).filter(s => s.status !== "LEFT" && s.currentClass === cls);
+      if (!list.length) return;
+
+      const marksMap = {};
+      list.forEach(s => {
+        const val = document.getElementById(`dtMark_${s.masterId}`)?.value.trim();
+        if (val !== undefined && val !== "") {
+          marksMap[s.masterId] = val.toUpperCase() === "AB" ? "AB" : Number(val);
+        }
+      });
+
+      if (!Object.keys(marksMap).length) {
+        await showCustomAlert("Please enter marks for at least one student.", "No Marks Entered", "DANGER");
+        return;
+      }
+
+      const testId = `DT_${Date.now()}`;
+      await db.ref(`dailyTests/${testId}`).set({
+        testId, targetClass: cls, date, subject, maxMarks, marks: marksMap, createdAt: new Date().toISOString()
+      });
+
+      // Mark Daily Test Task Completed in Red Alert Monitor
+      await db.ref("adminTasks/DAILY_TEST_UPLOAD").set({ title: "Upload Daily Test Results", status: "COMPLETED" });
+
+      // Send Vibrating Notification to that class
+      const nId = `NOTIF_${Date.now()}`;
+      await db.ref(`notifications/${nId}`).set({
+        id: nId, targetType: "CLASS", targetValue: cls,
+        title: `Daily Test Result Out: ${subject}`,
+        message: `Result for ${subject} (Max Marks: ${maxMarks}) held on ${date} is now live! Check your Rank & Score in Daily Test Portal.`,
+        createdAt: new Date().toISOString()
+      });
+
+      document.getElementById("dt_subject").value = "";
+      await showCustomAlert(`Daily Test Result for ${cls} (${subject}) published with Auto-Rank & Vibrating Alert!`, "Result Live", "SUCCESS");
+    }
+
+    function renderPublishedDailyTests() {
+      const box = document.getElementById("publishedDailyTestsList");
+      if (!box) return;
+      const list = Object.values(allDailyTests).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      box.innerHTML = list.map(t => `
+        <div class="p-2.5 border rounded-xl bg-slate-50 flex justify-between items-center text-xs">
+          <div><span class="font-extrabold text-emerald-700">[${t.targetClass} • ${t.date}]</span> <strong>${t.subject}</strong> (Max: ${t.maxMarks})</div>
+          <button type="button" onclick="db.ref('dailyTests/${t.testId}').remove()" class="text-rose-600 font-bold px-2">Delete</button>
+        </div>
+      `).join("") || `<p class="text-xs text-slate-400">No daily tests uploaded yet.</p>`;
+    }
+
+    // Half-Yearly & Yearly Term Marks Engine
+    function loadTermExamMarksTable() {
+      const term = document.getElementById("term_examType")?.value;
+      const cls = document.getElementById("term_class")?.value;
+      const tbody = document.getElementById("termExamEntryBody");
+      if (!tbody || !term || !cls) return;
+
+      const list = Object.values(allStudents).filter(s => s.status !== "LEFT" && s.currentClass === cls);
+      if (!list.length) {
+        tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-slate-400 font-bold">No active students in ${cls}.</td></tr>`;
+        return;
+      }
+
+      const existingTermClass = (allTermMarks[term] && allTermMarks[term][cls]) ? allTermMarks[term][cls] : {};
+      tbody.innerHTML = list.map(s => {
+        const rec = existingTermClass[s.masterId] || {};
+        return `
+          <tr>
+            <td class="p-2 font-bold">${s.studentName}<br/><span class="text-[10px] text-blue-700 font-extrabold">${s.masterId}</span></td>
+            <td class="p-1.5"><input type="number" id="tm_${s.masterId}_hindi" value="${rec.hindi ?? ''}" placeholder="0-100" class="w-16 px-2 py-1 border rounded text-xs font-bold" /></td>
+            <td class="p-1.5"><input type="number" id="tm_${s.masterId}_english" value="${rec.english ?? ''}" placeholder="0-100" class="w-16 px-2 py-1 border rounded text-xs font-bold" /></td>
+            <td class="p-1.5"><input type="number" id="tm_${s.masterId}_maths" value="${rec.maths ?? ''}" placeholder="0-100" class="w-16 px-2 py-1 border rounded text-xs font-bold" /></td>
+            <td class="p-1.5"><input type="number" id="tm_${s.masterId}_science" value="${rec.science ?? ''}" placeholder="0-100" class="w-16 px-2 py-1 border rounded text-xs font-bold" /></td>
+            <td class="p-1.5"><input type="number" id="tm_${s.masterId}_sst" value="${rec.sst ?? ''}" placeholder="0-100" class="w-16 px-2 py-1 border rounded text-xs font-bold" /></td>
+            <td class="p-1.5"><input type="number" id="tm_${s.masterId}_third" value="${rec.third ?? ''}" placeholder="0-100" class="w-16 px-2 py-1 border rounded text-xs font-bold" /></td>
+            <td class="p-1.5 text-right">
+              <button type="button" onclick="generateStudentAnnualReportPDF('${s.masterId}')" class="bg-emerald-600 text-white px-2.5 py-1 rounded text-[11px] font-bold">Report PDF</button>
+            </td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    async function saveTermExamMarks() {
+      const term = document.getElementById("term_examType").value;
+      const cls = document.getElementById("term_class").value;
+      const maxPerSub = Number(document.getElementById("term_maxPerSubject").value) || 100;
+      const list = Object.values(allStudents).filter(s => s.status !== "LEFT" && s.currentClass === cls);
+      if (!list.length) return;
+
+      const batchData = {};
+      list.forEach(s => {
+        const hindi = Number(document.getElementById(`tm_${s.masterId}_hindi`)?.value || 0);
+        const english = Number(document.getElementById(`tm_${s.masterId}_english`)?.value || 0);
+        const maths = Number(document.getElementById(`tm_${s.masterId}_maths`)?.value || 0);
+        const science = Number(document.getElementById(`tm_${s.masterId}_science`)?.value || 0);
+        const sst = Number(document.getElementById(`tm_${s.masterId}_sst`)?.value || 0);
+        const third = Number(document.getElementById(`tm_${s.masterId}_third`)?.value || 0);
+        const total = hindi + english + maths + science + sst + third;
+        batchData[s.masterId] = {
+          hindi, english, maths, science, sst, third,
+          maxPerSub, totalObtained: total, totalMax: maxPerSub * 6,
+          updatedAt: new Date().toLocaleDateString("en-IN")
+        };
+      });
+
+      await db.ref(`termMarks/${term}/${cls}`).set(batchData);
+      if (term === "HALF_YEARLY") {
+        await db.ref("adminTasks/HALF_YEARLY_UPLOAD").set({ title: "Upload Half-Yearly Exam Marks", status: "COMPLETED" });
+      }
+
+      const nId = `NOTIF_${Date.now()}`;
+      await db.ref(`notifications/${nId}`).set({
+        id: nId, targetType: "CLASS", targetValue: cls,
+        title: `${term === "HALF_YEARLY" ? "Half-Yearly" : "Annual"} Exam Result Declared!`,
+        message: `Official marksheet for ${cls} has been published. Open the Result Portal to view marks & download your Signed Report Card PDF.`,
+        createdAt: new Date().toISOString()
+      });
+
+      await showCustomAlert(`${term === "HALF_YEARLY" ? "Half-Yearly" : "Yearly"} Exam Result saved & published for ${cls}!`, "Result Published", "SUCCESS");
+    }
+
+    // Helper: Calculate Student Combined Annual Summary & Rank
+    function calculateStudentAnnualReportData(stu) {
+      const cls = stu.currentClass;
+      // 1. Daily Tests Average for this Student
+      const classDailyTests = Object.values(allDailyTests).filter(t => t.targetClass === cls && t.marks && t.marks[stu.masterId] !== undefined);
+      let dtObtained = 0, dtMax = 0;
+      classDailyTests.forEach(t => {
+        const m = t.marks[stu.masterId];
+        if (m !== "AB") dtObtained += Number(m);
+        dtMax += Number(t.maxMarks);
+      });
+
+      // 2. Half Yearly Marks
+      const hyRec = (allTermMarks["HALF_YEARLY"] && allTermMarks["HALF_YEARLY"][cls] && allTermMarks["HALF_YEARLY"][cls][stu.masterId]) || null;
+      // 3. Yearly Marks
+      const yrRec = (allTermMarks["YEARLY"] && allTermMarks["YEARLY"][cls] && allTermMarks["YEARLY"][cls][stu.masterId]) || null;
+
+      const subjects = [
+        { key: "hindi", label: "Hindi Compulsory" },
+        { key: "english", label: "English Compulsory" },
+        { key: "maths", label: "Mathematics / Opt-1" },
+        { key: "science", label: "Science / Opt-2" },
+        { key: "sst", label: "Social Science / Opt-3" },
+        { key: "third", label: "Sanskrit / Computer" }
+      ];
+
+      const subjectRows = subjects.map(sub => {
+        const hyM = hyRec ? Number(hyRec[sub.key] || 0) : 0;
+        const hyMax = hyRec ? Number(hyRec.maxPerSub || 100) : 100;
+        const yrM = yrRec ? Number(yrRec[sub.key] || 0) : 0;
+        const yrMax = yrRec ? Number(yrRec.maxPerSub || 100) : 100;
+        return {
+          label: sub.label,
+          hyM, hyMax, yrM, yrMax,
+          combinedObt: hyM + yrM,
+          combinedMax: (hyRec ? hyMax : 0) + (yrRec ? yrMax : 0) || 200
+        };
+      });
+
+      const termObt = (hyRec ? hyRec.totalObtained : 0) + (yrRec ? yrRec.totalObtained : 0);
+      const termMax = (hyRec ? hyRec.totalMax : 0) + (yrRec ? yrRec.totalMax : 0);
+      const grandObt = dtObtained + termObt;
+      const grandMax = dtMax + termMax;
+      const overallPct = grandMax > 0 ? ((grandObt / grandMax) * 100).toFixed(2) : "0.00";
+
+      let grade = "A+";
+      const pNum = Number(overallPct);
+      if (pNum >= 90) grade = "A+ (Outstanding)";
+      else if (pNum >= 75) grade = "A (First Division Distinction)";
+      else if (pNum >= 60) grade = "B (First Division)";
+      else if (pNum >= 45) grade = "C (Second Division)";
+      else if (pNum >= 33) grade = "D (Pass)";
+      else grade = "E (Needs Improvement)";
+
+      return {
+        dtCount: classDailyTests.length,
+        dtObtained, dtMax,
+        hyRec, yrRec,
+        subjectRows,
+        grandObt, grandMax,
+        overallPct,
+        grade,
+        resultStatus: pNum >= 33 || grandMax === 0 ? "PASSED" : "FAIL"
+      };
+    }
+
+    async function generateStudentAnnualReportPDF(masterIdOverride = null) {
+      const stu = masterIdOverride ? allStudents[masterIdOverride] : loggedInStudent;
+      if (!stu) return;
+      const rep = calculateStudentAnnualReportData(stu);
+
+      const wrap = document.getElementById("pdfPrintWrapper");
+      const area = document.getElementById("pdfPrintArea");
+      wrap.classList.remove("hidden");
+
+      const qr = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(`GSSS-REPORT|${stu.masterId}|${stu.studentName}|PCT:${rep.overallPct}%|${rep.resultStatus}`)}`;
+
+      area.innerHTML = `
+        <div style="border:4px double #1e3a8a;padding:24px;min-height:1050px;font-family:Arial,sans-serif;position:relative;">
+          <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid #1e3a8a;padding-bottom:12px;">
+            <img src="${SCHOOL_INFO.logo}" crossorigin="anonymous" style="width:82px;height:82px;" />
+            <div style="text-align:center;flex:1;">
+              <h1 style="margin:0;font-size:23px;color:#1e3a8a;font-weight:900;">GURUKUL SENIOR SECONDARY SCHOOL</h1>
+              <p style="margin:3px 0;font-size:12px;font-weight:bold;">BHADASAR ROAD, DHANKOLI (DIDWANA-KUCHAMAN) RAJASTHAN</p>
+              <p style="margin:2px 0;font-size:11px;">Director: R.C. Royal | Chairman: H.S. Royal | Helpline: 9772564359, 9887071127</p>
+              <span style="display:inline-block;margin-top:6px;background:#1e3a8a;color:#fff;padding:4px 16px;border-radius:14px;font-size:12px;font-weight:bold;">
+                OFFICIAL ANNUAL PROGRESS REPORT CARD (${CURRENT_SESSION.sessionString})
+              </span>
+            </div>
+            <img src="${stu.photoBase64}" style="width:88px;height:108px;object-fit:cover;border:2px solid #0f172a;border-radius:6px;" />
+          </div>
+
+          <table style="width:100%;border-collapse:collapse;font-size:12.5px;margin:14px 0;">
+            <tr>
+              <td style="border:1px solid #94a3b8;padding:7px;background:#f8fafc;font-weight:bold;">Student Name</td>
+              <td style="border:1px solid #94a3b8;padding:7px;font-weight:bold;">${stu.studentName}</td>
+              <td style="border:1px solid #94a3b8;padding:7px;background:#f8fafc;font-weight:bold;">Master ID & Roll No</td>
+              <td style="border:1px solid #94a3b8;padding:7px;font-weight:bold;color:#1d4ed8;">${stu.masterId} (Roll: ${stu.rollNumber || 'N/A'})</td>
+            </tr>
+            <tr>
+              <td style="border:1px solid #94a3b8;padding:7px;background:#f8fafc;font-weight:bold;">Father's Name</td>
+              <td style="border:1px solid #94a3b8;padding:7px;">${stu.fatherName}</td>
+              <td style="border:1px solid #94a3b8;padding:7px;background:#f8fafc;font-weight:bold;">Class & Stream</td>
+              <td style="border:1px solid #94a3b8;padding:7px;font-weight:bold;">${stu.currentClass} (${stu.stream || 'General'})</td>
+            </tr>
+            <tr>
+              <td style="border:1px solid #94a3b8;padding:7px;background:#f8fafc;font-weight:bold;">Mother's Name</td>
+              <td style="border:1px solid #94a3b8;padding:7px;">${stu.motherName}</td>
+              <td style="border:1px solid #94a3b8;padding:7px;background:#f8fafc;font-weight:bold;">Date of Birth</td>
+              <td style="border:1px solid #94a3b8;padding:7px;">${stu.dob}</td>
+            </tr>
+          </table>
+
+          <h4 style="margin:14px 0 6px 0;font-size:13px;color:#1e3a8a;text-transform:uppercase;">Part A: Subject-Wise Academic Performance</h4>
+          <table style="width:100%;border-collapse:collapse;font-size:12.5px;text-align:center;">
+            <thead style="background:#0f172a;color:#fff;">
+              <tr>
+                <th style="border:1px solid #475569;padding:8px;text-align:left;">Subject Name</th>
+                <th style="border:1px solid #475569;padding:8px;">Half-Yearly Marks</th>
+                <th style="border:1px solid #475569;padding:8px;">Annual Exam Marks</th>
+                <th style="border:1px solid #475569;padding:8px;">Combined Subject Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rep.subjectRows.map(r => `
+                <tr>
+                  <td style="border:1px solid #94a3b8;padding:8px;text-align:left;font-weight:bold;">${r.label}</td>
+                  <td style="border:1px solid #94a3b8;padding:8px;">${rep.hyRec ? `${r.hyM} / ${r.hyMax}` : "-"}</td>
+                  <td style="border:1px solid #94a3b8;padding:8px;">${rep.yrRec ? `${r.yrM} / ${r.yrMax}` : "-"}</td>
+                  <td style="border:1px solid #94a3b8;padding:8px;font-weight:bold;background:#f8fafc;">${r.combinedObt} / ${r.combinedMax}</td>
+                </tr>
+              `).join("")}
+              <tr style="background:#eff6ff;font-weight:bold;">
+                <td style="border:1px solid #94a3b8;padding:8px;text-align:left;">Daily Tests Cumulative (${rep.dtCount} Tests)</td>
+                <td style="border:1px solid #94a3b8;padding:8px;" colspan="2">Continuous Evaluation Marks</td>
+                <td style="border:1px solid #94a3b8;padding:8px;color:#1d4ed8;">${rep.dtObtained} / ${rep.dtMax}</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div style="display:flex;justify-content:space-between;background:#f0fdf4;border:2px solid #16a34a;padding:12px 16px;border-radius:10px;margin-top:16px;font-size:13px;font-weight:bold;">
+            <div>Grand Total: <span style="color:#15803d;">${rep.grandObt} / ${rep.grandMax}</span></div>
+            <div>Percentage: <span style="color:#1d4ed8;">${rep.overallPct}%</span></div>
+            <div>Grade: <span>${rep.grade}</span></div>
+            <div>Final Result: <span style="color:#15803d;">${rep.resultStatus}</span></div>
+          </div>
+
+          <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:65px;">
+            <div style="text-align:center;">
+              <img src="${qr}" crossorigin="anonymous" style="width:72px;height:72px;" />
+              <p style="font-size:10px;margin:4px 0 0 0;color:#64748b;">Scan to Verify Marksheet</p>
+            </div>
+            <div style="border:2px solid #1e3a8a;color:#1e3a8a;padding:6px 16px;border-radius:8px;font-weight:900;font-size:12px;">
+              VERIFIED DIGITAL REPORT CARD
+            </div>
+            <div style="text-align:center;">
+              <div style="font-family:cursive;font-size:22px;color:#1e3a8a;font-weight:bold;border-bottom:1px solid #000;padding:0 18px;">R. C. Royal</div>
+              <p style="font-size:11px;font-weight:bold;margin:4px 0 0 0;">R.C. Royal (Director)</p>
+              <p style="font-size:10px;margin:0;color:#64748b;">Gurukul Sr. Sec. School, Dhankoli</p>
+            </div>
+          </div>
+        </div>
+      `;
+
+      await html2pdf().set({ margin: 0, filename: `Annual_Report_${stu.masterId}.pdf`, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: "px", format: [794, 1122], orientation: "portrait" } }).from(area).save();
+      wrap.classList.add("hidden");
+    }
+
+    // =========================================================
+    // ADMIT CARD GENERATOR ENGINE (PHASE 3)
+    // =========================================================
+    function loadAdmitCardConfigForClass() {
+      const cls = document.getElementById("ac_class")?.value;
+      if (!cls) return;
+      const cfg = allAdmitConfigs[cls];
+      if (cfg) {
+        document.getElementById("ac_examTitle").value = cfg.examTitle || "Half-Yearly Examination";
+        document.getElementById("ac_shiftTime").value = cfg.shiftTime || "09:00 AM to 12:15 PM";
+        document.getElementById("ac_rollStart").value = cfg.rollStart || 1001;
+        document.getElementById("ac_timetableText").value = cfg.timetableText || "";
+      }
+      renderAdminAdmitCardStudentsList(cls);
+    }
+
+    function renderAdminAdmitCardStudentsList(cls) {
+      const box = document.getElementById("adminAdmitCardStudentList");
+      if (!box) return;
+      const list = Object.values(allStudents).filter(s => s.status !== "LEFT" && s.currentClass === cls);
+      if (!list.length) {
+        box.innerHTML = `<p class="text-xs text-slate-400 text-center py-6 font-bold">No active students in ${cls}.</p>`;
+        return;
+      }
+      box.innerHTML = list.map(s => `
+        <div class="p-2.5 rounded-xl bg-white border flex items-center justify-between text-xs">
+          <div>
+            <span class="font-extrabold text-purple-700">Roll: ${s.rollNumber || 'Not Assigned'}</span> • <strong>${s.studentName}</strong>
+            <div class="text-[10px] text-slate-400">ID: ${s.masterId} | Father: ${s.fatherName}</div>
+          </div>
+          <button type="button" onclick="generateStudentAdmitCardPDF('${s.masterId}')" class="bg-purple-700 text-white px-3 py-1.5 rounded-lg font-bold">
+            <i class="fa-solid fa-file-pdf"></i> Admit Card PDF
+          </button>
+        </div>
+      `).join("");
+    }
+
+    async function saveAndPublishAdmitCards() {
+      const cls = document.getElementById("ac_class").value;
+      const examTitle = document.getElementById("ac_examTitle").value.trim();
+      const shiftTime = document.getElementById("ac_shiftTime").value.trim();
+      const rollStart = Number(document.getElementById("ac_rollStart").value) || 1001;
+      const timetableText = document.getElementById("ac_timetableText").value.trim();
+
+      if (!examTitle || !timetableText) {
+        await showCustomAlert("Please enter Exam Title and Subject Date Sheet.", "Missing Details", "DANGER");
+        return;
+      }
+
+      await db.ref(`admitConfigs/${cls}`).set({
+        cls, examTitle, shiftTime, rollStart, timetableText, updatedAt: new Date().toLocaleDateString("en-IN")
+      });
+
+      const list = Object.values(allStudents).filter(s => s.status !== "LEFT" && s.currentClass === cls);
+      for (let i = 0; i < list.length; i++) {
+        const stu = list[i];
+        await db.ref(`students/${stu.masterId}/rollNumber`).set(String(rollStart + i));
+      }
+
+      const nId = `NOTIF_${Date.now()}`;
+      await db.ref(`notifications/${nId}`).set({
+        id: nId, targetType: "CLASS", targetValue: cls,
+        title: `Admit Card Released: ${examTitle}`,
+        message: `Your official Exam Admit Card & Date Sheet for ${examTitle} is now available for download in the Admit Card Portal.`,
+        createdAt: new Date().toISOString()
+      });
+
+      renderAdminAdmitCardStudentsList(cls);
+      await showCustomAlert(`Roll numbers assigned and Official Admit Cards published for ${cls}!`, "Admit Cards Live", "SUCCESS");
+    }
+
+    async function generateStudentAdmitCardPDF(masterIdOverride = null) {
+      const stu = masterIdOverride ? allStudents[masterIdOverride] : loggedInStudent;
+      if (!stu) return;
+      const cfg = allAdmitConfigs[stu.currentClass] || {
+        examTitle: "School Examination",
+        shiftTime: "09:00 AM to 12:15 PM",
+        timetableText: "Date Sheet will be announced by School Office"
+      };
+
+      const rows = (cfg.timetableText || "").split("\n").map(line => line.split("|").map(x => x.trim())).filter(r => r.length >= 2);
+      const wrap = document.getElementById("pdfPrintWrapper");
+      const area = document.getElementById("pdfPrintArea");
+      wrap.classList.remove("hidden");
+
+      area.innerHTML = `
+        <div style="border:3px solid #1e3a8a;padding:24px;min-height:1040px;font-family:Arial,sans-serif;position:relative;">
+          <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:3px double #1e3a8a;padding-bottom:12px;">
+            <img src="${SCHOOL_INFO.logo}" crossorigin="anonymous" style="width:80px;height:80px;" />
+            <div style="text-align:center;flex:1;">
+              <h1 style="margin:0;font-size:22px;color:#1e3a8a;font-weight:900;">GURUKUL SENIOR SECONDARY SCHOOL</h1>
+              <p style="margin:3px 0;font-size:12px;font-weight:bold;">BHADASAR ROAD, DHANKOLI (DIDWANA-KUCHAMAN) RAJASTHAN</p>
+              <p style="margin:2px 0;font-size:11px;">Director: R.C. Royal | Chairman: H.S. Royal | Helpline: 9772564359, 9887071127</p>
+              <span style="display:inline-block;margin-top:6px;background:#7e22ce;color:#fff;padding:4px 16px;border-radius:14px;font-size:12px;font-weight:bold;">
+                OFFICIAL EXAMINATION ADMIT CARD — ${cfg.examTitle.toUpperCase()} (${CURRENT_SESSION.sessionString})
+              </span>
+            </div>
+            <img src="${stu.photoBase64}" style="width:90px;height:110px;object-fit:cover;border:2px solid #000;border-radius:6px;" />
+          </div>
+
+          <table style="width:100%;border-collapse:collapse;font-size:13px;margin:14px 0;">
+            <tr>
+              <td style="border:1px solid #94a3b8;padding:8px;background:#f8fafc;font-weight:bold;width:25%;">Roll Number</td>
+              <td style="border:1px solid #94a3b8;padding:8px;font-weight:900;font-size:15px;color:#7e22ce;width:25%;">${stu.rollNumber || '1001'}</td>
+              <td style="border:1px solid #94a3b8;padding:8px;background:#f8fafc;font-weight:bold;width:25%;">Master Student ID</td>
+              <td style="border:1px solid #94a3b8;padding:8px;font-weight:bold;color:#1d4ed8;width:25%;">${stu.masterId}</td>
+            </tr>
+            <tr>
+              <td style="border:1px solid #94a3b8;padding:8px;background:#f8fafc;font-weight:bold;">Candidate Name</td>
+              <td style="border:1px solid #94a3b8;padding:8px;font-weight:bold;">${stu.studentName}</td>
+              <td style="border:1px solid #94a3b8;padding:8px;background:#f8fafc;font-weight:bold;">Class & Stream</td>
+              <td style="border:1px solid #94a3b8;padding:8px;font-weight:bold;">${stu.currentClass} (${stu.stream || 'General'})</td>
+            </tr>
+            <tr>
+              <td style="border:1px solid #94a3b8;padding:8px;background:#f8fafc;font-weight:bold;">Father's Name</td>
+              <td style="border:1px solid #94a3b8;padding:8px;">${stu.fatherName}</td>
+              <td style="border:1px solid #94a3b8;padding:8px;background:#f8fafc;font-weight:bold;">Mother's Name</td>
+              <td style="border:1px solid #94a3b8;padding:8px;">${stu.motherName}</td>
+            </tr>
+            <tr>
+              <td style="border:1px solid #94a3b8;padding:8px;background:#f8fafc;font-weight:bold;">Examination Center</td>
+              <td style="border:1px solid #94a3b8;padding:8px;font-weight:bold;" colspan="3">Gurukul Senior Secondary School, Bhadasar Road, Dhankoli | Shift: ${cfg.shiftTime}</td>
+            </tr>
+          </table>
+
+          <h4 style="margin:14px 0 6px 0;font-size:13px;color:#1e3a8a;text-transform:uppercase;">Official Examination Time-Table (${stu.currentClass})</h4>
+          <table style="width:100%;border-collapse:collapse;font-size:12.5px;">
+            <thead style="background:#0f172a;color:#fff;">
+              <tr>
+                <th style="border:1px solid #475569;padding:8px;text-align:left;">Exam Date</th>
+                <th style="border:1px solid #475569;padding:8px;text-align:left;">Subject Name</th>
+                <th style="border:1px solid #475569;padding:8px;text-align:left;">Day / Shift</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rows.map(r => `
+                <tr>
+                  <td style="border:1px solid #94a3b8;padding:8px;font-weight:bold;">${r[0] || ''}</td>
+                  <td style="border:1px solid #94a3b8;padding:8px;font-weight:bold;color:#1e3a8a;">${r[1] || ''}</td>
+                  <td style="border:1px solid #94a3b8;padding:8px;">${r[2] || cfg.shiftTime}</td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+
+          <div style="margin-top:16px;padding:10px;background:#f8fafc;border:1px solid #cbd5e1;font-size:11px;line-height:1.6;">
+            <strong>Important Exam Instructions:</strong><br/>
+            1. Candidates must report to the Examination Center at least 30 minutes before the scheduled time.<br/>
+            2. Bringing this printed Admit Card along with School Identity Card is mandatory.<br/>
+            3. Mobile phones, smartwatches, calculators, or any unfair means are strictly prohibited inside the exam hall.
+          </div>
+
+          <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:65px;">
+            <div style="text-align:center;">
+              <img src="${stu.signBase64}" style="width:120px;height:42px;object-fit:contain;border-bottom:1px solid #000;" />
+              <p style="font-size:11px;font-weight:bold;margin:4px 0 0 0;">Candidate Signature</p>
+            </div>
+            <div style="border:2px solid #15803d;color:#15803d;padding:6px 14px;border-radius:8px;font-weight:900;font-size:11px;">
+              VALID FOR EXAMINATION ENTRY
+            </div>
+            <div style="text-align:center;">
+              <div style="font-family:cursive;font-size:22px;color:#1e3a8a;font-weight:bold;border-bottom:1px solid #000;padding:0 18px;">R. C. Royal</div>
+              <p style="font-size:11px;font-weight:bold;margin:4px 0 0 0;">R.C. Royal (Director)</p>
+            </div>
+          </div>
+        </div>
+      `;
+
+      await html2pdf().set({ margin: 0, filename: `Admit_Card_${stu.masterId}.pdf`, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: "px", format: [794, 1122], orientation: "portrait" } }).from(area).save();
+      wrap.classList.add("hidden");
+    }
+  </script>
+
+   <!-- ========================================================= -->
+  <!-- SCRIPT PART 4: ATTENDANCE, HW, PYQ, NOTIFS & STUDENT VIEW -->
   <!-- ========================================================= -->
   <script>
     let tempAttendanceMap = {};
@@ -1534,6 +2315,7 @@ area.innerHTML = `
       knownNotifCount = my.length;
     }
 
+    // Student Interactive Module Viewer (Phase 2 + Phase 3 Modules)
     async function openStudentModuleModal(modId) {
       if (!loggedInStudent) return;
       const stu = loggedInStudent;
@@ -1549,7 +2331,126 @@ area.innerHTML = `
       const titleEl = document.getElementById("stuModModalTitle");
       const bodyEl = document.getElementById("stuModModalBody");
 
-      if (modId === "ATTENDANCE") {
+      if (modId === "DAILY_TEST") {
+        titleEl.innerText = `Daily Test Results & Class Rank — ${stu.studentName}`;
+        const tests = Object.values(allDailyTests).filter(t => t.targetClass === stu.currentClass && t.marks && t.marks[stu.masterId] !== undefined).reverse();
+        if (!tests.length) {
+          bodyEl.innerHTML = `<p class="text-center text-xs text-slate-400 py-8 font-bold">No Daily Test results published for ${stu.currentClass} yet.</p>`;
+        } else {
+          bodyEl.innerHTML = tests.map(t => {
+            const myM = t.marks[stu.masterId];
+            // Compute Rank in Class
+            const scores = Object.values(t.marks).filter(v => v !== "AB").map(Number).sort((a, b) => b - a);
+            const rank = myM === "AB" ? "Absent" : `#${scores.indexOf(Number(myM)) + 1}`;
+            const pct = myM === "AB" ? "0%" : `${((Number(myM) / Number(t.maxMarks)) * 100).toFixed(1)}%`;
+            return `
+              <div class="p-4 border rounded-2xl bg-slate-50 flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <span class="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-800">${t.date}</span>
+                  <h4 class="font-extrabold text-sm text-slate-900 mt-1">${t.subject}</h4>
+                </div>
+                <div class="flex gap-3 text-center">
+                  <div class="px-3 py-1.5 bg-white border rounded-xl"><div class="text-[10px] text-slate-400 font-bold">Score</div><div class="text-sm font-black text-blue-700">${myM} / ${t.maxMarks}</div></div>
+                  <div class="px-3 py-1.5 bg-white border rounded-xl"><div class="text-[10px] text-slate-400 font-bold">Percentage</div><div class="text-sm font-black text-emerald-700">${pct}</div></div>
+                  <div class="px-3 py-1.5 bg-amber-50 border border-amber-200 rounded-xl"><div class="text-[10px] text-amber-700 font-bold">Class Rank</div><div class="text-sm font-black text-amber-900">${rank}</div></div>
+                </div>
+              </div>
+            `;
+          }).join("");
+        }
+        modal.classList.remove("hidden");
+
+      } else if (modId === "HALF_YEARLY") {
+        titleEl.innerText = `Half-Yearly Exam Result — ${stu.studentName}`;
+        const rec = (allTermMarks["HALF_YEARLY"] && allTermMarks["HALF_YEARLY"][stu.currentClass] && allTermMarks["HALF_YEARLY"][stu.currentClass][stu.masterId]) || null;
+        if (!rec) {
+          bodyEl.innerHTML = `<p class="text-center text-xs text-slate-400 py-8 font-bold">Half-Yearly Exam Result has not been uploaded for ${stu.currentClass} yet.</p>`;
+        } else {
+          const pct = ((rec.totalObtained / rec.totalMax) * 100).toFixed(2);
+          bodyEl.innerHTML = `
+            <div class="p-4 rounded-xl bg-purple-50 border border-purple-200 flex justify-between items-center">
+              <div><div class="text-xs font-bold text-purple-800">Total Marks Obtained</div><div class="text-xl font-black text-purple-950">${rec.totalObtained} / ${rec.totalMax}</div></div>
+              <div class="text-right"><div class="text-xs font-bold text-purple-800">Percentage</div><div class="text-xl font-black text-emerald-700">${pct}%</div></div>
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+              <div class="p-3 border rounded-xl bg-slate-50"><div class="text-xs text-slate-500">Hindi</div><div class="text-base font-black">${rec.hindi} / ${rec.maxPerSub}</div></div>
+              <div class="p-3 border rounded-xl bg-slate-50"><div class="text-xs text-slate-500">English</div><div class="text-base font-black">${rec.english} / ${rec.maxPerSub}</div></div>
+              <div class="p-3 border rounded-xl bg-slate-50"><div class="text-xs text-slate-500">Maths / Opt-1</div><div class="text-base font-black">${rec.maths} / ${rec.maxPerSub}</div></div>
+              <div class="p-3 border rounded-xl bg-slate-50"><div class="text-xs text-slate-500">Science / Opt-2</div><div class="text-base font-black">${rec.science} / ${rec.maxPerSub}</div></div>
+              <div class="p-3 border rounded-xl bg-slate-50"><div class="text-xs text-slate-500">SST / Opt-3</div><div class="text-base font-black">${rec.sst} / ${rec.maxPerSub}</div></div>
+              <div class="p-3 border rounded-xl bg-slate-50"><div class="text-xs text-slate-500">3rd Lang / Comp</div><div class="text-base font-black">${rec.third} / ${rec.maxPerSub}</div></div>
+            </div>
+          `;
+        }
+        modal.classList.remove("hidden");
+
+      } else if (modId === "YEARLY_RESULT") {
+        titleEl.innerText = `Annual Exam & Combined Report Card — ${stu.studentName}`;
+        const rep = calculateStudentAnnualReportData(stu);
+        bodyEl.innerHTML = `
+          <div class="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <div class="text-xs font-bold text-emerald-800">Combined Grand Total (Daily + Half-Yearly + Annual)</div>
+              <div class="text-xl font-black text-emerald-950">${rep.grandObt} / ${rep.grandMax} (${rep.overallPct}%)</div>
+              <div class="text-xs font-extrabold text-blue-800 mt-0.5">Grade: ${rep.grade} • Status: ${rep.resultStatus}</div>
+            </div>
+            <button type="button" onclick="generateStudentAnnualReportPDF()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold px-4 py-2.5 rounded-xl text-xs shadow flex items-center gap-1.5">
+              <i class="fa-solid fa-file-pdf"></i> Download Official Report Card PDF
+            </button>
+          </div>
+          <div class="overflow-x-auto border rounded-xl">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead class="bg-slate-900 text-white">
+                <tr><th class="p-2.5">Subject</th><th class="p-2.5">Half-Yearly</th><th class="p-2.5">Annual Exam</th><th class="p-2.5">Combined</th></tr>
+              </thead>
+              <tbody class="divide-y">
+                ${rep.subjectRows.map(r => `
+                  <tr>
+                    <td class="p-2.5 font-bold">${r.label}</td>
+                    <td class="p-2.5">${rep.hyRec ? `${r.hyM}/${r.hyMax}` : "-"}</td>
+                    <td class="p-2.5">${rep.yrRec ? `${r.yrM}/${r.yrMax}` : "-"}</td>
+                    <td class="p-2.5 font-extrabold text-blue-700">${r.combinedObt}/${r.combinedMax}</td>
+                  </tr>
+                `).join("")}
+              </tbody>
+            </table>
+          </div>
+        `;
+        modal.classList.remove("hidden");
+
+      } else if (modId === "ADMIT_CARD") {
+        titleEl.innerText = `Official Exam Admit Card — ${stu.studentName}`;
+        const cfg = allAdmitConfigs[stu.currentClass];
+        if (!cfg) {
+          bodyEl.innerHTML = `<p class="text-center text-xs text-slate-400 py-8 font-bold">Admit Card for ${stu.currentClass} has not been released by Admin yet.</p>`;
+        } else {
+          const rows = (cfg.timetableText || "").split("\n").map(l => l.split("|").map(x => x.trim())).filter(r => r.length >= 2);
+          bodyEl.innerHTML = `
+            <div class="p-4 rounded-2xl bg-purple-50 border border-purple-200 flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <span class="bg-purple-700 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full">${cfg.examTitle}</span>
+                <h4 class="font-extrabold text-base text-slate-900 mt-1">Roll Number: <span class="text-purple-700">${stu.rollNumber || '1001'}</span></h4>
+                <p class="text-xs text-slate-600">Shift: ${cfg.shiftTime} | Center: Gurukul Sr. Sec. School, Dhankoli</p>
+              </div>
+              <button type="button" onclick="generateStudentAdmitCardPDF()" class="bg-purple-700 hover:bg-purple-800 text-white font-extrabold px-4 py-2.5 rounded-xl text-xs shadow flex items-center gap-1.5">
+                <i class="fa-solid fa-download"></i> Download Signed Admit Card PDF
+              </button>
+            </div>
+            <div class="overflow-x-auto border rounded-xl">
+              <table class="w-full text-left border-collapse text-xs">
+                <thead class="bg-slate-900 text-white">
+                  <tr><th class="p-2.5">Date</th><th class="p-2.5">Subject</th><th class="p-2.5">Day / Shift</th></tr>
+                </thead>
+                <tbody class="divide-y">
+                  ${rows.map(r => `<tr><td class="p-2.5 font-bold">${r[0]}</td><td class="p-2.5 font-extrabold text-blue-800">${r[1]}</td><td class="p-2.5">${r[2] || cfg.shiftTime}</td></tr>`).join("")}
+                </tbody>
+              </table>
+            </div>
+          `;
+        }
+        modal.classList.remove("hidden");
+
+      } else if (modId === "ATTENDANCE") {
         titleEl.innerText = `Attendance Calendar — ${stu.studentName}`;
         let total = 0, p = 0, a = 0, l = 0;
         const rows = [];
@@ -1574,6 +2475,7 @@ area.innerHTML = `
           </div>
         `;
         modal.classList.remove("hidden");
+
       } else if (modId === "HOMEWORK_PYQ") {
         titleEl.innerText = `Homework & Study Notes (${stu.currentClass})`;
         const list = Object.values(allHomeworkAndPYQ).filter(x => x.category === "HOMEWORK" && (x.targetClass === "ALL" || x.targetClass === stu.currentClass)).reverse();
@@ -1586,6 +2488,7 @@ area.innerHTML = `
           </div>
         `).join("") || `<p class="text-center text-xs text-slate-400 py-6">No homework uploaded yet.</p>`;
         modal.classList.remove("hidden");
+
       } else if (modId === "PYQ_PAPERS") {
         titleEl.innerText = `PYQ Papers & Solutions (${stu.currentClass})`;
         const list = Object.values(allHomeworkAndPYQ).filter(x => x.category === "PYQ" && x.targetClass === stu.currentClass).reverse();
@@ -1599,6 +2502,7 @@ area.innerHTML = `
           </div>
         `).join("") || `<p class="text-center text-xs text-slate-400 py-6">No PYQ papers uploaded yet.</p>`;
         modal.classList.remove("hidden");
+
       } else if (modId === "NOTIFICATIONS") {
         titleEl.innerText = "School Notices & Personal Alerts";
         const my = getNotificationsForStudent(stu);
@@ -1610,8 +2514,9 @@ area.innerHTML = `
           </div>
         `).join("") || `<p class="text-center text-xs text-slate-400 py-6">No notifications found.</p>`;
         modal.classList.remove("hidden");
+
       } else {
-        await showCustomAlert(`Connected to Master ID: ${stu.masterId}\nThis module will be unlocked in Phase 3.`, modId, "INFO");
+        await showCustomAlert(`Connected to Master ID: ${stu.masterId}\nThis module will be unlocked in Phase 4 (Live CBT & Scholarship Exam).`, modId, "INFO");
       }
     }
 
@@ -1636,7 +2541,7 @@ area.innerHTML = `
               <h4 style="margin:8px 0 2px 0;font-size:17px;">${stu.studentName}</h4>
               <p style="margin:0 0 10px 0;font-size:12px;color:#1d4ed8;font-weight:bold;">ID: ${stu.masterId}</p>
               <div style="text-align:left;font-size:12px;line-height:1.8;">
-                <div><strong>Class:</strong> ${stu.currentClass}</div>
+                <div><strong>Class:</strong> ${stu.currentClass} (Roll: ${stu.rollNumber || 'N/A'})</div>
                 <div><strong>Father:</strong> ${stu.fatherName}</div>
                 <div><strong>DOB:</strong> ${stu.dob}</div>
                 <div><strong>Mobile:</strong> ${stu.mobile}</div>
@@ -1679,7 +2584,7 @@ area.innerHTML = `
       const tbody = document.getElementById("masterStudentTableBody");
       if (!tbody) return;
       const q = (document.getElementById("searchStudentInput")?.value || "").toLowerCase();
-      const list = Object.values(allStudents).filter(s => s.status !== "LEFT" && (s.studentName.toLowerCase().includes(q) || s.masterId.toLowerCase().includes(q)));
+      const list = Object.values(allStudents).filter(s => s.status !== "LEFT" && (s.studentName.toLowerCase().includes(q) || s.masterId.toLowerCase().includes(q) || s.currentClass.toLowerCase().includes(q)));
       if (!list.length) {
         tbody.innerHTML = `<tr><td colspan="6" class="p-5 text-center text-slate-400 font-bold">No Enrolled Students Found.</td></tr>`;
         return;
@@ -1688,12 +2593,14 @@ area.innerHTML = `
         <tr>
           <td class="p-2.5 font-extrabold text-blue-700">${s.masterId}<br/><span class="text-[10px] text-rose-600">Pass: ${s.password}</span></td>
           <td class="p-2.5 font-bold">${s.studentName}</td>
-          <td class="p-2.5 font-semibold">${s.currentClass}</td>
+          <td class="p-2.5 font-semibold">${s.currentClass}<br/><span class="text-[10px] text-purple-700 font-bold">Roll: ${s.rollNumber || 'N/A'}</span></td>
           <td class="p-2.5">${s.fatherName}<br/><span class="text-[10px] text-slate-500">${s.mobile}</span></td>
           <td class="p-2.5"><button type="button" onclick="manageStudentSpecificLocks('${s.masterId}')" class="bg-amber-100 text-amber-900 px-2.5 py-1 rounded text-xs font-bold">Locks (${Object.values(s.individualLocks||{}).filter(Boolean).length})</button></td>
           <td class="p-2.5 text-right space-x-1">
-            <button type="button" onclick="generateStudentDigitalIdCardPDF('${s.masterId}')" class="bg-blue-700 text-white px-2.5 py-1 rounded text-xs font-bold">ID Card</button>
-            <button type="button" onclick="generateSignedAdmissionPDF('${s.masterId}',true)" class="bg-slate-800 text-amber-300 px-2.5 py-1 rounded text-xs font-bold">Form</button>
+            <button type="button" onclick="generateStudentDigitalIdCardPDF('${s.masterId}')" class="bg-blue-700 text-white px-2 py-1 rounded text-[11px] font-bold">ID</button>
+            <button type="button" onclick="generateStudentAdmitCardPDF('${s.masterId}')" class="bg-purple-700 text-white px-2 py-1 rounded text-[11px] font-bold">Admit</button>
+            <button type="button" onclick="generateStudentAnnualReportPDF('${s.masterId}')" class="bg-emerald-600 text-white px-2 py-1 rounded text-[11px] font-bold">Report</button>
+            <button type="button" onclick="generateSignedAdmissionPDF('${s.masterId}',true)" class="bg-slate-800 text-amber-300 px-2 py-1 rounded text-[11px] font-bold">Form</button>
           </td>
         </tr>
       `).join("");
@@ -1714,9 +2621,9 @@ area.innerHTML = `
 
     function renderStudentDashboard(stu) {
       document.getElementById("stuDashPhoto").src = stu.photoBase64 || "https://via.placeholder.com/100";
-      document.getElementById("stuDashMasterId").innerText = stu.masterId;
+      document.getElementById("stuDashMasterId").innerText = `${stu.masterId} ${stu.rollNumber ? `• Roll: ${stu.rollNumber}` : ""}`;
       document.getElementById("stuDashName").innerText = stu.studentName;
-      document.getElementById("stuDashMeta").innerText = `${stu.currentClass} | Father: ${stu.fatherName}`;
+      document.getElementById("stuDashMeta").innerText = `${stu.currentClass} (${stu.stream || 'General'}) | Father: ${stu.fatherName}`;
 
       document.getElementById("studentModulesGrid").innerHTML = ALL_MODULES.map(m => {
         const gLock = globalPortalLocks[m.id] || "OPEN";
@@ -1826,8 +2733,10 @@ area.innerHTML = `
     function switchAdminTab(tabId) {
       document.querySelectorAll(".admin-tab-pane").forEach(el => el.classList.add("hidden"));
       document.getElementById(tabId).classList.remove("hidden");
-      document.querySelectorAll(".admin-tab-btn").forEach(b => b.className = "admin-tab-btn text-slate-600 hover:bg-slate-100 px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap flex items-center gap-1.5");
-      document.getElementById(`btn_${tabId}`).className = "admin-tab-btn bg-blue-700 text-white px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap flex items-center gap-1.5 shadow";
+      document.querySelectorAll(".admin-grid-card").forEach(b => b.classList.remove("active-card"));
+      document.getElementById(`btn_${tabId}`)?.classList.add("active-card");
+      if (tabId === "tabResultsAdmin") { loadDailyTestMarksTable(); loadTermExamMarksTable(); }
+      if (tabId === "tabAdmitCardAdmin") loadAdmitCardConfigForClass();
     }
 
     function toggleLanguage() {
@@ -1840,10 +2749,24 @@ area.innerHTML = `
     db.ref("adminConfig/credentials").on("value", s => { if (s.val()) secretAdminCreds = s.val(); });
     db.ref("portalLocks").on("value", s => { globalPortalLocks = s.val() || {}; renderMasterLockControls(); if (loggedInStudent) renderStudentDashboard(loggedInStudent); });
     db.ref("admissions").on("value", s => { allAdmissions = s.val() || {}; renderAdminAdmissions(); updateAdminKPIs(); });
-    db.ref("students").on("value", s => { allStudents = s.val() || {}; renderMasterStudents(); updateAdminKPIs(); loadAdminAttendanceSheet(); });
+    db.ref("students").on("value", s => {
+      allStudents = s.val() || {};
+      renderMasterStudents();
+      updateAdminKPIs();
+      loadAdminAttendanceSheet();
+      loadDailyTestMarksTable();
+      loadTermExamMarksTable();
+      if (loggedInStudent && allStudents[loggedInStudent.masterId]) {
+        loggedInStudent = allStudents[loggedInStudent.masterId];
+        renderStudentDashboard(loggedInStudent);
+      }
+    });
     db.ref("attendance").on("value", s => { allAttendance = s.val() || {}; updateAdminKPIs(); loadAdminAttendanceSheet(); });
     db.ref("studyContent").on("value", s => { allHomeworkAndPYQ = s.val() || {}; renderAdminContentList(); updateAdminKPIs(); });
     db.ref("notifications").on("value", s => { allNotifications = s.val() || {}; renderAdminSentNotifications(); if (loggedInStudent) checkStudentRealtimeNotifications(); });
+    db.ref("dailyTests").on("value", s => { allDailyTests = s.val() || {}; renderPublishedDailyTests(); updateAdminKPIs(); });
+    db.ref("termMarks").on("value", s => { allTermMarks = s.val() || {}; loadTermExamMarksTable(); updateAdminKPIs(); });
+    db.ref("admitConfigs").on("value", s => { allAdmitConfigs = s.val() || {}; loadAdmitCardConfigForClass(); });
     db.ref("adminTasks").on("value", s => {
       adminTasksChecklist = Object.assign({
         DAILY_TEST_UPLOAD: { title: "Upload Daily Test Results", status: "COMPLETED" },
@@ -1857,15 +2780,25 @@ area.innerHTML = `
       document.getElementById("statPendingAdmissions").innerText = Object.values(allAdmissions).filter(a => a.status === "PENDING").length;
       const tKey = new Date().toISOString().split("T")[0];
       document.getElementById("statTodayAttendance").innerText = allAttendance[tKey] ? Object.keys(allAttendance[tKey]).length : 0;
-      document.getElementById("statTotalContent").innerText = Object.keys(allHomeworkAndPYQ).length;
+      const dtCount = Object.keys(allDailyTests).length;
+      const hyClasses = allTermMarks["HALF_YEARLY"] ? Object.keys(allTermMarks["HALF_YEARLY"]).length : 0;
+      const yrClasses = allTermMarks["YEARLY"] ? Object.keys(allTermMarks["YEARLY"]).length : 0;
+      document.getElementById("statPublishedResults").innerText = dtCount + hyClasses + yrClasses;
     }
 
-    // Auto-Login Saved Student & Confirm JS Ready Badge
+    // Auto-Login Saved Admin OR Saved Student on Page Load
     window.addEventListener("DOMContentLoaded", () => {
       const badge = document.getElementById("jsReadyBadge");
       badge.className = "bg-emerald-400 text-slate-950 text-[9px] font-extrabold px-2 py-0.5 rounded-full";
       badge.innerText = "● System Active";
 
+      // 1. Restore Persistent Admin Session if active
+      if (localStorage.getItem("GSSS_ADMIN_LOGGED_IN") === "true") {
+        startAdminSession();
+        return;
+      }
+
+      // 2. Otherwise Restore Persistent Student Session
       const savedId = localStorage.getItem("GSSS_SAVED_STUDENT_ID");
       const savedToken = localStorage.getItem("GSSS_SAVED_DEVICE_TOKEN");
       if (savedId && savedToken) {
@@ -1880,4 +2813,3 @@ area.innerHTML = `
   </script>
 </body>
 </html>
-      
