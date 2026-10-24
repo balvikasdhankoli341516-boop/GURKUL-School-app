@@ -11,10 +11,10 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <!-- html2pdf.js for Official Signed PDF Generation -->
+  <!-- html2pdf.js for Official Signed PDF & ID Card Generation -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
-  <!-- Firebase SDK (Compat for universal mobile/desktop/APK support) -->
+  <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 
@@ -37,7 +37,11 @@
       50% { box-shadow: 0 0 0 12px rgba(220, 38, 38, 0); }
     }
     .pulse-alert { animation: pulse-red 2s infinite; }
-    /* Printable PDF A4 Styling */
+    @keyframes popIn {
+      0% { transform: scale(0.92); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .modal-animate { animation: popIn 0.2s ease-out forwards; }
     #pdfPrintArea {
       width: 794px;
       min-height: 1122px;
@@ -51,11 +55,36 @@
 <body class="text-slate-800 min-h-screen flex flex-col">
 
   <!-- ========================================================= -->
-  <!-- TOP GLOBAL HEADER (Desktop + Mobile App Bar)              -->
+  <!-- CUSTOM PROFESSIONAL DIALOG MODAL (REPLACES ALERT/PROMPT)  -->
+  <!-- ========================================================= -->
+  <div id="customDialogOverlay" class="hidden fixed inset-0 z-[100] bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full overflow-hidden shadow-2xl border border-slate-200 modal-animate">
+      <div id="customDialogHeader" class="glass-header text-white p-4 flex items-center gap-3">
+        <img src="https://gsssdhankoli.github.io/Logo.png/logo.png" class="w-10 h-10 rounded-full bg-white p-0.5 border border-amber-400" />
+        <div class="flex-1">
+          <h4 id="customDialogTitle" class="font-extrabold text-sm sm:text-base">Gurukul Official Notification</h4>
+          <p class="text-[10px] text-blue-200">Gurukul Sr. Sec. School, Dhankoli</p>
+        </div>
+        <i id="customDialogIcon" class="fa-solid fa-circle-info text-xl text-amber-300"></i>
+      </div>
+      <div class="p-5 space-y-4">
+        <div id="customDialogMessage" class="text-xs sm:text-sm text-slate-700 font-semibold whitespace-pre-line leading-relaxed"></div>
+        <div id="customDialogInputWrapper" class="hidden">
+          <input type="text" id="customDialogInput" class="w-full px-3.5 py-2.5 border-2 border-blue-500 rounded-xl text-sm font-bold focus:outline-none" />
+        </div>
+        <div class="flex justify-end gap-2.5 pt-2 border-t border-slate-100">
+          <button id="customDialogCancelBtn" class="hidden px-4 py-2 rounded-xl border border-slate-300 text-slate-600 font-bold text-xs hover:bg-slate-100">Cancel</button>
+          <button id="customDialogOkBtn" class="bg-blue-700 hover:bg-blue-800 text-white font-extrabold px-5 py-2.5 rounded-xl text-xs shadow-md">OK, Continue</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- TOP GLOBAL HEADER                                         -->
   <!-- ========================================================= -->
   <header class="glass-header text-white sticky top-0 z-40 shadow-lg">
     <div class="max-w-7xl mx-auto px-3 sm:px-6 py-2.5 flex items-center justify-between gap-2">
-      <!-- School Brand -->
       <div class="flex items-center gap-3">
         <img src="https://gsssdhankoli.github.io/Logo.png/logo.png" alt="GSSS Logo" class="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-white p-0.5 object-contain shadow-md border-2 border-amber-400" onerror="this.src='https://via.placeholder.com/80?text=GSSS'" />
         <div>
@@ -67,22 +96,27 @@
         </div>
       </div>
 
-      <!-- Right Controls: Language Switcher + Helpline + Logout -->
       <div class="flex items-center gap-2">
-        <!-- Language Toggle (Primary English / Hindi) -->
+        <!-- Student Notification Bell (Visible when student logged in) -->
+        <button id="studentNotifBellBtn" onclick="openStudentModuleModal('NOTIFICATIONS')" class="hidden relative bg-white/15 hover:bg-white/25 border border-white/30 text-white p-2 rounded-lg transition">
+          <i class="fa-solid fa-bell text-amber-300 text-sm"></i>
+          <span id="unreadNotifCountBadge" class="hidden absolute -top-1.5 -right-1.5 bg-red-600 text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center border border-white">0</span>
+        </button>
+
+        <!-- Language Switcher -->
         <button onclick="toggleLanguage()" class="bg-white/15 hover:bg-white/25 border border-white/30 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition">
           <i class="fa-solid fa-language text-amber-300 text-sm"></i>
           <span id="langBtnText">EN | हिं</span>
         </button>
 
-        <!-- One-Click Helpline Button -->
-        <button onclick="openHelplineModal()" class="bg-emerald-500 hover:bg-emerald-600 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 shadow transition" title="One-Click Helpline">
+        <!-- One-Click Helpline -->
+        <button onclick="openHelplineModal()" class="bg-emerald-500 hover:bg-emerald-600 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 shadow transition">
           <i class="fa-solid fa-phone-volume"></i>
           <span class="hidden sm:inline" data-i18n="helpline">Helpline</span>
         </button>
 
-        <!-- Logout Button (Hidden when logged out) -->
-        <button id="logoutBtn" onclick="logoutUser()" class="hidden bg-rose-600 hover:bg-rose-700 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold items-center gap-1.5 shadow transition">
+        <!-- Logout Button -->
+        <button id="logoutBtn" onclick="logoutUser(false)" class="hidden bg-rose-600 hover:bg-rose-700 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold items-center gap-1.5 shadow transition">
           <i class="fa-solid fa-power-off"></i>
           <span class="hidden sm:inline" data-i18n="logout">Logout</span>
         </button>
@@ -91,35 +125,30 @@
   </header>
 
   <!-- ========================================================= -->
-  <!-- RED ALERT POPUP 1: 1 MAY ANNUAL PROMOTION MANDATORY POPUP -->
+  <!-- RED ALERT POPUP 1: 1st MAY ANNUAL PROMOTION               -->
   <!-- ========================================================= -->
   <div id="may1PromotionModal" class="hidden fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-3 overflow-y-auto">
-    <div class="bg-white rounded-2xl max-w-5xl w-full overflow-hidden shadow-2xl border-4 border-red-600 my-auto">
+    <div class="bg-white rounded-2xl max-w-5xl w-full overflow-hidden shadow-2xl border-4 border-red-600 my-auto modal-animate">
       <div class="red-alert-gradient text-white p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
         <div class="flex items-center gap-4">
           <img src="https://gsssdhankoli.github.io/Logo.png/logo.png" class="w-16 h-16 rounded-full bg-white p-1 border-2 border-yellow-300 shadow-lg pulse-alert" />
           <div>
             <span class="bg-yellow-400 text-red-950 text-xs font-black px-2.5 py-0.5 rounded uppercase tracking-wider">Mandatory Annual Action Required</span>
-            <h2 class="text-xl sm:text-2xl font-extrabold mt-1" data-i18n="may1_title">1st May — Annual Student Promotion & Status Update</h2>
-            <p class="text-xs sm:text-sm text-red-100" data-i18n="may1_desc">New session has started! Please update every student's status (Pass/Promote, Fail/Retain, or Left School) to unlock normal operations for this year.</p>
+            <h2 class="text-xl sm:text-2xl font-extrabold mt-1">1st May — Annual Student Promotion & Status Update</h2>
+            <p class="text-xs sm:text-sm text-red-100">Update every student's status (Pass/Promote, Fail/Retain, or Left School) to unlock normal operations for this year.</p>
           </div>
         </div>
-        <button id="closeMay1TestBtn" onclick="closeMay1ModalIfTest()" class="hidden bg-white/20 hover:bg-white/30 text-white text-xs font-bold px-3 py-1.5 rounded-lg">
+        <button id="closeMay1TestBtn" onclick="document.getElementById('may1PromotionModal').classList.add('hidden')" class="hidden bg-white/20 hover:bg-white/30 text-white text-xs font-bold px-3 py-1.5 rounded-lg">
           Close Preview
         </button>
       </div>
-
-      <div class="p-4 sm:p-6 max-h-[70vh] overflow-y-auto custom-scroll">
+      <div class="p-4 sm:p-6 max-h-[65vh] overflow-y-auto custom-scroll">
         <div class="flex flex-wrap items-center justify-between gap-2 mb-4 bg-red-50 border border-red-200 p-3 rounded-xl">
           <div class="text-xs sm:text-sm font-bold text-red-900">
-            <i class="fa-solid fa-triangle-exclamation text-red-600 mr-1"></i>
             Target Academic Session: <span id="promotionTargetSession" class="underline font-black"></span>
           </div>
-          <div class="flex gap-2">
-            <button onclick="markAllPromotionDecisions('PROMOTE')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg">Mark All Pass (Promote)</button>
-          </div>
+          <button onclick="markAllPromotionDecisions('PROMOTE')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg">Mark All Pass (Promote)</button>
         </div>
-
         <div class="overflow-x-auto border rounded-xl">
           <table class="w-full text-left border-collapse text-xs sm:text-sm">
             <thead class="bg-slate-900 text-white">
@@ -128,16 +157,15 @@
                 <th class="p-3">Student Name</th>
                 <th class="p-3">Father's Name</th>
                 <th class="p-3">Current Class</th>
-                <th class="p-3 text-center">Select Action (Pass / Fail / Left)</th>
+                <th class="p-3 text-center">Select Action</th>
               </tr>
             </thead>
             <tbody id="may1StudentTableBody" class="divide-y divide-slate-200"></tbody>
           </table>
         </div>
       </div>
-
       <div class="bg-slate-100 px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-3 border-t">
-        <p class="text-xs text-slate-600 font-semibold">Once submitted, this popup will automatically close for 1 full year until next 1st May.</p>
+        <p class="text-xs text-slate-600 font-semibold">Once submitted, this popup will lock for 1 year until next 1st May.</p>
         <button onclick="executeAnnualPromotion()" class="w-full sm:w-auto bg-red-600 hover:bg-red-700 text-white font-extrabold px-6 py-3 rounded-xl shadow-lg flex items-center justify-center gap-2">
           <i class="fa-solid fa-check-double"></i> Confirm & Complete Annual Update
         </button>
@@ -149,11 +177,11 @@
   <!-- RED ALERT POPUP 2: PENDING ADMIN TASKS REMINDER           -->
   <!-- ========================================================= -->
   <div id="pendingTasksRedModal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl max-w-lg w-full overflow-hidden shadow-2xl border-4 border-red-600">
+    <div class="bg-white rounded-2xl max-w-lg w-full overflow-hidden shadow-2xl border-4 border-red-600 modal-animate">
       <div class="red-alert-gradient text-white p-5 text-center relative">
         <img src="https://gsssdhankoli.github.io/Logo.png/logo.png" class="w-16 h-16 mx-auto rounded-full bg-white p-1 border-2 border-yellow-300 shadow-lg mb-2 pulse-alert" />
         <span class="bg-yellow-400 text-red-950 text-[11px] font-black px-3 py-0.5 rounded-full uppercase">Admin Action Alert</span>
-        <h3 class="text-xl font-extrabold mt-2" data-i18n="pending_alert_title">Pending School Tasks Detected!</h3>
+        <h3 class="text-xl font-extrabold mt-2">Pending School Tasks Detected!</h3>
         <p class="text-xs text-red-100 mt-1">Gurukul Senior Secondary School, Dhankoli</p>
       </div>
       <div class="p-5 space-y-2.5 max-h-72 overflow-y-auto" id="pendingTasksListContainer"></div>
@@ -171,24 +199,22 @@
   <main class="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 py-5">
 
     <!-- ======================================================= -->
-    <!-- VIEW 1: PUBLIC LANDING & LOGIN PORTAL                   -->
+    <!-- VIEW 1: PUBLIC LANDING & STUDENT LOGIN (STEALTH ADMIN)  -->
     <!-- ======================================================= -->
     <section id="publicAuthView" class="space-y-6">
-      <!-- Top Hero Banner -->
       <div class="bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 rounded-2xl p-5 sm:p-8 text-white shadow-xl relative overflow-hidden">
         <div class="grid md:grid-cols-3 gap-6 items-center relative z-10">
           <div class="md:col-span-2 space-y-3">
             <div class="inline-flex items-center gap-2 bg-amber-400/20 border border-amber-400/40 text-amber-300 text-xs font-bold px-3 py-1 rounded-full">
               <i class="fa-solid fa-star"></i>
-              <span data-i18n="hero_badge">Official Digital Campus & ERP Portal</span>
+              <span data-i18n="hero_badge">Official Digital Campus & Student App</span>
             </div>
             <h2 class="text-2xl sm:text-4xl font-extrabold leading-tight" data-i18n="hero_heading">
               Gurukul Senior Secondary School, Dhankoli
             </h2>
             <p class="text-xs sm:text-sm text-blue-100 leading-relaxed" data-i18n="hero_desc">
-              All-in-One Smart Portal for Online Admissions, Live CBT Exams, Results, Attendance, Scholarship Exams, Digital Admit Cards & Fee Management.
+              All-in-One Smart Portal for Online Admissions, Live CBT Exams, Results, Attendance, Homework, PYQ Solutions, Scholarship Exams & Fee Management.
             </p>
-            <!-- Quick Public Action Buttons -->
             <div class="flex flex-wrap gap-3 pt-2">
               <button onclick="openPublicModal('admissionFormModal')" class="bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold px-5 py-3 rounded-xl text-xs sm:text-sm shadow-lg flex items-center gap-2 transition transform hover:-translate-y-0.5">
                 <i class="fa-solid fa-user-plus"></i>
@@ -201,27 +227,28 @@
             </div>
           </div>
 
-         <!-- Login Card -->
+          <!-- Unified Student Login Box (Admin Login Hidden Inside) -->
           <div class="bg-white text-slate-800 rounded-2xl p-5 shadow-2xl border border-slate-100">
-            <div class="flex rounded-xl bg-slate-100 p-1 mb-4">
-              <button id="tabStudentLogin" onclick="switchLoginRole('STUDENT')" class="flex-1 py-2 text-xs font-extrabold rounded-lg bg-blue-700 text-white shadow transition" data-i18n="student_login">
-                Student / Parent
-              </button>
-              <button id="tabAdminLogin" onclick="switchLoginRole('ADMIN')" class="flex-1 py-2 text-xs font-extrabold rounded-lg text-slate-600 hover:text-slate-900 transition" data-i18n="admin_login">
-                Admin Login
-              </button>
+            <div class="flex items-center gap-2.5 border-b border-slate-100 pb-3 mb-4">
+              <div class="w-10 h-10 rounded-xl bg-blue-700 text-white flex items-center justify-center text-base shadow">
+                <i class="fa-solid fa-user-graduate"></i>
+              </div>
+              <div>
+                <h3 class="font-extrabold text-sm text-slate-900" data-i18n="student_login_title">Student / Parent Login</h3>
+                <p class="text-[11px] text-slate-500" data-i18n="student_login_sub">Auto-saved login on your device</p>
+              </div>
             </div>
 
             <form onsubmit="handleLoginSubmit(event)" class="space-y-3.5">
               <div>
-                <label class="block text-xs font-bold text-slate-600 mb-1" id="loginIdLabel">Student Master ID (e.g. GSSS-2026-1001)</label>
+                <label class="block text-xs font-bold text-slate-600 mb-1" data-i18n="login_id_label">Student Master ID (e.g. GSSS-2026-1001)</label>
                 <div class="relative">
                   <i class="fa-solid fa-id-badge absolute left-3.5 top-3 text-slate-400"></i>
-                  <input type="text" id="loginUserId" required placeholder="Enter ID" class="w-full pl-10 pr-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-semibold focus:outline-none focus:border-blue-600" />
+                  <input type="text" id="loginUserId" required placeholder="Enter Student ID" class="w-full pl-10 pr-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-semibold focus:outline-none focus:border-blue-600" />
                 </div>
               </div>
               <div>
-                <label class="block text-xs font-bold text-slate-600 mb-1" data-i18n="password_label">Password / DOB</label>
+                <label class="block text-xs font-bold text-slate-600 mb-1" data-i18n="password_label">Password / Date of Birth</label>
                 <div class="relative">
                   <i class="fa-solid fa-lock absolute left-3.5 top-3 text-slate-400"></i>
                   <input type="password" id="loginPassword" required placeholder="••••••••" class="w-full pl-10 pr-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-semibold focus:outline-none focus:border-blue-600" />
@@ -229,7 +256,7 @@
               </div>
               <button type="submit" class="w-full bg-blue-700 hover:bg-blue-800 text-white font-extrabold py-3 rounded-xl text-sm shadow-lg transition flex items-center justify-center gap-2">
                 <i class="fa-solid fa-right-to-bracket"></i>
-                <span data-i18n="login_btn">Secure Login to Portal</span>
+                <span data-i18n="login_btn">Secure Login to App</span>
               </button>
             </form>
           </div>
@@ -241,20 +268,21 @@
     <!-- VIEW 2: ADMIN MASTER CONTROL PORTAL                     -->
     <!-- ======================================================= -->
     <section id="adminDashboardView" class="hidden space-y-6">
-      <!-- Top Admin Status Bar -->
       <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 flex flex-wrap items-center justify-between gap-3">
         <div class="flex items-center gap-3">
           <div class="w-11 h-11 rounded-xl bg-blue-700 text-white flex items-center justify-center text-lg font-bold shadow">
             <i class="fa-solid fa-user-shield"></i>
           </div>
           <div>
-            <h2 class="text-base sm:text-lg font-extrabold text-slate-900" data-i18n="admin_welcome">Master Admin Control Panel</h2>
-            <p class="text-xs text-slate-500">Director: R.C. Royal | Chairman: H.S. Royal | Live Session: <span id="adminSessionText" class="font-bold text-blue-700"></span></p>
+            <h2 class="text-base sm:text-lg font-extrabold text-slate-900">Master Admin Control Panel</h2>
+            <p class="text-xs text-slate-500">Director: R.C. Royal | Chairman: H.S. Royal | Session: <span id="adminSessionText" class="font-bold text-blue-700"></span></p>
           </div>
         </div>
 
-        <!-- Admin Quick Action Buttons -->
         <div class="flex flex-wrap items-center gap-2">
+          <button onclick="openAdminCredentialsModal()" class="bg-slate-800 hover:bg-slate-900 text-amber-300 text-xs font-bold px-3 py-2 rounded-xl flex items-center gap-1.5 shadow">
+            <i class="fa-solid fa-key"></i> Change Admin Login
+          </button>
           <button onclick="checkEmailServersQuota()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-bold px-3 py-2 rounded-xl flex items-center gap-1.5">
             <i class="fa-solid fa-envelope-circle-check"></i>
             <span id="quotaStatusLabel">3-Email Engine: Ready</span>
@@ -263,7 +291,7 @@
             <i class="fa-solid fa-calendar-check"></i> Test 1st May Alert
           </button>
           <button onclick="openPublicModal('admissionFormModal', true)" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl shadow flex items-center gap-1.5">
-            <i class="fa-solid fa-user-plus"></i> + Direct Student Admission
+            <i class="fa-solid fa-user-plus"></i> + Direct Admission
           </button>
         </div>
       </div>
@@ -276,44 +304,53 @@
           <span class="text-[11px] text-emerald-600 font-semibold">Master ID: GSSS-Series</span>
         </div>
         <div class="bg-white p-4 rounded-2xl shadow-sm border border-amber-200 bg-amber-50/30">
-          <span class="text-xs font-bold text-amber-700 uppercase">Pending Admission Forms</span>
+          <span class="text-xs font-bold text-amber-700 uppercase">Pending Admissions</span>
           <div class="text-2xl sm:text-3xl font-extrabold text-amber-600 mt-1" id="statPendingAdmissions">0</div>
-          <span class="text-[11px] text-amber-700 font-semibold">Awaiting Admin Action</span>
+          <span class="text-[11px] text-amber-700 font-semibold">Awaiting Action</span>
         </div>
         <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
-          <span class="text-xs font-bold text-slate-400 uppercase">Approved Admissions</span>
-          <div class="text-2xl sm:text-3xl font-extrabold text-emerald-600 mt-1" id="statApprovedAdmissions">0</div>
-          <span class="text-[11px] text-slate-500 font-semibold">Signed PDF Issued</span>
+          <span class="text-xs font-bold text-slate-400 uppercase">Today's Attendance</span>
+          <div class="text-2xl sm:text-3xl font-extrabold text-blue-600 mt-1" id="statTodayAttendance">0</div>
+          <span class="text-[11px] text-slate-500 font-semibold">Students Marked Today</span>
         </div>
         <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
-          <span class="text-xs font-bold text-slate-400 uppercase">Locked Modules</span>
-          <div class="text-2xl sm:text-3xl font-extrabold text-rose-600 mt-1" id="statLockedModules">0</div>
-          <span class="text-[11px] text-slate-500 font-semibold">Full or Half Locked</span>
+          <span class="text-xs font-bold text-slate-400 uppercase">Homework & PYQs</span>
+          <div class="text-2xl sm:text-3xl font-extrabold text-purple-600 mt-1" id="statTotalContent">0</div>
+          <span class="text-[11px] text-slate-500 font-semibold">Active Study Files</span>
         </div>
       </div>
 
-      <!-- Admin Navigation Tabs -->
+      <!-- Admin Navigation Tabs (Phase 1 + Phase 2) -->
       <div class="flex overflow-x-auto gap-2 bg-white p-2 rounded-2xl shadow-sm border border-slate-200 custom-scroll">
-        <button onclick="switchAdminTab('tabAdmissions')" id="btn_tabAdmissions" class="admin-tab-btn bg-blue-700 text-white px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap flex items-center gap-2">
-          <i class="fa-solid fa-file-signature"></i> Admission Applications Desk
+        <button onclick="switchAdminTab('tabAdmissions')" id="btn_tabAdmissions" class="admin-tab-btn bg-blue-700 text-white px-4 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap flex items-center gap-2 shadow">
+          <i class="fa-solid fa-file-signature"></i> Admissions Desk
         </button>
-        <button onclick="switchAdminTab('tabStudentsList')" id="btn_tabStudentsList" class="admin-tab-btn text-slate-600 hover:bg-slate-100 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap flex items-center gap-2">
-          <i class="fa-solid fa-users"></i> Master Student Directory & Student Locks
+        <button onclick="switchAdminTab('tabStudentsList')" id="btn_tabStudentsList" class="admin-tab-btn text-slate-600 hover:bg-slate-100 px-4 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap flex items-center gap-2">
+          <i class="fa-solid fa-users"></i> Master Students & Locks
         </button>
-        <button onclick="switchAdminTab('tabMasterLocks')" id="btn_tabMasterLocks" class="admin-tab-btn text-slate-600 hover:bg-slate-100 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap flex items-center gap-2">
-          <i class="fa-solid fa-lock"></i> 3-Level Portal Lock Control
+        <button onclick="switchAdminTab('tabAttendanceAdmin')" id="btn_tabAttendanceAdmin" class="admin-tab-btn text-slate-600 hover:bg-slate-100 px-4 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap flex items-center gap-2">
+          <i class="fa-solid fa-calendar-check"></i> Smart Attendance
         </button>
-        <button onclick="switchAdminTab('tabPendingMonitor')" id="btn_tabPendingMonitor" class="admin-tab-btn text-slate-600 hover:bg-slate-100 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap flex items-center gap-2">
-          <i class="fa-solid fa-bell"></i> Red Alert Task Monitor
+        <button onclick="switchAdminTab('tabHomeworkAdmin')" id="btn_tabHomeworkAdmin" class="admin-tab-btn text-slate-600 hover:bg-slate-100 px-4 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap flex items-center gap-2">
+          <i class="fa-solid fa-book-open"></i> Homework & PYQ Papers
+        </button>
+        <button onclick="switchAdminTab('tabNotificationsAdmin')" id="btn_tabNotificationsAdmin" class="admin-tab-btn text-slate-600 hover:bg-slate-100 px-4 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap flex items-center gap-2">
+          <i class="fa-solid fa-bell"></i> Send Vibrating Alert
+        </button>
+        <button onclick="switchAdminTab('tabMasterLocks')" id="btn_tabMasterLocks" class="admin-tab-btn text-slate-600 hover:bg-slate-100 px-4 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap flex items-center gap-2">
+          <i class="fa-solid fa-lock"></i> 3-Level Portal Locks
+        </button>
+        <button onclick="switchAdminTab('tabPendingMonitor')" id="btn_tabPendingMonitor" class="admin-tab-btn text-slate-600 hover:bg-slate-100 px-4 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap flex items-center gap-2">
+          <i class="fa-solid fa-triangle-exclamation"></i> Red Alert Monitor
         </button>
       </div>
 
-      <!-- ADMIN TAB 1: ADMISSION APPLICATIONS DESK -->
+      <!-- ADMIN TAB 1: ADMISSIONS DESK -->
       <div id="tabAdmissions" class="admin-tab-pane bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-slate-200 space-y-4">
         <div class="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h3 class="text-base sm:text-lg font-extrabold text-slate-900">Online & Direct Admission Applications</h3>
-            <p class="text-xs text-slate-500">Approve, Send Back for Review, Invite to School, or Reject with Instant Official English Email & Signed PDF.</p>
+            <h3 class="text-base sm:text-lg font-extrabold text-slate-900">Admission Applications Desk</h3>
+            <p class="text-xs text-slate-500">Approve, Invite, Send for Review, or Reject with Instant Official English Email & Signed PDF.</p>
           </div>
           <select id="filterAdmissionStatus" onchange="renderAdminAdmissions()" class="bg-slate-100 border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold">
             <option value="ALL">All Applications</option>
@@ -324,17 +361,16 @@
             <option value="REJECTED">Rejected</option>
           </select>
         </div>
-
         <div class="overflow-x-auto border rounded-xl">
           <table class="w-full text-left border-collapse text-xs sm:text-sm">
             <thead class="bg-slate-900 text-white">
               <tr>
                 <th class="p-3">App ID</th>
-                <th class="p-3">Photo & Student</th>
-                <th class="p-3">Class & Stream</th>
+                <th class="p-3">Student</th>
+                <th class="p-3">Class</th>
                 <th class="p-3">Father & Contact</th>
                 <th class="p-3">Status</th>
-                <th class="p-3 text-right">Admin Actions (Auto Email)</th>
+                <th class="p-3 text-right">Actions (Auto Email)</th>
               </tr>
             </thead>
             <tbody id="adminAdmissionTableBody" class="divide-y divide-slate-200"></tbody>
@@ -342,26 +378,25 @@
         </div>
       </div>
 
-      <!-- ADMIN TAB 2: MASTER STUDENTS DIRECTORY & INDIVIDUAL STUDENT LOCK -->
+      <!-- ADMIN TAB 2: MASTER STUDENTS DIRECTORY -->
       <div id="tabStudentsList" class="admin-tab-pane hidden bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-slate-200 space-y-4">
         <div class="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h3 class="text-base sm:text-lg font-extrabold text-slate-900">Enrolled School Students (GSSS Master Database)</h3>
-            <p class="text-xs text-slate-500">All 15+ portals connect automatically to these Master Student IDs. You can also lock specific modules for any individual student.</p>
+            <h3 class="text-base sm:text-lg font-extrabold text-slate-900">Enrolled Students Directory (GSSS Master Database)</h3>
+            <p class="text-xs text-slate-500">Manage student passwords, personal module locks, Signed Admission Form & Digital ID Cards.</p>
           </div>
           <input type="text" id="searchStudentInput" oninput="renderMasterStudents()" placeholder="Search Name, ID or Class..." class="bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs font-semibold w-full sm:w-64" />
         </div>
-
         <div class="overflow-x-auto border rounded-xl">
           <table class="w-full text-left border-collapse text-xs sm:text-sm">
             <thead class="bg-slate-900 text-white">
               <tr>
-                <th class="p-3">Master ID & Password</th>
+                <th class="p-3">Master ID & Pass</th>
                 <th class="p-3">Student Name</th>
                 <th class="p-3">Class</th>
                 <th class="p-3">Father & Mobile</th>
-                <th class="p-3">Individual Portal Lock</th>
-                <th class="p-3 text-right">Signed Form PDF</th>
+                <th class="p-3">Personal Locks</th>
+                <th class="p-3 text-right">Documents</th>
               </tr>
             </thead>
             <tbody id="masterStudentTableBody" class="divide-y divide-slate-200"></tbody>
@@ -369,25 +404,148 @@
         </div>
       </div>
 
-      <!-- ADMIN TAB 3: 3-LEVEL MASTER PORTAL LOCK CONTROL -->
-      <div id="tabMasterLocks" class="admin-tab-pane hidden bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-slate-200 space-y-4">
-        <div>
-          <h3 class="text-base sm:text-lg font-extrabold text-slate-900">Global Portal Lock Controller (Full Lock / Half Lock / Open)</h3>
-          <p class="text-xs text-slate-500">Control access to every module across the entire school app in real-time.</p>
+      <!-- ADMIN TAB 3 (PHASE 2): SMART ATTENDANCE MANAGER -->
+      <div id="tabAttendanceAdmin" class="admin-tab-pane hidden bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-slate-200 space-y-4">
+        <div class="flex flex-wrap items-end justify-between gap-4 bg-slate-50 p-4 rounded-xl border">
+          <div class="flex flex-wrap gap-3">
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">Select Date</label>
+              <input type="date" id="attAdminDate" onchange="loadAdminAttendanceSheet()" class="px-3 py-2 border rounded-xl text-xs font-bold bg-white" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">Select Class</label>
+              <select id="attAdminClass" onchange="loadAdminAttendanceSheet()" class="px-3 py-2 border rounded-xl text-xs font-bold bg-white">
+                <option value="Nursery">Nursery</option><option value="LKG">LKG</option><option value="UKG">UKG</option>
+                <option value="Class 1">Class 1</option><option value="Class 2">Class 2</option><option value="Class 3">Class 3</option>
+                <option value="Class 4">Class 4</option><option value="Class 5">Class 5</option><option value="Class 6">Class 6</option>
+                <option value="Class 7">Class 7</option><option value="Class 8">Class 8</option><option value="Class 9">Class 9</option>
+                <option value="Class 10" selected>Class 10</option><option value="Class 11">Class 11</option><option value="Class 12">Class 12</option>
+              </select>
+            </div>
+          </div>
+          <div class="flex gap-2">
+            <button onclick="markAllClassAttendance('P')" class="bg-emerald-100 text-emerald-800 px-3 py-2 rounded-xl text-xs font-extrabold">Mark All Present</button>
+            <button onclick="saveClassAttendance()" class="bg-blue-700 hover:bg-blue-800 text-white px-5 py-2 rounded-xl text-xs font-extrabold shadow flex items-center gap-1.5">
+              <i class="fa-solid fa-floppy-disk"></i> Save & Send Absent Alerts
+            </button>
+          </div>
         </div>
+        <div class="overflow-x-auto border rounded-xl">
+          <table class="w-full text-left border-collapse text-xs sm:text-sm">
+            <thead class="bg-slate-900 text-white">
+              <tr>
+                <th class="p-3">Master ID</th>
+                <th class="p-3">Student Name</th>
+                <th class="p-3">Father's Name</th>
+                <th class="p-3 text-center">Mark Status (Present / Absent / Leave)</th>
+              </tr>
+            </thead>
+            <tbody id="adminAttendanceTableBody" class="divide-y divide-slate-200"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ADMIN TAB 4 (PHASE 2): HOMEWORK & PYQ UPLOADER -->
+      <div id="tabHomeworkAdmin" class="admin-tab-pane hidden bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-slate-200 space-y-6">
+        <div class="grid md:grid-cols-2 gap-6">
+          <!-- Upload Homework Form -->
+          <form onsubmit="submitHomeworkOrPYQ(event, 'HOMEWORK')" class="bg-slate-50 p-4 rounded-xl border space-y-3">
+            <h4 class="font-extrabold text-sm text-blue-900 flex items-center gap-2"><i class="fa-solid fa-book-open"></i> Upload Daily Homework / Notes</h4>
+            <div class="grid grid-cols-2 gap-2.5">
+              <select id="hw_class" required class="px-3 py-2 border rounded-xl text-xs font-bold bg-white">
+                <option value="ALL">All Classes</option>
+                <option value="Nursery">Nursery</option><option value="LKG">LKG</option><option value="UKG">UKG</option>
+                <option value="Class 1">Class 1</option><option value="Class 2">Class 2</option><option value="Class 3">Class 3</option>
+                <option value="Class 4">Class 4</option><option value="Class 5">Class 5</option><option value="Class 6">Class 6</option>
+                <option value="Class 7">Class 7</option><option value="Class 8">Class 8</option><option value="Class 9">Class 9</option>
+                <option value="Class 10">Class 10</option><option value="Class 11">Class 11</option><option value="Class 12">Class 12</option>
+              </select>
+              <input type="text" id="hw_subject" required placeholder="Subject (e.g. Science)" class="px-3 py-2 border rounded-xl text-xs font-bold" />
+            </div>
+            <input type="text" id="hw_title" required placeholder="Homework Title / Chapter Name" class="w-full px-3 py-2 border rounded-xl text-xs font-bold" />
+            <textarea id="hw_desc" rows="2" required placeholder="Write Homework Instructions or Questions..." class="w-full px-3 py-2 border rounded-xl text-xs font-semibold"></textarea>
+            <input type="url" id="hw_link" placeholder="Optional PDF / Google Drive / Image Link" class="w-full px-3 py-2 border rounded-xl text-xs font-semibold" />
+            <button type="submit" class="w-full bg-blue-700 hover:bg-blue-800 text-white font-extrabold py-2.5 rounded-xl text-xs shadow">
+              <i class="fa-solid fa-cloud-arrow-up"></i> Publish Homework & Vibrate Student Phones
+            </button>
+          </form>
+
+          <!-- Upload PYQ & Solution Form -->
+          <form onsubmit="submitHomeworkOrPYQ(event, 'PYQ')" class="bg-amber-50/50 p-4 rounded-xl border border-amber-200 space-y-3">
+            <h4 class="font-extrabold text-sm text-amber-900 flex items-center gap-2"><i class="fa-solid fa-file-pdf"></i> Upload PYQ Paper & Solution</h4>
+            <div class="grid grid-cols-2 gap-2.5">
+              <select id="pyq_class" required class="px-3 py-2 border rounded-xl text-xs font-bold bg-white">
+                <option value="Class 5">Class 5</option><option value="Class 8">Class 8</option>
+                <option value="Class 9">Class 9</option><option value="Class 10" selected>Class 10</option>
+                <option value="Class 11">Class 11</option><option value="Class 12">Class 12</option>
+              </select>
+              <input type="text" id="pyq_subject" required placeholder="Subject & Exam Year (e.g. Maths 2025)" class="px-3 py-2 border rounded-xl text-xs font-bold" />
+            </div>
+            <input type="text" id="pyq_title" required placeholder="Paper Title (e.g. RBSE Board Paper 2025)" class="w-full px-3 py-2 border rounded-xl text-xs font-bold" />
+            <input type="url" id="pyq_paperLink" required placeholder="Question Paper PDF Link *" class="w-full px-3 py-2 border rounded-xl text-xs font-semibold bg-white" />
+            <input type="url" id="pyq_solutionLink" placeholder="Answer Key / Solution PDF Link (Optional)" class="w-full px-3 py-2 border rounded-xl text-xs font-semibold bg-white" />
+            <button type="submit" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-extrabold py-2.5 rounded-xl text-xs shadow">
+              <i class="fa-solid fa-upload"></i> Upload PYQ Paper & Solution
+            </button>
+          </form>
+        </div>
+
+        <div>
+          <h4 class="font-extrabold text-sm text-slate-800 mb-2">Published Homework & PYQ Papers</h4>
+          <div id="adminContentListContainer" class="space-y-2 max-h-64 overflow-y-auto"></div>
+        </div>
+      </div>
+
+      <!-- ADMIN TAB 5 (PHASE 2): SEND VIBRATING NOTIFICATIONS -->
+      <div id="tabNotificationsAdmin" class="admin-tab-pane hidden bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-slate-200 space-y-5">
+        <div class="grid md:grid-cols-2 gap-6">
+          <form onsubmit="sendAdminCustomNotification(event)" class="bg-slate-50 p-4 rounded-xl border space-y-3">
+            <h4 class="font-extrabold text-sm text-slate-900 flex items-center gap-2">
+              <i class="fa-solid fa-bell text-rose-600"></i> Send Instant Vibrating Notification
+            </h4>
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">Target Audience</label>
+              <select id="notif_targetType" onchange="toggleNotifTargetInput()" class="w-full px-3 py-2 border rounded-xl text-xs font-bold bg-white">
+                <option value="ALL">All Students (Entire School)</option>
+                <option value="CLASS">Specific Class Only</option>
+                <option value="STUDENT">Particular Student (Personal Alert)</option>
+              </select>
+            </div>
+            <div id="notif_targetValueWrapper" class="hidden">
+              <label class="block text-xs font-bold text-slate-600 mb-1" id="notif_targetLabel">Enter Class or Student Master ID</label>
+              <input type="text" id="notif_targetValue" placeholder="e.g. Class 10 OR GSSS-2026-1001" class="w-full px-3 py-2 border rounded-xl text-xs font-bold bg-white" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">Notification Title *</label>
+              <input type="text" id="notif_title" required placeholder="e.g. Tomorrow Holiday / Fee Reminder" class="w-full px-3 py-2 border rounded-xl text-xs font-bold bg-white" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">Complete Message *</label>
+              <textarea id="notif_message" rows="3" required placeholder="Write official notice or personal message..." class="w-full px-3 py-2 border rounded-xl text-xs font-semibold bg-white"></textarea>
+            </div>
+            <button type="submit" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-extrabold py-3 rounded-xl text-xs shadow-lg flex items-center justify-center gap-2">
+              <i class="fa-solid fa-tower-broadcast"></i> Broadcast Alert (With Phone Vibration)
+            </button>
+          </form>
+
+          <div>
+            <h4 class="font-extrabold text-sm text-slate-800 mb-2">Recent Sent Notifications</h4>
+            <div id="adminSentNotifsList" class="space-y-2 max-h-80 overflow-y-auto custom-scroll"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ADMIN TAB 6: 3-LEVEL PORTAL LOCKS -->
+      <div id="tabMasterLocks" class="admin-tab-pane hidden bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-slate-200 space-y-4">
+        <h3 class="text-base sm:text-lg font-extrabold text-slate-900">Global Portal Lock Controller (Full Lock / Half Lock / Open)</h3>
         <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4" id="masterLockCardsContainer"></div>
       </div>
 
-      <!-- ADMIN TAB 4: RED ALERT PENDING TASK MONITOR -->
+      <!-- ADMIN TAB 7: RED ALERT MONITOR -->
       <div id="tabPendingMonitor" class="admin-tab-pane hidden bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-slate-200 space-y-4">
         <div class="flex items-center justify-between">
-          <div>
-            <h3 class="text-base sm:text-lg font-extrabold text-slate-900">Admin Red Alert Reminder Settings</h3>
-            <p class="text-xs text-slate-500">Any task marked as Pending here will trigger the Red Alert Popup whenever Admin opens the portal until marked Completed.</p>
-          </div>
-          <button onclick="checkAndShowPendingTasksPopup(true)" class="bg-red-600 text-white text-xs font-bold px-3.5 py-2 rounded-xl shadow">
-            Preview Red Popup Now
-          </button>
+          <h3 class="text-base sm:text-lg font-extrabold text-slate-900">Admin Red Alert Reminder Settings</h3>
+          <button onclick="checkAndShowPendingTasksPopup(true)" class="bg-red-600 text-white text-xs font-bold px-3.5 py-2 rounded-xl shadow">Preview Red Popup</button>
         </div>
         <div class="grid sm:grid-cols-2 gap-3" id="adminTaskChecklistContainer"></div>
       </div>
@@ -397,7 +555,6 @@
     <!-- VIEW 3: STUDENT / PARENT APP DASHBOARD                  -->
     <!-- ======================================================= -->
     <section id="studentDashboardView" class="hidden space-y-6">
-      <!-- Student Digital ID Card Banner -->
       <div class="bg-gradient-to-r from-blue-900 to-indigo-800 rounded-2xl p-5 text-white shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4">
         <div class="flex items-center gap-4">
           <img id="stuDashPhoto" src="https://via.placeholder.com/100" class="w-20 h-20 rounded-2xl object-cover border-2 border-amber-400 bg-white shadow-md" />
@@ -407,14 +564,17 @@
             <p id="stuDashMeta" class="text-xs sm:text-sm text-blue-200">Class: 10th | Father: Mr. Name</p>
           </div>
         </div>
-        <div class="flex gap-2 w-full sm:w-auto">
-          <button onclick="downloadCurrentStudentAdmissionPDF()" class="flex-1 sm:flex-initial bg-white/15 hover:bg-white/25 border border-white/30 text-white text-xs font-bold px-4 py-2.5 rounded-xl flex items-center justify-center gap-2">
-            <i class="fa-solid fa-file-pdf text-amber-300"></i> Signed Admission PDF
+        <div class="flex flex-wrap gap-2 w-full sm:w-auto">
+          <button onclick="generateStudentDigitalIdCardPDF()" class="flex-1 sm:flex-initial bg-amber-400 hover:bg-amber-300 text-slate-950 text-xs font-extrabold px-4 py-2.5 rounded-xl shadow flex items-center justify-center gap-1.5">
+            <i class="fa-solid fa-id-card"></i> Digital ID Card
+          </button>
+          <button onclick="downloadCurrentStudentAdmissionPDF()" class="flex-1 sm:flex-initial bg-white/15 hover:bg-white/25 border border-white/30 text-white text-xs font-bold px-4 py-2.5 rounded-xl flex items-center justify-center gap-1.5">
+            <i class="fa-solid fa-file-pdf text-amber-300"></i> Admission Form
           </button>
         </div>
       </div>
 
-      <!-- All 12 Connected Student Portals Grid (Respects Full Lock, Half Lock & Individual Student Lock) -->
+      <!-- Connected Student Modules Grid -->
       <div>
         <h3 class="text-sm font-extrabold text-slate-500 uppercase tracking-wider mb-3" data-i18n="student_modules_heading">Connected Student Modules</h3>
         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4" id="studentModulesGrid"></div>
@@ -424,11 +584,58 @@
   </main>
 
   <!-- ========================================================= -->
+  <!-- MODAL: STUDENT INTERACTIVE MODULE VIEWER (PHASE 2)        -->
+  <!-- ========================================================= -->
+  <div id="studentModuleViewerModal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl max-w-4xl w-full overflow-hidden shadow-2xl border border-slate-200 my-auto modal-animate">
+      <div class="glass-header text-white px-5 py-4 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <i id="stuModModalIcon" class="fa-solid fa-layer-group text-amber-300 text-xl"></i>
+          <div>
+            <h3 id="stuModModalTitle" class="font-extrabold text-base sm:text-lg">Student Module</h3>
+            <p class="text-[11px] text-blue-200">Gurukul Sr. Sec. School, Dhankoli</p>
+          </div>
+        </div>
+        <button onclick="document.getElementById('studentModuleViewerModal').classList.add('hidden')" class="w-8 h-8 rounded-lg bg-white/15 hover:bg-white/25 flex items-center justify-center">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div id="stuModModalBody" class="p-4 sm:p-6 max-h-[80vh] overflow-y-auto custom-scroll space-y-4"></div>
+    </div>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- MODAL: CHANGE ADMIN CREDENTIALS                           -->
+  <!-- ========================================================= -->
+  <div id="adminCredentialsModal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full overflow-hidden shadow-2xl modal-animate">
+      <div class="glass-header text-white p-4 flex items-center justify-between">
+        <h3 class="font-extrabold text-base"><i class="fa-solid fa-user-lock text-amber-300 mr-2"></i>Update Secret Admin Login</h3>
+        <button onclick="document.getElementById('adminCredentialsModal').classList.add('hidden')" class="w-8 h-8 rounded-lg bg-white/15 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form onsubmit="saveNewAdminCredentials(event)" class="p-5 space-y-4">
+        <p class="text-xs text-slate-500">Enter your secret Admin ID and Password inside the Student Login box on the main page to access the Admin Portal.</p>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">New Secret Admin ID *</label>
+          <input type="text" id="newAdminIdInput" required class="w-full px-3.5 py-2.5 border rounded-xl text-sm font-bold" />
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">New Admin Password *</label>
+          <input type="text" id="newAdminPassInput" required class="w-full px-3.5 py-2.5 border rounded-xl text-sm font-bold" />
+        </div>
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="document.getElementById('adminCredentialsModal').classList.add('hidden')" class="px-4 py-2 border rounded-xl text-xs font-bold">Cancel</button>
+          <button type="submit" class="bg-blue-700 text-white px-5 py-2.5 rounded-xl text-xs font-extrabold shadow">Save Credentials</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================================= -->
   <!-- MODAL: COMPLETE ONLINE ADMISSION FORM (WITH EMAIL OTP)    -->
   <!-- ========================================================= -->
   <div id="admissionFormModal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
-    <div class="bg-white rounded-2xl max-w-4xl w-full overflow-hidden shadow-2xl border border-slate-200 my-auto">
-      <!-- Modal Header -->
+    <div class="bg-white rounded-2xl max-w-4xl w-full overflow-hidden shadow-2xl border border-slate-200 my-auto modal-animate">
       <div class="glass-header text-white px-5 py-4 flex items-center justify-between">
         <div class="flex items-center gap-3">
           <img src="https://gsssdhankoli.github.io/Logo.png/logo.png" class="w-10 h-10 rounded-full bg-white p-0.5" />
@@ -442,12 +649,10 @@
         </button>
       </div>
 
-      <!-- Form Body -->
       <form id="schoolAdmissionForm" onsubmit="submitAdmissionForm(event)" class="p-4 sm:p-6 max-h-[80vh] overflow-y-auto custom-scroll space-y-5">
         <input type="hidden" id="editApplicationId" value="" />
         <input type="hidden" id="isAdminDirectMode" value="false" />
 
-        <!-- Section 1: Student Academic & Personal Details -->
         <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-4">
           <h4 class="text-xs font-extrabold uppercase tracking-wider text-blue-800 border-b pb-1.5">1. Student Details (विद्यार्थी का विवरण)</h4>
           <div class="grid sm:grid-cols-3 gap-3.5">
@@ -459,29 +664,19 @@
               <label class="block text-xs font-bold text-slate-700 mb-1">Class Applying For *</label>
               <select id="adm_class" required onchange="toggleStreamField()" class="w-full px-3 py-2 border rounded-xl text-sm font-semibold bg-white">
                 <option value="">-- Select Class --</option>
-                <option value="Nursery">Nursery</option>
-                <option value="LKG">LKG</option>
-                <option value="UKG">UKG</option>
-                <option value="Class 1">Class 1st</option>
-                <option value="Class 2">Class 2nd</option>
-                <option value="Class 3">Class 3rd</option>
-                <option value="Class 4">Class 4th</option>
-                <option value="Class 5">Class 5th</option>
-                <option value="Class 6">Class 6th</option>
-                <option value="Class 7">Class 7th</option>
-                <option value="Class 8">Class 8th</option>
-                <option value="Class 9">Class 9th</option>
-                <option value="Class 10">Class 10th</option>
-                <option value="Class 11">Class 11th</option>
-                <option value="Class 12">Class 12th</option>
+                <option value="Nursery">Nursery</option><option value="LKG">LKG</option><option value="UKG">UKG</option>
+                <option value="Class 1">Class 1st</option><option value="Class 2">Class 2nd</option><option value="Class 3">Class 3rd</option>
+                <option value="Class 4">Class 4th</option><option value="Class 5">Class 5th</option><option value="Class 6">Class 6th</option>
+                <option value="Class 7">Class 7th</option><option value="Class 8">Class 8th</option><option value="Class 9">Class 9th</option>
+                <option value="Class 10">Class 10th</option><option value="Class 11">Class 11th</option><option value="Class 12">Class 12th</option>
               </select>
             </div>
             <div id="adm_streamWrapper" class="hidden">
-              <label class="block text-xs font-bold text-slate-700 mb-1">Stream / Optional Subjects (11th/12th)</label>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Stream (11th/12th)</label>
               <select id="adm_stream" class="w-full px-3 py-2 border rounded-xl text-sm font-semibold bg-white">
                 <option value="General">All Compulsory Subjects</option>
-                <option value="Science (PCM)">Science (Physics, Chem, Maths)</option>
-                <option value="Science (PCB)">Science (Physics, Chem, Bio)</option>
+                <option value="Science (PCM)">Science (PCM)</option>
+                <option value="Science (PCB)">Science (PCB)</option>
                 <option value="Agriculture">Science (Agriculture)</option>
                 <option value="Arts / Humanities">Arts / Humanities</option>
                 <option value="Commerce">Commerce</option>
@@ -494,33 +689,21 @@
             <div>
               <label class="block text-xs font-bold text-slate-700 mb-1">Gender *</label>
               <select id="adm_gender" required class="w-full px-3 py-2 border rounded-xl text-sm font-semibold bg-white">
-                <option value="Male">Male (बालक)</option>
-                <option value="Female">Female (बालिका)</option>
+                <option value="Male">Male (बालक)</option><option value="Female">Female (बालिका)</option>
               </select>
             </div>
             <div>
               <label class="block text-xs font-bold text-slate-700 mb-1">Category *</label>
               <select id="adm_category" required class="w-full px-3 py-2 border rounded-xl text-sm font-semibold bg-white">
-                <option value="General">General</option>
-                <option value="OBC">OBC</option>
-                <option value="SC">SC</option>
-                <option value="ST">ST</option>
-                <option value="EWS">EWS</option>
-                <option value="MBC">MBC</option>
+                <option value="General">General</option><option value="OBC">OBC</option><option value="SC">SC</option>
+                <option value="ST">ST</option><option value="EWS">EWS</option><option value="MBC">MBC</option>
               </select>
             </div>
             <div>
               <label class="block text-xs font-bold text-slate-700 mb-1">Blood Group</label>
               <select id="adm_blood" class="w-full px-3 py-2 border rounded-xl text-sm font-semibold bg-white">
-                <option value="Not Known">Not Known</option>
-                <option value="A+">A+</option>
-                <option value="B+">B+</option>
-                <option value="O+">O+</option>
-                <option value="AB+">AB+</option>
-                <option value="A-">A-</option>
-                <option value="B-">B-</option>
-                <option value="O-">O-</option>
-                <option value="AB-">AB-</option>
+                <option value="Not Known">Not Known</option><option value="A+">A+</option><option value="B+">B+</option>
+                <option value="O+">O+</option><option value="AB+">AB+</option><option value="A-">A-</option><option value="B-">B-</option>
               </select>
             </div>
             <div>
@@ -528,13 +711,12 @@
               <input type="text" id="adm_aadhaar" required maxlength="12" placeholder="12-Digit Aadhaar" class="w-full px-3 py-2 border rounded-xl text-sm font-semibold" />
             </div>
             <div>
-              <label class="block text-xs font-bold text-slate-700 mb-1">Jan-Aadhaar Number (राजस्थान जन-आधार)</label>
-              <input type="text" id="adm_janaadhaar" placeholder="Optional Jan-Aadhaar No" class="w-full px-3 py-2 border rounded-xl text-sm font-semibold" />
+              <label class="block text-xs font-bold text-slate-700 mb-1">Jan-Aadhaar Number</label>
+              <input type="text" id="adm_janaadhaar" placeholder="Optional Jan-Aadhaar" class="w-full px-3 py-2 border rounded-xl text-sm font-semibold" />
             </div>
           </div>
         </div>
 
-        <!-- Section 2: Parents, Contact & Address Details -->
         <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-4">
           <h4 class="text-xs font-extrabold uppercase tracking-wider text-blue-800 border-b pb-1.5">2. Parents & Contact Details (माता-पिता एवं संपर्क जानकारी)</h4>
           <div class="grid sm:grid-cols-3 gap-3.5">
@@ -548,33 +730,31 @@
             </div>
             <div>
               <label class="block text-xs font-bold text-slate-700 mb-1">Father's Occupation</label>
-              <input type="text" id="adm_occupation" placeholder="e.g. Agriculture / Govt Job / Business" class="w-full px-3 py-2 border rounded-xl text-sm font-semibold" />
+              <input type="text" id="adm_occupation" placeholder="e.g. Farmer / Govt Job / Business" class="w-full px-3 py-2 border rounded-xl text-sm font-semibold" />
             </div>
             <div>
-              <label class="block text-xs font-bold text-slate-700 mb-1">Mobile Number (Calling & WhatsApp) *</label>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Mobile Number *</label>
               <input type="tel" id="adm_mobile" required maxlength="10" placeholder="10-Digit Mobile No" class="w-full px-3 py-2 border rounded-xl text-sm font-semibold" />
             </div>
             <div>
-              <label class="block text-xs font-bold text-slate-700 mb-1">Previous School Name & Class Passed</label>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Previous School Name</label>
               <input type="text" id="adm_prevSchool" placeholder="Previous School Name" class="w-full px-3 py-2 border rounded-xl text-sm font-semibold" />
             </div>
             <div>
-              <label class="block text-xs font-bold text-slate-700 mb-1">School Bus Facility Required? *</label>
+              <label class="block text-xs font-bold text-slate-700 mb-1">School Bus Required? *</label>
               <select id="adm_transport" class="w-full px-3 py-2 border rounded-xl text-sm font-semibold bg-white">
-                <option value="No">No (Self Arrangement)</option>
-                <option value="Yes">Yes (School Bus Required)</option>
+                <option value="No">No (Self)</option><option value="Yes">Yes (School Bus)</option>
               </select>
             </div>
             <div class="sm:col-span-3">
-              <label class="block text-xs font-bold text-slate-700 mb-1">Complete Permanent Address (Village/Ward, Post, Tehsil, District, PIN) *</label>
-              <input type="text" id="adm_address" required placeholder="Enter Full Residential Address" class="w-full px-3 py-2 border rounded-xl text-sm font-semibold" />
+              <label class="block text-xs font-bold text-slate-700 mb-1">Complete Permanent Address *</label>
+              <input type="text" id="adm_address" required placeholder="Village/Ward, Tehsil, District, PIN" class="w-full px-3 py-2 border rounded-xl text-sm font-semibold" />
             </div>
           </div>
         </div>
 
-        <!-- Section 3: Passport Photo & Student Signature Upload -->
         <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-4">
-          <h4 class="text-xs font-extrabold uppercase tracking-wider text-blue-800 border-b pb-1.5">3. Upload Student Photo & Signature (फोटो और हस्ताक्षर)</h4>
+          <h4 class="text-xs font-extrabold uppercase tracking-wider text-blue-800 border-b pb-1.5">3. Upload Student Photo & Signature</h4>
           <div class="grid sm:grid-cols-2 gap-4">
             <div class="flex items-center gap-3 bg-white p-3 rounded-xl border">
               <img id="previewStudentPhoto" src="https://via.placeholder.com/80x100?text=Photo" class="w-16 h-20 object-cover rounded-lg border" />
@@ -595,28 +775,24 @@
           </div>
         </div>
 
-        <!-- Section 4: Email OTP Verification (Auto-skipped only if Admin is doing Direct Admission) -->
         <div id="emailOtpSection" class="bg-blue-50 p-4 rounded-xl border border-blue-200 space-y-3">
-          <h4 class="text-xs font-extrabold uppercase tracking-wider text-blue-900">4. Official Email & OTP Verification (ईमेल सत्यापन)</h4>
+          <h4 class="text-xs font-extrabold uppercase tracking-wider text-blue-900">4. Official Email & OTP Verification</h4>
           <div class="grid sm:grid-cols-3 gap-3 items-end">
             <div class="sm:col-span-2">
-              <label class="block text-xs font-bold text-slate-700 mb-1">Registered Email ID (All Status Updates & Signed PDF will be sent here) *</label>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Registered Email ID *</label>
               <input type="email" id="adm_email" required placeholder="student@gmail.com" class="w-full px-3 py-2.5 border rounded-xl text-sm font-semibold bg-white" />
             </div>
             <button type="button" id="sendOtpBtn" onclick="sendAdmissionOTP()" class="bg-blue-700 hover:bg-blue-800 text-white font-bold py-2.5 px-4 rounded-xl text-xs sm:text-sm shadow flex items-center justify-center gap-2">
               <i class="fa-solid fa-paper-plane"></i> Send Email OTP
             </button>
           </div>
-
           <div id="otpVerifyBox" class="hidden pt-2 grid sm:grid-cols-3 gap-3 items-center">
-            <div>
-              <input type="text" id="adm_otpInput" maxlength="6" placeholder="Enter 6-Digit OTP" class="w-full px-3 py-2 border-2 border-blue-500 rounded-xl text-sm font-extrabold tracking-widest text-center bg-white" />
-            </div>
+            <input type="text" id="adm_otpInput" maxlength="6" placeholder="Enter 6-Digit OTP" class="w-full px-3 py-2 border-2 border-blue-500 rounded-xl text-sm font-extrabold tracking-widest text-center bg-white" />
             <button type="button" onclick="verifyAdmissionOTP()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded-xl text-xs sm:text-sm">
               <i class="fa-solid fa-check-circle"></i> Verify OTP
             </button>
             <span id="otpVerifiedBadge" class="hidden text-xs font-extrabold text-emerald-700">
-              <i class="fa-solid fa-shield-check"></i> Email Verified Successfully!
+              <i class="fa-solid fa-shield-check"></i> Verified!
             </span>
           </div>
         </div>
@@ -631,18 +807,18 @@
     </div>
   </div>
 
-  <!-- ========================================================= -->
+   <!-- ========================================================= -->
   <!-- MODAL: TRACK APPLICATION / EDIT REVIEW / DOWNLOAD PDF     -->
   <!-- ========================================================= -->
   <div id="trackAdmissionModal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl max-w-lg w-full overflow-hidden shadow-2xl">
+    <div class="bg-white rounded-2xl max-w-lg w-full overflow-hidden shadow-2xl modal-animate">
       <div class="glass-header text-white px-5 py-4 flex items-center justify-between">
         <h3 class="font-extrabold text-base">Track Admission Status / Download Signed PDF</h3>
         <button onclick="closePublicModal('trackAdmissionModal')" class="w-8 h-8 rounded-lg bg-white/15 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
       </div>
       <div class="p-5 space-y-4">
         <div class="flex gap-2">
-          <input type="text" id="trackSearchInput" placeholder="Enter Application ID (ADM-...) or Registered Email/Mobile" class="flex-1 px-3.5 py-2.5 border rounded-xl text-sm font-semibold" />
+          <input type="text" id="trackSearchInput" placeholder="Enter ADM ID, Master ID, Email or Mobile" class="flex-1 px-3.5 py-2.5 border rounded-xl text-sm font-semibold" />
           <button onclick="searchApplicationStatus()" class="bg-blue-700 hover:bg-blue-800 text-white font-bold px-4 py-2.5 rounded-xl text-xs sm:text-sm">Search</button>
         </div>
         <div id="trackResultContainer" class="space-y-3"></div>
@@ -654,7 +830,7 @@
   <!-- MODAL: ONE-CLICK HELPLINE                                 -->
   <!-- ========================================================= -->
   <div id="helplineModal" class="hidden fixed inset-0 z-50 bg-slate-950/75 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl max-w-md w-full overflow-hidden shadow-2xl">
+    <div class="bg-white rounded-2xl max-w-md w-full overflow-hidden shadow-2xl modal-animate">
       <div class="glass-header text-white p-5 text-center relative">
         <img src="https://gsssdhankoli.github.io/Logo.png/logo.png" class="w-14 h-14 mx-auto rounded-full bg-white p-1 mb-2" />
         <h3 class="font-extrabold text-lg">24×7 School Helpline Desk</h3>
@@ -664,7 +840,7 @@
       <div class="p-5 space-y-3">
         <div class="p-3.5 rounded-xl bg-slate-50 border flex items-center justify-between">
           <div>
-            <p class="text-xs font-bold text-slate-500">Director: R.C. Royal / Office Helpline 1</p>
+            <p class="text-xs font-bold text-slate-500">Director: R.C. Royal / Helpline 1</p>
             <p class="text-base font-extrabold text-slate-900">+91 9772564359</p>
           </div>
           <div class="flex gap-2">
@@ -674,7 +850,7 @@
         </div>
         <div class="p-3.5 rounded-xl bg-slate-50 border flex items-center justify-between">
           <div>
-            <p class="text-xs font-bold text-slate-500">Chairman: H.S. Royal / Office Helpline 2</p>
+            <p class="text-xs font-bold text-slate-500">Chairman: H.S. Royal / Helpline 2</p>
             <p class="text-base font-extrabold text-slate-900">+91 9887071127</p>
           </div>
           <div class="flex gap-2">
@@ -686,21 +862,17 @@
     </div>
   </div>
 
-  <!-- ========================================================= -->
-  <!-- HIDDEN A4 PRINTABLE SIGNED ADMISSION FORM TEMPLATE        -->
-  <!-- ========================================================= -->
+  <!-- HIDDEN PRINT AREA -->
   <div class="fixed -left-[9999px] top-0">
-    <div id="pdfPrintArea">
-      <!-- Populated dynamically when generating Signed Admission PDF -->
-    </div>
+    <div id="pdfPrintArea"></div>
   </div>
 
   <!-- ========================================================= -->
-  <!-- MASTER JAVASCRIPT ENGINE                                  -->
+  <!-- MASTER JAVASCRIPT ENGINE (PHASE 1 + PHASE 2)              -->
   <!-- ========================================================= -->
   <script>
     // =========================================================
-    // 1. FIREBASE & TRIPLE-EMAIL ENGINE CONFIGURATION
+    // 1. FIREBASE & TRIPLE-EMAIL CONFIGURATION
     // =========================================================
     const firebaseConfig = {
       apiKey: "AIzaSyCv-8rsbHovO8cL9ee63eeRGdzstybYIzk",
@@ -716,7 +888,6 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // Triple-Email Load Balancer URLs (300 Free Official Emails/Day)
     const EMAIL_SERVERS = [
       "https://script.google.com/macros/s/AKfycby_3dY4XozgajpFCAGwGwdf0w1HnOhkWGAk10OK3Ff6S3zInmTbbJDjRnEVaoXuKpF91A/exec",
       "https://script.google.com/macros/s/AKfycbyuq-rWdRy26qRChlOLEM7lT2FelDsu2iqbPP_-Z4-eeSZR3sT4n_cB0X9Z-HhoN7KC/exec",
@@ -733,27 +904,134 @@
     };
 
     // =========================================================
-    // 2. LIFETIME DYNAMIC ACADEMIC SESSION ENGINE (NO HARDCODING)
+    // 2. CUSTOM PROFESSIONAL IN-APP POPUP ENGINE (NO ALERT/PROMPT)
+    // =========================================================
+    function showCustomAlert(message, title = "Gurukul Official Alert", type = "INFO") {
+      return new Promise(resolve => {
+        const overlay = document.getElementById("customDialogOverlay");
+        const header = document.getElementById("customDialogHeader");
+        const titleEl = document.getElementById("customDialogTitle");
+        const msgEl = document.getElementById("customDialogMessage");
+        const iconEl = document.getElementById("customDialogIcon");
+        const inputWrap = document.getElementById("customDialogInputWrapper");
+        const cancelBtn = document.getElementById("customDialogCancelBtn");
+        const okBtn = document.getElementById("customDialogOkBtn");
+
+        header.className = type === "DANGER"
+          ? "red-alert-gradient text-white p-4 flex items-center gap-3"
+          : "glass-header text-white p-4 flex items-center gap-3";
+        iconEl.className = type === "DANGER"
+          ? "fa-solid fa-triangle-exclamation text-xl text-yellow-300"
+          : type === "SUCCESS"
+          ? "fa-solid fa-circle-check text-xl text-emerald-300"
+          : "fa-solid fa-bell text-xl text-amber-300";
+
+        titleEl.innerText = title;
+        msgEl.innerText = message;
+        inputWrap.classList.add("hidden");
+        cancelBtn.classList.add("hidden");
+        okBtn.innerText = "OK";
+        overlay.classList.remove("hidden");
+
+        okBtn.onclick = () => {
+          overlay.classList.add("hidden");
+          resolve(true);
+        };
+      });
+    }
+
+    function showCustomConfirm(message, title = "Please Confirm Action") {
+      return new Promise(resolve => {
+        const overlay = document.getElementById("customDialogOverlay");
+        const header = document.getElementById("customDialogHeader");
+        header.className = "glass-header text-white p-4 flex items-center gap-3";
+        document.getElementById("customDialogTitle").innerText = title;
+        document.getElementById("customDialogMessage").innerText = message;
+        document.getElementById("customDialogInputWrapper").classList.add("hidden");
+
+        const cancelBtn = document.getElementById("customDialogCancelBtn");
+        const okBtn = document.getElementById("customDialogOkBtn");
+        cancelBtn.classList.remove("hidden");
+        okBtn.innerText = "Confirm";
+        overlay.classList.remove("hidden");
+
+        cancelBtn.onclick = () => { overlay.classList.add("hidden"); resolve(false); };
+        okBtn.onclick = () => { overlay.classList.add("hidden"); resolve(true); };
+      });
+    }
+
+    function showCustomPrompt(message, defaultValue = "", title = "Enter Details") {
+      return new Promise(resolve => {
+        const overlay = document.getElementById("customDialogOverlay");
+        const header = document.getElementById("customDialogHeader");
+        header.className = "glass-header text-white p-4 flex items-center gap-3";
+        document.getElementById("customDialogTitle").innerText = title;
+        document.getElementById("customDialogMessage").innerText = message;
+
+        const inputWrap = document.getElementById("customDialogInputWrapper");
+        const inputEl = document.getElementById("customDialogInput");
+        inputWrap.classList.remove("hidden");
+        inputEl.value = defaultValue;
+
+        const cancelBtn = document.getElementById("customDialogCancelBtn");
+        const okBtn = document.getElementById("customDialogOkBtn");
+        cancelBtn.classList.remove("hidden");
+        okBtn.innerText = "Submit";
+        overlay.classList.remove("hidden");
+        setTimeout(() => inputEl.focus(), 80);
+
+        cancelBtn.onclick = () => { overlay.classList.add("hidden"); resolve(null); };
+        okBtn.onclick = () => { overlay.classList.add("hidden"); resolve(inputEl.value.trim()); };
+      });
+    }
+
+    // =========================================================
+    // 3. PHONE VIBRATION + CHIME SOUND ENGINE (PHASE 2)
+    // =========================================================
+    function triggerPhoneVibrationAndSound() {
+      // 1. Vibrate Phone (Pattern: 350ms vibrate, 120ms pause, 350ms vibrate, 120ms pause, 500ms vibrate)
+      if ("vibrate" in navigator) {
+        try { navigator.vibrate([350, 120, 350, 120, 500]); } catch (e) {}
+      }
+      // 2. Play Clean Digital Notification Chime via Web Audio API
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (AudioCtx) {
+          const ctx = new AudioCtx();
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = "sine";
+          osc.frequency.setValueAtTime(880, ctx.currentTime);
+          osc.frequency.setValueAtTime(1174.66, ctx.currentTime + 0.15);
+          gain.gain.setValueAtTime(0.22, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.55);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start();
+          osc.stop(ctx.currentTime + 0.55);
+        }
+      } catch (e) {}
+    }
+
+    // =========================================================
+    // 4. LIFETIME DYNAMIC ACADEMIC SESSION ENGINE
     // =========================================================
     function getDynamicAcademicSession() {
       const now = new Date();
       const year = now.getFullYear();
-      const month = now.getMonth() + 1; // Jan=1 ... May=5
-      // New session starts from May (Month >= 4/5)
+      const month = now.getMonth() + 1;
       const startYear = month >= 4 ? year : year - 1;
       const endYearShort = String(startYear + 1).slice(-2);
-      return {
-        sessionString: `${startYear}-${endYearShort}`,
-        yearPrefix: String(startYear)
-      };
+      return { sessionString: `${startYear}-${endYearShort}`, yearPrefix: String(startYear) };
     }
 
     const CURRENT_SESSION = getDynamicAcademicSession();
     document.getElementById("liveSessionBadge").innerText = CURRENT_SESSION.sessionString;
     document.getElementById("adminSessionText").innerText = CURRENT_SESSION.sessionString;
+    document.getElementById("attAdminDate").value = new Date().toISOString().split("T")[0];
 
     // =========================================================
-    // 3. BILINGUAL LANGUAGE ENGINE (PRIMARY ENGLISH + HINDI)
+    // 5. BILINGUAL LANGUAGE ENGINE (PRIMARY ENGLISH + HINDI)
     // =========================================================
     let currentLang = "EN";
     const i18nDict = {
@@ -762,16 +1040,16 @@
         school_sub: "Bhadasar Road, Dhankoli | Dir: R.C. Royal | Chairman: H.S. Royal",
         helpline: "Helpline",
         logout: "Logout",
-        hero_badge: "Official Digital Campus & ERP Portal",
+        hero_badge: "Official Digital Campus & Student App",
         hero_heading: "Gurukul Senior Secondary School, Dhankoli",
-        hero_desc: "All-in-One Smart Portal for Online Admissions, Live CBT Exams, Results, Attendance, Scholarship Exams, Digital Admit Cards & Fee Management.",
+        hero_desc: "All-in-One Smart Portal for Online Admissions, Live CBT Exams, Results, Attendance, Homework, PYQ Solutions, Scholarship Exams & Fee Management.",
         btn_apply_admission: "Apply for New Admission",
         btn_track_admission: "Track / Edit Application & Download Form",
-        student_login: "Student / Parent",
-        admin_login: "Admin Login",
-        password_label: "Password",
-        login_btn: "Secure Login to Portal",
-        admin_welcome: "Master Admin Control Panel",
+        student_login_title: "Student / Parent Login",
+        student_login_sub: "Auto-saved login on your device",
+        login_id_label: "Student Master ID (e.g. GSSS-2026-1001)",
+        password_label: "Password / Date of Birth",
+        login_btn: "Secure Login to App",
         student_modules_heading: "Connected Student Modules"
       },
       HI: {
@@ -779,16 +1057,16 @@
         school_sub: "भाड़ासर रोड, धनकोली | निदेशक: R.C. Royal | चेयरमैन: H.S. Royal",
         helpline: "हेल्पलाइन",
         logout: "लॉगआउट",
-        hero_badge: "आधिकारिक डिजिटल स्कूल एवं ERP पोर्टल",
+        hero_badge: "आधिकारिक डिजिटल स्कूल एवं स्टूडेंट ऐप",
         hero_heading: "गुरुकुल सीनियर सेकेंडरी स्कूल, धनकोली",
-        hero_desc: "ऑनलाइन एडमिशन, लाइव CBT परीक्षा, रिजल्ट, हाजिरी, स्कॉलरशिप टेस्ट, एडमिट कार्ड और फीस प्रबंधन का एकीकृत पोर्टल।",
+        hero_desc: "ऑनलाइन एडमिशन, लाइव CBT परीक्षा, रिजल्ट, हाजिरी, होमवर्क, PYQ सॉल्यूशन, स्कॉलरशिप टेस्ट और फीस प्रबंधन का एकीकृत ऐप।",
         btn_apply_admission: "नए एडमिशन के लिए आवेदन करें",
         btn_track_admission: "आवेदन स्टेटस देखें / सुधार करें / फॉर्म डाउनलोड करें",
-        student_login: "विद्यार्थी / अभिभावक",
-        admin_login: "एडमिन लॉगिन",
-        password_label: "पासवर्ड",
-        login_btn: "पोर्टल में लॉगिन करें",
-        admin_welcome: "मास्टर एडमिन कंट्रोल पैनल",
+        student_login_title: "विद्यार्थी / अभिभावक लॉगिन",
+        student_login_sub: "एक बार लॉगिन करने पर फोन में सेव रहेगा",
+        login_id_label: "विद्यार्थी मास्टर आईडी (GSSS-2026-1001)",
+        password_label: "पासवर्ड / जन्मतिथि",
+        login_btn: "ऐप में सुरक्षित लॉगिन करें",
         student_modules_heading: "विद्यार्थी के सभी जुड़े हुए पोर्टल"
       }
     };
@@ -804,11 +1082,10 @@
     }
 
     // =========================================================
-    // 4. TRIPLE-EMAIL FAILOVER SENDER FUNCTION
+    // 6. TRIPLE-EMAIL FAILOVER SENDER
     // =========================================================
     async function sendOfficialEmail({ to, subject, htmlBody, pdfBase64 = null, pdfFileName = null }) {
       const payload = { to, subject, htmlBody, pdfBase64, pdfFileName };
-
       for (let i = 0; i < EMAIL_SERVERS.length; i++) {
         try {
           const response = await fetch(EMAIL_SERVERS[i], {
@@ -818,13 +1095,8 @@
             redirect: "follow"
           });
           const resData = await response.json();
-          if (resData.status === "SUCCESS") {
-            console.log(`Email sent via Server ${i + 1}. Remaining Quota: ${resData.quotaLeft}`);
-            return { success: true, serverUsed: i + 1, quotaLeft: resData.quotaLeft };
-          }
-        } catch (err) {
-          console.warn(`Email Server ${i + 1} failed, switching to next server...`, err);
-        }
+          if (resData.status === "SUCCESS") return { success: true, serverUsed: i + 1, quotaLeft: resData.quotaLeft };
+        } catch (err) {}
       }
       return { success: false };
     }
@@ -844,33 +1116,44 @@
     }
 
     // =========================================================
-    // 5. ALL 12 CONNECTED MODULES & 3-LEVEL LOCK ENGINE
+    // 7. MODULES & REALTIME DATABASE LISTENERS
     // =========================================================
     const ALL_MODULES = [
-      { id: "ADMISSION", nameEN: "Online Admission Portal", nameHI: "ऑनलाइन एडमिशन पोर्टल", icon: "fa-user-plus", color: "bg-blue-600" },
+      { id: "ATTENDANCE", nameEN: "Smart Attendance Calendar", nameHI: "मासिक उपस्थिति कैलेंडर", icon: "fa-calendar-check", color: "bg-teal-600" },
+      { id: "HOMEWORK_PYQ", nameEN: "Homework & Notes", nameHI: "होमवर्क एवं स्टडी नोट्स", icon: "fa-book-open", color: "bg-orange-600" },
+      { id: "PYQ_PAPERS", nameEN: "PYQ Papers & Solutions", nameHI: "पुराने पेपर एवं सॉल्यूशन", icon: "fa-file-pdf", color: "bg-amber-600" },
+      { id: "NOTIFICATIONS", nameEN: "Notice Board & Alerts", nameHI: "नोटिस बोर्ड एवं पर्सनल अलर्ट", icon: "fa-bell", color: "bg-rose-600" },
       { id: "DAILY_TEST", nameEN: "Daily Test Results", nameHI: "डेली टेस्ट रिजल्ट", icon: "fa-chart-line", color: "bg-indigo-600" },
       { id: "HALF_YEARLY", nameEN: "Half-Yearly Exam Result", nameHI: "अर्धवार्षिक परीक्षा परिणाम", icon: "fa-file-invoice", color: "bg-purple-600" },
       { id: "YEARLY_RESULT", nameEN: "Yearly & Annual Report", nameHI: "वार्षिक परीक्षा एवं रिपोर्ट कार्ड", icon: "fa-award", color: "bg-emerald-600" },
-      { id: "ADMIT_CARD", nameEN: "Exam Admit Cards", nameHI: "परीक्षा प्रवेश पत्र", icon: "fa-id-card", color: "bg-amber-600" },
-      { id: "LIVE_CBT", nameEN: "Live CBT & Mock Tests", nameHI: "लाइव CBT एवं मॉक टेस्ट", icon: "fa-laptop-code", color: "bg-rose-600" },
+      { id: "ADMIT_CARD", nameEN: "Exam Admit Cards", nameHI: "परीक्षा प्रवेश पत्र", icon: "fa-id-card", color: "bg-blue-600" },
+      { id: "LIVE_CBT", nameEN: "Live CBT & Mock Tests", nameHI: "लाइव CBT एवं मॉक टेस्ट", icon: "fa-laptop-code", color: "bg-pink-600" },
       { id: "SCHOLARSHIP", nameEN: "Scholarship Exam (Phase 1 & 2)", nameHI: "स्कॉलरशिप परीक्षा (फेज 1 व 2)", icon: "fa-graduation-cap", color: "bg-cyan-600" },
-      { id: "ATTENDANCE", nameEN: "Smart Attendance Calendar", nameHI: "मासिक उपस्थिति कैलेंडर", icon: "fa-calendar-check", color: "bg-teal-600" },
-      { id: "HOMEWORK_PYQ", nameEN: "Homework & PYQ Solutions", nameHI: "होमवर्क एवं पुराने पेपर (PYQ)", icon: "fa-book-open", color: "bg-orange-600" },
-      { id: "FEES", nameEN: "Fee Status & Digital Receipts", nameHI: "फीस स्टेटस एवं रसीद", icon: "fa-indian-rupee-sign", color: "bg-green-600" },
+      { id: "FEES", nameEN: "Fee Status & Receipts", nameHI: "फीस स्टेटस एवं रसीद", icon: "fa-indian-rupee-sign", color: "bg-green-600" },
       { id: "LIVE_CLASS", nameEN: "Live & Recorded Classes", nameHI: "लाइव एवं रिकॉर्डेड क्लास", icon: "fa-video", color: "bg-red-600" },
-      { id: "BUS_TRACKING", nameEN: "School Bus Live Tracking", nameHI: "स्कूल बस लाइव लोकेशन", icon: "fa-bus", color: "bg-yellow-600" }
+      { id: "BUS_TRACKING", nameEN: "School Bus Live Tracking", nameHI: "स्कूल बस लाइव लोकेशन", icon: "fa-bus", color: "bg-yellow-600" },
+      { id: "ADMISSION", nameEN: "Online Admission Portal", nameHI: "ऑनलाइन एडमिशन पोर्टल", icon: "fa-user-plus", color: "bg-slate-700" }
     ];
 
-    let globalPortalLocks = {}; // { MODULE_ID: "OPEN" | "HALF_LOCK" | "FULL_LOCK" }
+    let secretAdminCreds = { id: "ADMIN", pass: "GSSS@123" };
+    let globalPortalLocks = {};
     let allAdmissions = {};
     let allStudents = {};
+    let allAttendance = {};
+    let allHomeworkAndPYQ = {};
+    let allNotifications = {};
     let adminTasksChecklist = {};
+    let loggedInStudent = null;
+    let activeStudentDeviceListener = null;
+    let knownNotifCount = null;
 
-    // Listen to Realtime Database
+    db.ref("adminConfig/credentials").on("value", snap => {
+      if (snap.val()) secretAdminCreds = snap.val();
+    });
+
     db.ref("portalLocks").on("value", snap => {
       globalPortalLocks = snap.val() || {};
       renderMasterLockControls();
-      updateAdminKPIs();
       if (loggedInStudent) renderStudentDashboard(loggedInStudent);
     });
 
@@ -884,10 +1167,25 @@
       allStudents = snap.val() || {};
       renderMasterStudents();
       updateAdminKPIs();
-      if (loggedInStudent && allStudents[loggedInStudent.masterId]) {
-        loggedInStudent = allStudents[loggedInStudent.masterId];
-        renderStudentDashboard(loggedInStudent);
-      }
+      loadAdminAttendanceSheet();
+    });
+
+    db.ref("attendance").on("value", snap => {
+      allAttendance = snap.val() || {};
+      updateAdminKPIs();
+      loadAdminAttendanceSheet();
+    });
+
+    db.ref("studyContent").on("value", snap => {
+      allHomeworkAndPYQ = snap.val() || {};
+      renderAdminContentList();
+      updateAdminKPIs();
+    });
+
+    db.ref("notifications").on("value", snap => {
+      allNotifications = snap.val() || {};
+      renderAdminSentNotifications();
+      if (loggedInStudent) checkStudentRealtimeNotifications();
     });
 
     db.ref("adminTasks").on("value", snap => {
@@ -904,17 +1202,564 @@
     function updateAdminKPIs() {
       const stuCount = Object.keys(allStudents).filter(k => allStudents[k].status !== "LEFT").length;
       const pendingAdm = Object.values(allAdmissions).filter(a => a.status === "PENDING").length;
-      const approvedAdm = Object.values(allAdmissions).filter(a => a.status === "APPROVED").length;
-      const lockedMods = Object.values(globalPortalLocks).filter(v => v === "FULL_LOCK" || v === "HALF_LOCK").length;
+      const todayKey = new Date().toISOString().split("T")[0];
+      const todayAttCount = allAttendance[todayKey] ? Object.keys(allAttendance[todayKey]).length : 0;
+      const contentCount = Object.keys(allHomeworkAndPYQ).length;
 
       document.getElementById("statTotalStudents").innerText = stuCount;
       document.getElementById("statPendingAdmissions").innerText = pendingAdm;
-      document.getElementById("statApprovedAdmissions").innerText = approvedAdm;
-      document.getElementById("statLockedModules").innerText = lockedMods;
+      document.getElementById("statTodayAttendance").innerText = todayAttCount;
+      document.getElementById("statTotalContent").innerText = contentCount;
     }
 
     // =========================================================
-    // 6. SMART ADMISSION FORM + EMAIL OTP + IMAGE COMPRESSION
+    // 8. STEALTH ADMIN LOGIN + SINGLE-DEVICE PERSISTENT STUDENT LOGIN
+    // =========================================================
+    async function handleLoginSubmit(event) {
+      event.preventDefault();
+      const userId = document.getElementById("loginUserId").value.trim();
+      const pass = document.getElementById("loginPassword").value.trim();
+
+      // 1. Check Secret Admin Credentials First (Hidden inside Student Login!)
+      if (userId.toUpperCase() === secretAdminCreds.id.toUpperCase() && pass === secretAdminCreds.pass) {
+        document.getElementById("publicAuthView").classList.add("hidden");
+        document.getElementById("studentDashboardView").classList.add("hidden");
+        document.getElementById("adminDashboardView").classList.remove("hidden");
+        document.getElementById("logoutBtn").classList.remove("hidden");
+        document.getElementById("logoutBtn").classList.add("flex");
+        document.getElementById("studentNotifBellBtn").classList.add("hidden");
+
+        checkMay1PromotionPopup();
+        checkAndShowPendingTasksPopup(false);
+        return;
+      }
+
+      // 2. Otherwise check Student Credentials
+      const stu = allStudents[userId.toUpperCase()];
+      if (stu && stu.status !== "LEFT" && (stu.password === pass || stu.dob === pass)) {
+        const newDeviceToken = `DEV_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
+        localStorage.setItem("GSSS_SAVED_STUDENT_ID", stu.masterId);
+        localStorage.setItem("GSSS_SAVED_DEVICE_TOKEN", newDeviceToken);
+
+        await db.ref(`students/${stu.masterId}/activeSessionToken`).set(newDeviceToken);
+        startStudentSession(stu, newDeviceToken);
+      } else {
+        await showCustomAlert("Invalid Student Master ID or Password! Please check your credentials.", "Login Failed", "DANGER");
+      }
+    }
+
+    function startStudentSession(stu, myDeviceToken) {
+      loggedInStudent = stu;
+      knownNotifCount = null;
+
+      document.getElementById("publicAuthView").classList.add("hidden");
+      document.getElementById("adminDashboardView").classList.add("hidden");
+      document.getElementById("studentDashboardView").classList.remove("hidden");
+      document.getElementById("logoutBtn").classList.remove("hidden");
+      document.getElementById("logoutBtn").classList.add("flex");
+      document.getElementById("studentNotifBellBtn").classList.remove("hidden");
+
+      renderStudentDashboard(stu);
+      checkStudentRealtimeNotifications();
+
+      // Real-time Single-Device Enforcement Listener
+      if (activeStudentDeviceListener) activeStudentDeviceListener.off();
+      const tokenRef = db.ref(`students/${stu.masterId}/activeSessionToken`);
+      activeStudentDeviceListener = tokenRef;
+      tokenRef.on("value", async snap => {
+        const remoteToken = snap.val();
+        if (remoteToken && remoteToken !== myDeviceToken) {
+          triggerPhoneVibrationAndSound();
+          logoutUser(true);
+          await showCustomAlert(
+            `Security Alert: Your Student ID (${stu.masterId}) has just been logged into another phone/device. You have been automatically logged out from this device.`,
+            "Logged Out — Another Device Active",
+            "DANGER"
+          );
+        }
+      });
+    }
+
+    // Auto-Restore Saved Student Login on Page Load
+    window.addEventListener("load", () => {
+      const savedId = localStorage.getItem("GSSS_SAVED_STUDENT_ID");
+      const savedToken = localStorage.getItem("GSSS_SAVED_DEVICE_TOKEN");
+      if (savedId && savedToken) {
+        db.ref(`students/${savedId}`).once("value", snap => {
+          const stu = snap.val();
+          if (stu && stu.status !== "LEFT") {
+            if (!stu.activeSessionToken || stu.activeSessionToken === savedToken) {
+              startStudentSession(stu, savedToken);
+            } else {
+              localStorage.removeItem("GSSS_SAVED_STUDENT_ID");
+              localStorage.removeItem("GSSS_SAVED_DEVICE_TOKEN");
+            }
+          }
+        });
+      }
+    });
+
+    function openAdminCredentialsModal() {
+      document.getElementById("newAdminIdInput").value = secretAdminCreds.id;
+      document.getElementById("newAdminPassInput").value = secretAdminCreds.pass;
+      document.getElementById("adminCredentialsModal").classList.remove("hidden");
+    }
+
+    async function saveNewAdminCredentials(event) {
+      event.preventDefault();
+      const newId = document.getElementById("newAdminIdInput").value.trim();
+      const newPass = document.getElementById("newAdminPassInput").value.trim();
+      if (!newId || !newPass) return;
+
+      await db.ref("adminConfig/credentials").set({ id: newId, pass: newPass });
+      document.getElementById("adminCredentialsModal").classList.add("hidden");
+      await showCustomAlert(`Secret Admin Login Updated Successfully!\n\nNew Admin ID: ${newId}\nNew Password: ${newPass}`, "Security Updated", "SUCCESS");
+    }
+
+    function logoutUser(isForcedByOtherDevice = false) {
+      if (activeStudentDeviceListener) {
+        activeStudentDeviceListener.off();
+        activeStudentDeviceListener = null;
+      }
+      loggedInStudent = null;
+      localStorage.removeItem("GSSS_SAVED_STUDENT_ID");
+      localStorage.removeItem("GSSS_SAVED_DEVICE_TOKEN");
+
+      document.getElementById("adminDashboardView").classList.add("hidden");
+      document.getElementById("studentDashboardView").classList.add("hidden");
+      document.getElementById("publicAuthView").classList.remove("hidden");
+      document.getElementById("logoutBtn").classList.add("hidden");
+      document.getElementById("studentNotifBellBtn").classList.add("hidden");
+      document.getElementById("loginPassword").value = "";
+    }
+
+    // =========================================================
+    // 9. PHASE 2: SMART ATTENDANCE SYSTEM (ADMIN + STUDENT)
+    // =========================================================
+    let tempAttendanceMap = {};
+
+    function loadAdminAttendanceSheet() {
+      const dateKey = document.getElementById("attAdminDate")?.value;
+      const selectedClass = document.getElementById("attAdminClass")?.value;
+      const tbody = document.getElementById("adminAttendanceTableBody");
+      if (!tbody || !dateKey || !selectedClass) return;
+
+      const classStudents = Object.values(allStudents).filter(s => s.status !== "LEFT" && s.currentClass === selectedClass);
+      const existingDayData = (allAttendance && allAttendance[dateKey]) ? allAttendance[dateKey] : {};
+
+      if (classStudents.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" class="p-6 text-center text-slate-400 font-bold">No active students enrolled in ${selectedClass}.</td></tr>`;
+        return;
+      }
+
+      tempAttendanceMap = {};
+      tbody.innerHTML = classStudents.map(stu => {
+        const currentMark = existingDayData[stu.masterId] || "P";
+        tempAttendanceMap[stu.masterId] = currentMark;
+        return `
+          <tr class="hover:bg-slate-50">
+            <td class="p-3 font-extrabold text-blue-700">${stu.masterId}</td>
+            <td class="p-3 font-bold text-slate-900">${stu.studentName}</td>
+            <td class="p-3 text-xs text-slate-500">${stu.fatherName}</td>
+            <td class="p-3 text-center">
+              <div class="inline-flex rounded-xl bg-slate-100 p-1 gap-1" id="attBtnGroup_${stu.masterId}">
+                <button type="button" onclick="setStudentAttMark('${stu.masterId}', 'P')" class="att-btn-P px-3 py-1 rounded-lg text-xs font-extrabold ${currentMark === 'P' ? 'bg-emerald-600 text-white shadow' : 'text-slate-600'}">Present (P)</button>
+                <button type="button" onclick="setStudentAttMark('${stu.masterId}', 'A')" class="att-btn-A px-3 py-1 rounded-lg text-xs font-extrabold ${currentMark === 'A' ? 'bg-rose-600 text-white shadow' : 'text-slate-600'}">Absent (A)</button>
+                <button type="button" onclick="setStudentAttMark('${stu.masterId}', 'L')" class="att-btn-L px-3 py-1 rounded-lg text-xs font-extrabold ${currentMark === 'L' ? 'bg-amber-500 text-white shadow' : 'text-slate-600'}">Leave (L)</button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    function setStudentAttMark(masterId, status) {
+      tempAttendanceMap[masterId] = status;
+      const group = document.getElementById(`attBtnGroup_${masterId}`);
+      if (!group) return;
+      group.querySelector(".att-btn-P").className = `att-btn-P px-3 py-1 rounded-lg text-xs font-extrabold ${status === 'P' ? 'bg-emerald-600 text-white shadow' : 'text-slate-600'}`;
+      group.querySelector(".att-btn-A").className = `att-btn-A px-3 py-1 rounded-lg text-xs font-extrabold ${status === 'A' ? 'bg-rose-600 text-white shadow' : 'text-slate-600'}`;
+      group.querySelector(".att-btn-L").className = `att-btn-L px-3 py-1 rounded-lg text-xs font-extrabold ${status === 'L' ? 'bg-amber-500 text-white shadow' : 'text-slate-600'}`;
+    }
+
+    function markAllClassAttendance(status) {
+      Object.keys(tempAttendanceMap).forEach(id => setStudentAttMark(id, status));
+    }
+
+    async function saveClassAttendance() {
+      const dateKey = document.getElementById("attAdminDate").value;
+      const selectedClass = document.getElementById("attAdminClass").value;
+      if (Object.keys(tempAttendanceMap).length === 0) return;
+
+      for (const [masterId, mark] of Object.entries(tempAttendanceMap)) {
+        await db.ref(`attendance/${dateKey}/${masterId}`).set(mark);
+        if (mark === "A") {
+          const notifId = `NOTIF_${Date.now()}_${masterId}`;
+          await db.ref(`notifications/${notifId}`).set({
+            id: notifId,
+            targetType: "STUDENT",
+            targetValue: masterId,
+            title: `Absent Alert (${dateKey})`,
+            message: `Dear Parent, ${allStudents[masterId]?.studentName} (${masterId}) was marked ABSENT today (${dateKey}) in ${selectedClass}.`,
+            createdAt: new Date().toISOString()
+          });
+        }
+      }
+      await showCustomAlert(`Attendance for ${selectedClass} (${dateKey}) saved! Instant Vibrating Alerts sent to Absent students.`, "Attendance Saved", "SUCCESS");
+    }
+
+    // =========================================================
+    // 10. PHASE 2: HOMEWORK & PYQ PAPERS ENGINE
+    // =========================================================
+    async function submitHomeworkOrPYQ(event, category) {
+      event.preventDefault();
+      const id = `CNT_${Date.now()}`;
+
+      if (category === "HOMEWORK") {
+        const cls = document.getElementById("hw_class").value;
+        const subject = document.getElementById("hw_subject").value.trim();
+        const title = document.getElementById("hw_title").value.trim();
+        const desc = document.getElementById("hw_desc").value.trim();
+        const link = document.getElementById("hw_link").value.trim();
+
+        await db.ref(`studyContent/${id}`).set({
+          id, category: "HOMEWORK", targetClass: cls, subject, title, desc, link,
+          createdAt: new Date().toLocaleDateString("en-IN")
+        });
+
+        // Vibrate phones of that class
+        const notifId = `NOTIF_${Date.now()}`;
+        await db.ref(`notifications/${notifId}`).set({
+          id: notifId,
+          targetType: cls === "ALL" ? "ALL" : "CLASS",
+          targetValue: cls,
+          title: `New Homework: ${subject}`,
+          message: `${title} — ${desc}`,
+          createdAt: new Date().toISOString()
+        });
+
+        event.target.reset();
+        await showCustomAlert(`Homework published for ${cls} and vibrating alert sent to students!`, "Homework Published", "SUCCESS");
+      } else {
+        const cls = document.getElementById("pyq_class").value;
+        const subject = document.getElementById("pyq_subject").value.trim();
+        const title = document.getElementById("pyq_title").value.trim();
+        const paperLink = document.getElementById("pyq_paperLink").value.trim();
+        const solutionLink = document.getElementById("pyq_solutionLink").value.trim();
+
+        await db.ref(`studyContent/${id}`).set({
+          id, category: "PYQ", targetClass: cls, subject, title, paperLink, solutionLink,
+          createdAt: new Date().toLocaleDateString("en-IN")
+        });
+        event.target.reset();
+        await showCustomAlert(`PYQ Paper & Solution uploaded for ${cls}!`, "PYQ Uploaded", "SUCCESS");
+      }
+    }
+
+    function renderAdminContentList() {
+      const container = document.getElementById("adminContentListContainer");
+      if (!container) return;
+      const items = Object.values(allHomeworkAndPYQ).reverse();
+      if (items.length === 0) {
+        container.innerHTML = `<div class="p-4 text-center text-slate-400 text-xs font-bold">No Homework or PYQ uploaded yet.</div>`;
+        return;
+      }
+      container.innerHTML = items.map(item => `
+        <div class="p-3 rounded-xl border bg-slate-50 flex items-center justify-between gap-2">
+          <div>
+            <span class="text-[10px] font-black px-2 py-0.5 rounded ${item.category === 'PYQ' ? 'bg-amber-200 text-amber-900' : 'bg-blue-100 text-blue-800'}">${item.category} • ${item.targetClass}</span>
+            <h5 class="font-bold text-xs text-slate-900 mt-1">${item.subject}: ${item.title}</h5>
+          </div>
+          <button onclick="db.ref('studyContent/${item.id}').remove()" class="text-rose-600 hover:bg-rose-50 p-2 rounded-lg text-xs font-bold">
+            <i class="fa-solid fa-trash"></i>
+          </button>
+        </div>
+      `).join("");
+    }
+
+    // =========================================================
+    // 11. PHASE 2: REALTIME VIBRATING NOTIFICATIONS ENGINE
+    // =========================================================
+    function toggleNotifTargetInput() {
+      const type = document.getElementById("notif_targetType").value;
+      const wrap = document.getElementById("notif_targetValueWrapper");
+      const label = document.getElementById("notif_targetLabel");
+      const input = document.getElementById("notif_targetValue");
+
+      if (type === "ALL") {
+        wrap.classList.add("hidden");
+      } else if (type === "CLASS") {
+        wrap.classList.remove("hidden");
+        label.innerText = "Enter Exact Class Name (e.g. Class 10)";
+        input.placeholder = "Class 10";
+      } else {
+        wrap.classList.remove("hidden");
+        label.innerText = "Enter Student Master ID (e.g. GSSS-2026-1001)";
+        input.placeholder = "GSSS-2026-1001";
+      }
+    }
+
+    async function sendAdminCustomNotification(event) {
+      event.preventDefault();
+      const targetType = document.getElementById("notif_targetType").value;
+      const targetValue = document.getElementById("notif_targetValue").value.trim();
+      const title = document.getElementById("notif_title").value.trim();
+      const message = document.getElementById("notif_message").value.trim();
+
+      const id = `NOTIF_${Date.now()}`;
+      await db.ref(`notifications/${id}`).set({
+        id, targetType, targetValue: targetType === "ALL" ? "ALL" : targetValue,
+        title, message, createdAt: new Date().toISOString()
+      });
+
+      event.target.reset();
+      toggleNotifTargetInput();
+      await showCustomAlert("Notification Broadcasted! Connected student phones will vibrate immediately.", "Alert Dispatched", "SUCCESS");
+    }
+
+    function renderAdminSentNotifications() {
+      const container = document.getElementById("adminSentNotifsList");
+      if (!container) return;
+      const list = Object.values(allNotifications).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      if (list.length === 0) {
+        container.innerHTML = `<div class="p-4 text-center text-slate-400 text-xs font-bold">No notifications sent yet.</div>`;
+        return;
+      }
+      container.innerHTML = list.map(n => `
+        <div class="p-3 rounded-xl border bg-slate-50 flex items-start justify-between gap-2">
+          <div>
+            <span class="text-[10px] font-black px-2 py-0.5 rounded bg-rose-100 text-rose-800">${n.targetType}: ${n.targetValue}</span>
+            <h5 class="font-extrabold text-xs text-slate-900 mt-1">${n.title}</h5>
+            <p class="text-[11px] text-slate-600">${n.message}</p>
+          </div>
+          <button onclick="db.ref('notifications/${n.id}').remove()" class="text-slate-400 hover:text-rose-600 text-xs p-1"><i class="fa-solid fa-trash"></i></button>
+        </div>
+      `).join("");
+    }
+
+    function getNotificationsForStudent(stu) {
+      return Object.values(allNotifications).filter(n =>
+        n.targetType === "ALL" ||
+        (n.targetType === "CLASS" && n.targetValue.toLowerCase() === stu.currentClass.toLowerCase()) ||
+        (n.targetType === "STUDENT" && n.targetValue.toUpperCase() === stu.masterId.toUpperCase())
+      ).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    }
+
+    function checkStudentRealtimeNotifications() {
+      if (!loggedInStudent) return;
+      const myNotifs = getNotificationsForStudent(loggedInStudent);
+      const badge = document.getElementById("unreadNotifCountBadge");
+
+      if (myNotifs.length > 0) {
+        badge.innerText = myNotifs.length;
+        badge.classList.remove("hidden");
+      } else {
+        badge.classList.add("hidden");
+      }
+
+      if (knownNotifCount !== null && myNotifs.length > knownNotifCount) {
+        const latest = myNotifs[0];
+        triggerPhoneVibrationAndSound();
+        showCustomAlert(`${latest.title}\n\n${latest.message}`, "🔔 New School Notification", "INFO");
+      }
+      knownNotifCount = myNotifs.length;
+    }
+
+    // =========================================================
+    // 12. STUDENT INTERACTIVE MODULE VIEWER (ATTENDANCE, HW, PYQ, NOTIFS)
+    // =========================================================
+    async function openStudentModuleModal(modId) {
+      if (!loggedInStudent) return;
+      const stu = loggedInStudent;
+      const globalLock = globalPortalLocks[modId] || "OPEN";
+      const personalLock = stu.individualLocks && stu.individualLocks[modId];
+      const isFullLocked = globalLock === "FULL_LOCK" || personalLock;
+
+      if (isFullLocked) {
+        triggerPhoneVibrationAndSound();
+        await showCustomAlert("🔒 This portal is currently locked by the School Administration for your account.", "Portal Locked", "DANGER");
+        return;
+      }
+
+      const modal = document.getElementById("studentModuleViewerModal");
+      const titleEl = document.getElementById("stuModModalTitle");
+      const bodyEl = document.getElementById("stuModModalBody");
+
+      if (modId === "ATTENDANCE") {
+        titleEl.innerText = `Smart Attendance Report — ${stu.studentName} (${stu.masterId})`;
+        let totalDays = 0, presentCount = 0, absentCount = 0, leaveCount = 0;
+        const records = [];
+
+        Object.entries(allAttendance).sort((a, b) => b[0].localeCompare(a[0])).forEach(([dateKey, dayObj]) => {
+          if (dayObj && dayObj[stu.masterId]) {
+            totalDays++;
+            const st = dayObj[stu.masterId];
+            if (st === "P") presentCount++;
+            else if (st === "A") absentCount++;
+            else if (st === "L") leaveCount++;
+            records.push({ dateKey, st });
+          }
+        });
+
+        const pct = totalDays > 0 ? ((presentCount / totalDays) * 100).toFixed(1) : "100.0";
+
+        bodyEl.innerHTML = `
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div class="p-3.5 rounded-xl bg-blue-50 border border-blue-200 text-center">
+              <div class="text-xs font-bold text-blue-700">Attendance %</div>
+              <div class="text-2xl font-black text-blue-900">${pct}%</div>
+            </div>
+            <div class="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-center">
+              <div class="text-xs font-bold text-emerald-700">Present Days</div>
+              <div class="text-2xl font-black text-emerald-800">${presentCount}</div>
+            </div>
+            <div class="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-center">
+              <div class="text-xs font-bold text-rose-700">Absent Days</div>
+              <div class="text-2xl font-black text-rose-800">${absentCount}</div>
+            </div>
+            <div class="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-center">
+              <div class="text-xs font-bold text-amber-700">Leave Days</div>
+              <div class="text-2xl font-black text-amber-800">${leaveCount}</div>
+            </div>
+          </div>
+          <h4 class="font-extrabold text-xs uppercase text-slate-500 pt-2">Date-wise Attendance Calendar</h4>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+            ${records.length === 0 ? `<div class="col-span-4 p-6 text-center text-slate-400 font-bold">No attendance records marked yet.</div>` : records.map(r => `
+              <div class="p-3 rounded-xl border flex items-center justify-between ${r.st === 'P' ? 'bg-emerald-50 border-emerald-300 text-emerald-900' : r.st === 'A' ? 'bg-rose-50 border-rose-300 text-rose-900' : 'bg-amber-50 border-amber-300 text-amber-900'}">
+                <span class="text-xs font-extrabold">${r.dateKey}</span>
+                <span class="px-2 py-0.5 rounded text-[11px] font-black ${r.st === 'P' ? 'bg-emerald-600 text-white' : r.st === 'A' ? 'bg-rose-600 text-white' : 'bg-amber-500 text-white'}">${r.st === 'P' ? 'PRESENT' : r.st === 'A' ? 'ABSENT' : 'LEAVE'}</span>
+              </div>
+            `).join("")}
+          </div>
+        `;
+        modal.classList.remove("hidden");
+
+      } else if (modId === "HOMEWORK_PYQ") {
+        titleEl.innerText = `Daily Homework & Study Notes (${stu.currentClass})`;
+        const hwList = Object.values(allHomeworkAndPYQ).filter(i =>
+          i.category === "HOMEWORK" && (i.targetClass === "ALL" || i.targetClass === stu.currentClass)
+        ).reverse();
+
+        bodyEl.innerHTML = hwList.length === 0
+          ? `<div class="p-8 text-center text-slate-400 font-bold">No Homework uploaded for ${stu.currentClass} yet.</div>`
+          : hwList.map(h => `
+            <div class="p-4 rounded-xl border bg-slate-50 space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="bg-blue-700 text-white text-[11px] font-extrabold px-2.5 py-0.5 rounded-full">${h.subject}</span>
+                <span class="text-xs text-slate-400 font-bold">${h.createdAt}</span>
+              </div>
+              <h4 class="font-extrabold text-sm text-slate-900">${h.title}</h4>
+              <p class="text-xs text-slate-700 whitespace-pre-line">${h.desc}</p>
+              ${h.link ? `<a href="${h.link}" target="_blank" class="inline-flex items-center gap-1.5 bg-emerald-600 text-white text-xs font-bold px-3.5 py-2 rounded-lg mt-2"><i class="fa-solid fa-download"></i> Open Attached Note / PDF</a>` : ""}
+            </div>
+          `).join("");
+        modal.classList.remove("hidden");
+
+      } else if (modId === "PYQ_PAPERS") {
+        titleEl.innerText = `Previous Year Question Papers & Solutions (${stu.currentClass})`;
+        const pyqList = Object.values(allHomeworkAndPYQ).filter(i =>
+          i.category === "PYQ" && i.targetClass === stu.currentClass
+        ).reverse();
+
+        bodyEl.innerHTML = pyqList.length === 0
+          ? `<div class="p-8 text-center text-slate-400 font-bold">No PYQ Papers uploaded for ${stu.currentClass} yet.</div>`
+          : pyqList.map(p => `
+            <div class="p-4 rounded-xl border bg-amber-50/40 border-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <span class="bg-amber-500 text-slate-950 text-[10px] font-black px-2.5 py-0.5 rounded-full">${p.subject}</span>
+                <h4 class="font-extrabold text-sm text-slate-900 mt-1">${p.title}</h4>
+              </div>
+              <div class="flex gap-2">
+                <a href="${p.paperLink}" target="_blank" class="bg-blue-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl"><i class="fa-solid fa-file-pdf"></i> Question Paper</a>
+                ${p.solutionLink ? `<a href="${p.solutionLink}" target="_blank" class="bg-emerald-600 text-white text-xs font-bold px-3.5 py-2 rounded-xl"><i class="fa-solid fa-check-double"></i> Solution PDF</a>` : ""}
+              </div>
+            </div>
+          `).join("");
+        modal.classList.remove("hidden");
+
+      } else if (modId === "NOTIFICATIONS") {
+        titleEl.innerText = `Official School Notices & Personal Alerts`;
+        const myNotifs = getNotificationsForStudent(stu);
+        bodyEl.innerHTML = myNotifs.length === 0
+          ? `<div class="p-8 text-center text-slate-400 font-bold">No new notifications.</div>`
+          : myNotifs.map(n => `
+            <div class="p-4 rounded-xl border ${n.targetType === 'STUDENT' ? 'bg-rose-50 border-rose-200' : 'bg-slate-50 border-slate-200'} space-y-1">
+              <div class="flex items-center justify-between">
+                <span class="text-[10px] font-black px-2 py-0.5 rounded ${n.targetType === 'STUDENT' ? 'bg-rose-600 text-white' : 'bg-blue-700 text-white'}">${n.targetType === 'STUDENT' ? 'PERSONAL ALERT' : n.targetType}</span>
+                <span class="text-[11px] text-slate-400">${new Date(n.createdAt).toLocaleString("en-IN")}</span>
+              </div>
+              <h4 class="font-extrabold text-sm text-slate-900 pt-1">${n.title}</h4>
+              <p class="text-xs text-slate-700 leading-relaxed">${n.message}</p>
+            </div>
+          `).join("");
+        modal.classList.remove("hidden");
+
+      } else {
+        await showCustomAlert(
+          `Connected to Student Master ID: ${stu.masterId}\nClass: ${stu.currentClass}\n\nThis module will be activated in the upcoming Exam & CBT Phase (Phase 3 & Phase 4).`,
+          modId,
+          "INFO"
+        );
+      }
+    }
+
+    // =========================================================
+    // 13. STUDENT DIGITAL ID CARD GENERATOR (PHASE 2)
+    // =========================================================
+    async function generateStudentDigitalIdCardPDF(masterIdOverride = null) {
+      const stu = masterIdOverride ? allStudents[masterIdOverride] : loggedInStudent;
+      if (!stu) return;
+
+      const printArea = document.getElementById("pdfPrintArea");
+      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(`GSSS-DHANKOLI|ID:${stu.masterId}|NAME:${stu.studentName}|CLASS:${stu.currentClass}|FATHER:${stu.fatherName}`)}`;
+
+      printArea.innerHTML = `
+        <div style="padding:40px;display:flex;justify-content:center;font-family:Arial,sans-serif;">
+          <div style="width:360px;border:3px solid #1e3a8a;border-radius:18px;overflow:hidden;background:#ffffff;box-shadow:0 10px 25px rgba(0,0,0,0.15);">
+            <div style="background:linear-gradient(135deg,#0f172a,#1e3a8a);color:#fff;padding:16px;text-align:center;">
+              <img src="${SCHOOL_INFO.logo}" crossorigin="anonymous" style="width:54px;height:54px;border-radius:50%;background:#fff;padding:2px;margin:0 auto;" />
+              <h2 style="margin:6px 0 2px 0;font-size:15px;font-weight:900;">GURUKUL SR. SEC. SCHOOL</h2>
+              <p style="margin:0;font-size:10px;color:#bfdbfe;">Bhadasar Road, Dhankoli | Helpline: 9772564359</p>
+              <span style="display:inline-block;margin-top:6px;background:#fbbf24;color:#0f172a;font-size:10px;font-weight:900;padding:2px 10px;border-radius:12px;">
+                STUDENT IDENTITY CARD (${CURRENT_SESSION.sessionString})
+              </span>
+            </div>
+            <div style="padding:18px;text-align:center;">
+              <img src="${stu.photoBase64}" style="width:95px;height:115px;object-fit:cover;border:3px solid #1e3a8a;border-radius:12px;margin:0 auto;" />
+              <h3 style="margin:10px 0 2px 0;font-size:18px;font-weight:900;color:#0f172a;">${stu.studentName}</h3>
+              <div style="font-size:12px;font-weight:800;color:#1d4ed8;margin-bottom:12px;">Master ID: ${stu.masterId}</div>
+              <table style="width:100%;font-size:12px;text-align:left;border-collapse:collapse;">
+                <tr><td style="padding:5px 0;color:#64748b;font-weight:bold;">Class:</td><td style="padding:5px 0;font-weight:bold;color:#0f172a;">${stu.currentClass} (${stu.stream || 'General'})</td></tr>
+                <tr><td style="padding:5px 0;color:#64748b;font-weight:bold;">Father's Name:</td><td style="padding:5px 0;font-weight:bold;color:#0f172a;">${stu.fatherName}</td></tr>
+                <tr><td style="padding:5px 0;color:#64748b;font-weight:bold;">DOB / Blood:</td><td style="padding:5px 0;font-weight:bold;color:#0f172a;">${stu.dob} (${stu.bloodGroup || 'N/A'})</td></tr>
+                <tr><td style="padding:5px 0;color:#64748b;font-weight:bold;">Mobile:</td><td style="padding:5px 0;font-weight:bold;color:#0f172a;">${stu.mobile}</td></tr>
+                <tr><td style="padding:5px 0;color:#64748b;font-weight:bold;">Address:</td><td style="padding:5px 0;font-weight:bold;color:#0f172a;">${stu.address}</td></tr>
+              </table>
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-top:14px;padding-top:12px;border-top:1px dashed #cbd5e1;">
+                <img src="${qrUrl}" crossorigin="anonymous" style="width:68px;height:68px;" />
+                <div style="text-align:right;">
+                  <div style="font-family:'Brush Script MT',cursive;font-size:20px;color:#1e3a8a;font-weight:bold;">R. C. Royal</div>
+                  <div style="font-size:10px;font-weight:bold;color:#0f172a;">R.C. Royal (Director)</div>
+                  <div style="font-size:9px;color:#64748b;">Authorized Signatory</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+
+      const opt = {
+        margin: 0,
+        filename: `GSSS_ID_Card_${stu.masterId}.pdf`,
+        image: { type: "jpeg", quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: "px", format: [794, 1122], orientation: "portrait" }
+      };
+      await html2pdf().set(opt).from(printArea).save();
+    }
+
+    // =========================================================
+    // 14. PHASE 1 CORE FUNCTIONS (ADMISSION, OTP, SIGNED PDF, LOCKS)
     // =========================================================
     let generatedOTP = null;
     let isEmailVerified = false;
@@ -922,11 +1767,8 @@
     function toggleStreamField() {
       const cls = document.getElementById("adm_class").value;
       const wrapper = document.getElementById("adm_streamWrapper");
-      if (cls === "Class 11" || cls === "Class 12") {
-        wrapper.classList.remove("hidden");
-      } else {
-        wrapper.classList.add("hidden");
-      }
+      if (cls === "Class 11" || cls === "Class 12") wrapper.classList.remove("hidden");
+      else wrapper.classList.add("hidden");
     }
 
     function handleImageUpload(event, previewId, hiddenInputId, maxWidth) {
@@ -951,15 +1793,15 @@
       reader.readAsDataURL(file);
     }
 
-    function openPublicModal(modalId, isDirectAdmin = false) {
+    async function openPublicModal(modalId, isDirectAdmin = false) {
       if (modalId === "admissionFormModal" && !isDirectAdmin) {
         const lockState = globalPortalLocks["ADMISSION"] || "OPEN";
         if (lockState === "FULL_LOCK") {
-          alert("The Online Admission Portal is currently locked by School Administration.");
+          await showCustomAlert("The Online Admission Portal is currently locked by School Administration.", "Portal Locked", "DANGER");
           return;
         }
         if (lockState === "HALF_LOCK") {
-          alert("Admission Portal is in View-Only (Half-Lock) mode. New form submissions are temporarily paused by Admin.");
+          await showCustomAlert("Admission Portal is in View-Only (Half-Lock) mode. New submissions are paused.", "View-Only Mode", "INFO");
           return;
         }
       }
@@ -994,7 +1836,7 @@
       const email = document.getElementById("adm_email").value.trim();
       const studentName = document.getElementById("adm_studentName").value.trim() || "Applicant";
       if (!email || !email.includes("@")) {
-        alert("Please enter a valid Email ID first.");
+        await showCustomAlert("Please enter a valid Email ID first.", "Email Required", "DANGER");
         return;
       }
 
@@ -1008,11 +1850,10 @@
         studentName: studentName,
         bodyHtml: `
           <p>Thank you for choosing <strong>Gurukul Senior Secondary School, Bhadasar Road, Dhankoli</strong>.</p>
-          <p>Please use the following 6-digit One-Time Password (OTP) to verify your email address and submit your online admission form:</p>
+          <p>Your 6-digit One-Time Password (OTP) for admission verification is:</p>
           <div style="background:#eff6ff;border:2px dashed #1d4ed8;padding:16px;text-align:center;font-size:28px;font-weight:800;letter-spacing:6px;color:#1e3a8a;border-radius:12px;margin:20px 0;">
             ${generatedOTP}
           </div>
-          <p>This OTP is valid for 15 minutes. Do not share this code with anyone.</p>
         `
       });
 
@@ -1027,20 +1868,20 @@
 
       if (res.success) {
         document.getElementById("otpVerifyBox").classList.remove("hidden");
-        alert(`6-Digit OTP has been sent to ${email}`);
+        await showCustomAlert(`6-Digit Verification OTP has been sent to ${email}`, "OTP Sent", "SUCCESS");
       } else {
-        alert("Could not send email. Please check your internet or email address.");
+        await showCustomAlert("Could not send email. Please check internet connection or email address.", "Email Error", "DANGER");
       }
     }
 
-    function verifyAdmissionOTP() {
+    async function verifyAdmissionOTP() {
       const entered = document.getElementById("adm_otpInput").value.trim();
       if (entered === generatedOTP) {
         isEmailVerified = true;
         document.getElementById("otpVerifiedBadge").classList.remove("hidden");
-        alert("Email OTP Verified Successfully!");
+        await showCustomAlert("Email OTP Verified Successfully!", "Verified", "SUCCESS");
       } else {
-        alert("Invalid OTP! Please check your email and try again.");
+        await showCustomAlert("Invalid OTP! Please check your email and try again.", "Invalid OTP", "DANGER");
       }
     }
 
@@ -1050,14 +1891,21 @@
       const editId = document.getElementById("editApplicationId").value;
 
       if (!isDirect && !isEmailVerified) {
-        alert("Please verify your Email ID with OTP before submitting the admission form.");
+        await showCustomAlert("Please verify your Email ID with OTP before submitting.", "OTP Required", "DANGER");
         return;
       }
 
       const photoBase64 = document.getElementById("adm_photoBase64").value;
       const signBase64 = document.getElementById("adm_signBase64").value;
       if (!photoBase64 || !signBase64) {
-        alert("Please upload both Student Passport Photo and Signature.");
+        await showCustomAlert("Please upload both Student Passport Photo and Signature.", "Documents Required", "DANGER");
+        return;
+      }
+
+      const photoBase64 = document.getElementById("adm_photoBase64").value;
+      const signBase64 = document.getElementById("adm_signBase64").value;
+      if (!photoBase64 || !signBase64) {
+        await showCustomAlert("Please upload both Student Passport Photo and Signature.", "Documents Required", "DANGER");
         return;
       }
 
@@ -1096,7 +1944,6 @@
       await db.ref(`admissions/${appId}`).set(applicationData);
 
       if (isDirect) {
-        // Instantly Approve if entered directly by Admin
         await processAdminAdmissionAction(appId, "APPROVE", "Direct Admission by School Admin");
         btn.disabled = false;
         btn.innerText = "Submit Official Admission Form";
@@ -1104,19 +1951,12 @@
         return;
       }
 
-      // Send Confirmation Email to Student
       const htmlBody = buildOfficialEmailTemplate({
         heading: "Admission Application Received Successfully",
         studentName: applicationData.studentName,
         bodyHtml: `
-          <p>We have received your online admission application for <strong>${applicationData.classApplying}</strong> (Academic Session <strong>${applicationData.session}</strong>).</p>
-          <table style="width:100%;border-collapse:collapse;margin:15px 0;font-size:14px;">
-            <tr><td style="padding:8px;border:1px solid #cbd5e1;font-weight:bold;">Application ID</td><td style="padding:8px;border:1px solid #cbd5e1;color:#1d4ed8;font-weight:bold;">${appId}</td></tr>
-            <tr><td style="padding:8px;border:1px solid #cbd5e1;font-weight:bold;">Student Name</td><td style="padding:8px;border:1px solid #cbd5e1;">${applicationData.studentName}</td></tr>
-            <tr><td style="padding:8px;border:1px solid #cbd5e1;font-weight:bold;">Father's Name</td><td style="padding:8px;border:1px solid #cbd5e1;">${applicationData.fatherName}</td></tr>
-            <tr><td style="padding:8px;border:1px solid #cbd5e1;font-weight:bold;">Current Status</td><td style="padding:8px;border:1px solid #cbd5e1;">Under Admin Review</td></tr>
-          </table>
-          <p>Our Admission Desk will review your documents shortly and notify you via email.</p>
+          <p>We have received your online admission application for <strong>${applicationData.classApplying}</strong> (Session <strong>${applicationData.session}</strong>).</p>
+          <p><strong>Application ID:</strong> ${appId}</p>
         `
       });
 
@@ -1129,18 +1969,16 @@
       btn.disabled = false;
       btn.innerText = "Submit Official Admission Form";
       closePublicModal("admissionFormModal");
-      alert(`Application Submitted Successfully!\nYour Application ID is: ${appId}\nPlease save this ID for tracking.`);
+      await showCustomAlert(`Application Submitted Successfully!\n\nYour Application ID is: ${appId}\nPlease save this ID for tracking.`, "Application Submitted", "SUCCESS");
     }
 
-    // =========================================================
-    // 7. ADMIN 4 ACTIONS ON ADMISSION + AUTO ENGLISH EMAIL + PDF
-    // =========================================================
     function renderAdminAdmissions() {
       const tbody = document.getElementById("adminAdmissionTableBody");
+      if (!tbody) return;
       const filter = document.getElementById("filterAdmissionStatus").value;
       const list = Object.values(allAdmissions).sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));
-
       const filtered = filter === "ALL" ? list : list.filter(item => item.status === filter);
+
       if (filtered.length === 0) {
         tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-400 font-semibold">No Admission Applications Found.</td></tr>`;
         return;
@@ -1162,7 +2000,7 @@
                 <img src="${app.photoBase64}" class="w-10 h-12 rounded-lg object-cover border" />
                 <div>
                   <div class="font-bold text-slate-900">${app.studentName}</div>
-                  <div class="text-[11px] text-slate-500">DOB: ${app.dob} | ${app.gender}</div>
+                  <div class="text-[11px] text-slate-500">DOB: ${app.dob}</div>
                 </div>
               </div>
             </td>
@@ -1175,25 +2013,13 @@
               <span class="px-2.5 py-1 rounded-full text-[11px] font-extrabold ${badgeColors[app.status] || 'bg-slate-100'}">${app.status}</span>
               ${app.adminRemark ? `<div class="text-[11px] text-slate-500 mt-1 max-w-xs">${app.adminRemark}</div>` : ""}
             </td>
-            <td class="p-3 text-right space-y-1">
+            <td class="p-3 text-right">
               <div class="flex flex-wrap justify-end gap-1.5">
-                <button onclick="triggerAdminAdmissionDecision('${app.appId}', 'APPROVE')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold" title="Approve & Send Signed PDF">
-                  <i class="fa-solid fa-check"></i> Approve
-                </button>
-                <button onclick="triggerAdminAdmissionDecision('${app.appId}', 'INVITE')" class="bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold" title="Invite Offline to School">
-                  <i class="fa-solid fa-school"></i> Invite
-                </button>
-                <button onclick="triggerAdminAdmissionDecision('${app.appId}', 'REVIEW')" class="bg-amber-500 hover:bg-amber-600 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold" title="Send Back for Correction">
-                  <i class="fa-solid fa-rotate-left"></i> Review
-                </button>
-                <button onclick="triggerAdminAdmissionDecision('${app.appId}', 'REJECT')" class="bg-rose-600 hover:bg-rose-700 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold" title="Reject">
-                  <i class="fa-solid fa-xmark"></i> Reject
-                </button>
-                ${app.status === "APPROVED" ? `
-                  <button onclick="generateSignedAdmissionPDF('${app.appId}', true)" class="bg-slate-800 hover:bg-slate-900 text-amber-300 px-2.5 py-1.5 rounded-lg text-xs font-bold">
-                    <i class="fa-solid fa-file-pdf"></i> PDF
-                  </button>
-                ` : ""}
+                <button onclick="triggerAdminAdmissionDecision('${app.appId}', 'APPROVE')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold"><i class="fa-solid fa-check"></i> Approve</button>
+                <button onclick="triggerAdminAdmissionDecision('${app.appId}', 'INVITE')" class="bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold"><i class="fa-solid fa-school"></i> Invite</button>
+                <button onclick="triggerAdminAdmissionDecision('${app.appId}', 'REVIEW')" class="bg-amber-500 hover:bg-amber-600 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold"><i class="fa-solid fa-rotate-left"></i> Review</button>
+                <button onclick="triggerAdminAdmissionDecision('${app.appId}', 'REJECT')" class="bg-rose-600 hover:bg-rose-700 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold"><i class="fa-solid fa-xmark"></i> Reject</button>
+                ${app.status === "APPROVED" ? `<button onclick="generateSignedAdmissionPDF('${app.appId}', true)" class="bg-slate-800 text-amber-300 px-2.5 py-1.5 rounded-lg text-xs font-bold"><i class="fa-solid fa-file-pdf"></i> PDF</button>` : ""}
               </div>
             </td>
           </tr>
@@ -1204,19 +2030,19 @@
     async function triggerAdminAdmissionDecision(appId, actionType) {
       let remark = "";
       if (actionType === "INVITE") {
-        remark = prompt("Enter Date & Time for Offline Document Verification at School Campus:", "Tomorrow at 10:00 AM with Original Documents");
+        remark = await showCustomPrompt("Enter Date & Time for Offline Document Verification at School:", "Tomorrow at 10:00 AM with Original Documents", "Invite Student Offline");
         if (remark === null) return;
       } else if (actionType === "REVIEW") {
-        remark = prompt("Enter correction required from student (Form will unlock for student to edit):", "Please upload a clearer passport size photo and check Aadhaar number.");
+        remark = await showCustomPrompt("Enter correction required from student (Form will unlock for editing):", "Please check Aadhaar number and upload clear photo.", "Send Back for Review");
         if (remark === null) return;
       } else if (actionType === "REJECT") {
-        remark = prompt("Enter reason for rejecting this application:", "Incomplete documents / Eligibility criteria not met.");
+        remark = await showCustomPrompt("Enter reason for rejecting this application:", "Incomplete documents.", "Reject Application");
         if (remark === null) return;
       } else if (actionType === "APPROVE") {
-        if (!confirm("Approve this admission? This will generate the Student Master ID (GSSS-...), create student login credentials, and send the Official Signed Admission PDF via English Email.")) return;
+        const ok = await showCustomConfirm("Approve this admission? This will generate the Student Master ID (GSSS-...), create login credentials, and send the Official Signed Admission PDF via English Email.", "Confirm Admission Approval");
+        if (!ok) return;
         remark = "Approved by Director R.C. Royal";
       }
-
       await processAdminAdmissionAction(appId, actionType, remark);
     }
 
@@ -1235,133 +2061,61 @@
         app.approvedDate = approvedDate;
         app.adminRemark = remark;
 
-        // Save to Master Students Database (All 15+ portals connect to this record)
         const studentRecord = {
-          ...app,
-          masterId,
-          password: rawPassword,
-          currentClass: app.classApplying,
-          status: "ACTIVE",
-          individualLocks: {}
+          ...app, masterId, password: rawPassword,
+          currentClass: app.classApplying, status: "ACTIVE", individualLocks: {}
         };
 
         await db.ref(`admissions/${appId}`).set(app);
         await db.ref(`students/${masterId}`).set(studentRecord);
 
-        // Generate Signed PDF Base64 & Send Official Approval Email in English
         const pdfBase64 = await generateSignedAdmissionPDF(appId, false);
-
         const htmlBody = buildOfficialEmailTemplate({
           heading: "Congratulations! Your Admission is Approved",
           studentName: app.studentName,
           bodyHtml: `
-            <p>We are pleased to inform you that your admission application for <strong>${app.classApplying}</strong> at <strong>Gurukul Senior Secondary School, Bhadasar Road, Dhankoli</strong> has been <strong>OFFICIALLY APPROVED</strong> by the School Administration.</p>
+            <p>Your admission application for <strong>${app.classApplying}</strong> at <strong>Gurukul Senior Secondary School, Bhadasar Road, Dhankoli</strong> has been <strong>OFFICIALLY APPROVED</strong>.</p>
             <div style="background:#f0fdf4;border:2px solid #16a34a;padding:16px;border-radius:12px;margin:16px 0;">
-              <h4 style="margin:0 0 10px 0;color:#166534;">Official Student Login Credentials & Master ID</h4>
-              <p style="margin:4px 0;"><strong>Master Student ID:</strong> <span style="color:#1d4ed8;font-weight:800;">${masterId}</span></p>
-              <p style="margin:4px 0;"><strong>Portal Login Password:</strong> <span style="color:#dc2626;font-weight:800;">${rawPassword}</span></p>
-              <p style="margin:4px 0;"><strong>Class Admitted:</strong> ${app.classApplying} (${app.stream})</p>
+              <p style="margin:4px 0;"><strong>Master Student ID:</strong> ${masterId}</p>
+              <p style="margin:4px 0;"><strong>App Login Password:</strong> ${rawPassword}</p>
             </div>
-            <p><strong>Important Next Step:</strong> Your <strong>Official Filled Admission Form PDF (with Director's Digital Signature & Approval Stamp)</strong> is attached with this email and is also available for download inside the School App. Please bring a printout of this signed PDF to the school office to complete your offline verification.</p>
+            <p>Your Signed Official Admission Form PDF is attached with this email.</p>
           `
         });
 
         await sendOfficialEmail({
           to: app.email,
-          subject: `Admission Approved (${masterId}) - Signed Form Attached | Gurukul Sr. Sec. School, Dhankoli`,
-          htmlBody,
-          pdfBase64,
-          pdfFileName: `Admission_Form_${masterId}.pdf`
+          subject: `Admission Approved (${masterId}) - Signed Form Attached | Gurukul Sr. Sec. School`,
+          htmlBody, pdfBase64, pdfFileName: `Admission_Form_${masterId}.pdf`
         });
 
-        alert(`Admission Approved!\nMaster Student ID: ${masterId}\nPassword: ${rawPassword}\nOfficial English Email with Signed PDF sent to ${app.email}.`);
-
-      } else if (actionType === "INVITE") {
-        app.status = "INVITED";
+        await showCustomAlert(`Admission Approved!\n\nMaster Student ID: ${masterId}\nPassword: ${rawPassword}\nOfficial English Email with Signed PDF sent to ${app.email}.`, "Approved Successfully", "SUCCESS");
+      } else {
+        app.status = actionType === "INVITE" ? "INVITED" : actionType === "REVIEW" ? "REVIEW_REQUIRED" : "REJECTED";
         app.adminRemark = remark;
         await db.ref(`admissions/${appId}`).set(app);
 
         const htmlBody = buildOfficialEmailTemplate({
-          heading: "Invitation for Offline Admission & Document Verification",
+          heading: `Admission Application Update (${app.status})`,
           studentName: app.studentName,
-          bodyHtml: `
-            <p>Your online admission application (ID: <strong>${appId}</strong>) for <strong>${app.classApplying}</strong> has been reviewed and shortlisted.</p>
-            <div style="background:#eff6ff;border-left:4px solid #1d4ed8;padding:14px;margin:16px 0;">
-              <strong>Schedule & Instructions from Admission Office:</strong><br/>
-              ${remark}
-            </div>
-            <p>Please visit <strong>Gurukul Senior Secondary School, Bhadasar Road, Dhankoli</strong> along with your original documents (Transfer Certificate, Marksheet, Aadhaar Card, Jan-Aadhaar & Passport Photos).</p>
-          `
+          bodyHtml: `<p>Status of your application <strong>${appId}</strong>: <strong>${app.status}</strong></p><p><strong>Admin Note:</strong> ${remark}</p>`
         });
 
         await sendOfficialEmail({
           to: app.email,
-          subject: `Invitation for Offline Admission Verification (${appId}) - Gurukul Sr. Sec. School, Dhankoli`,
+          subject: `Admission Status Update (${appId}) - Gurukul Sr. Sec. School, Dhankoli`,
           htmlBody
         });
-        alert(`Official Invitation Email sent to ${app.email}`);
-
-      } else if (actionType === "REVIEW") {
-        app.status = "REVIEW_REQUIRED";
-        app.adminRemark = remark;
-        await db.ref(`admissions/${appId}`).set(app);
-
-        const htmlBody = buildOfficialEmailTemplate({
-          heading: "Action Required: Please Review & Update Your Admission Form",
-          studentName: app.studentName,
-          bodyHtml: `
-            <p>Your admission application (ID: <strong>${appId}</strong>) requires a minor correction before final approval.</p>
-            <div style="background:#fffbeb;border-left:4px solid #f59e0b;padding:14px;margin:16px 0;color:#92400e;">
-              <strong>Remark from School Admin:</strong><br/>
-              ${remark}
-            </div>
-            <p>We have unlocked your application form. Please open the School App / Portal, click on <strong>"Track / Edit Application"</strong>, enter your Application ID <strong>${appId}</strong>, make the requested changes, and submit again.</p>
-          `
-        });
-
-        await sendOfficialEmail({
-          to: app.email,
-          subject: `Correction Required in Admission Form (${appId}) - Gurukul Sr. Sec. School, Dhankoli`,
-          htmlBody
-        });
-        alert(`Application sent back for review and email dispatched to ${app.email}`);
-
-      } else if (actionType === "REJECT") {
-        app.status = "REJECTED";
-        app.adminRemark = remark;
-        await db.ref(`admissions/${appId}`).set(app);
-
-        const htmlBody = buildOfficialEmailTemplate({
-          heading: "Update Regarding Your Admission Application",
-          studentName: app.studentName,
-          bodyHtml: `
-            <p>Thank you for your interest in <strong>Gurukul Senior Secondary School, Bhadasar Road, Dhankoli</strong>.</p>
-            <p>We regret to inform you that your admission application (ID: <strong>${appId}</strong>) could not be approved at this time due to the following reason:</p>
-            <div style="background:#fef2f2;border-left:4px solid #dc2626;padding:14px;margin:16px 0;color:#991b1b;">
-              ${remark}
-            </div>
-            <p>For any queries, please contact our school helpline at <strong>9772564359</strong> or <strong>9887071127</strong>.</p>
-          `
-        });
-
-        await sendOfficialEmail({
-          to: app.email,
-          subject: `Admission Application Status Update (${appId}) - Gurukul Sr. Sec. School, Dhankoli`,
-          htmlBody
-        });
-        alert(`Rejection Email sent to ${app.email}`);
+        await showCustomAlert(`Status updated to ${app.status} and official email sent to ${app.email}.`, "Action Completed", "SUCCESS");
       }
     }
 
-    // =========================================================
-    // 8. OFFICIAL ENGLISH EMAIL HTML BUILDER
-    // =========================================================
     function buildOfficialEmailTemplate({ heading, studentName, bodyHtml }) {
       return `
         <div style="font-family:Arial,sans-serif;max-width:640px;margin:0 auto;border:1px solid #e2e8f0;border-radius:16px;overflow:hidden;background:#ffffff;">
           <div style="background:linear-gradient(135deg,#0f172a,#1e3a8a);color:#ffffff;padding:24px;text-align:center;">
             <img src="${SCHOOL_INFO.logo}" alt="Logo" style="width:72px;height:72px;border-radius:50%;background:#fff;padding:4px;border:2px solid #fbbf24;" />
-            <h2 style="margin:10px 0 4px 0;font-size:20px;letter-spacing:0.5px;">GURUKUL SENIOR SECONDARY SCHOOL</h2>
+            <h2 style="margin:10px 0 4px 0;font-size:20px;">GURUKUL SENIOR SECONDARY SCHOOL</h2>
             <p style="margin:0;font-size:12px;color:#bfdbfe;">Bhadasar Road, Dhankoli | Director: R.C. Royal | Chairman: H.S. Royal</p>
             <p style="margin:4px 0 0 0;font-size:11px;color:#fde68a;">Helpline: +91 9772564359, +91 9887071127</p>
           </div>
@@ -1371,16 +2125,10 @@
             ${bodyHtml}
             <p style="margin-top:24px;">Warm Regards,<br/><strong>Office of the Director (R.C. Royal)</strong><br/>Gurukul Senior Secondary School, Dhankoli</p>
           </div>
-          <div style="background:#f8fafc;padding:12px;text-align:center;font-size:11px;color:#64748b;border-top:1px solid #e2e8f0;">
-            This is an automated official email from Gurukul Sr. Sec. School ERP System. Academic Session ${CURRENT_SESSION.sessionString}.
-          </div>
         </div>
       `;
     }
 
-    // =========================================================
-    // 9. SIGNED A4 ADMISSION CONFIRMATION PDF GENERATOR
-    // =========================================================
     async function generateSignedAdmissionPDF(appId, triggerDownload = true) {
       const app = allAdmissions[appId] || Object.values(allStudents).find(s => s.appId === appId || s.masterId === appId);
       if (!app) return null;
@@ -1388,7 +2136,6 @@
       const printArea = document.getElementById("pdfPrintArea");
       printArea.innerHTML = `
         <div style="border:3px solid #1e3a8a;padding:24px;min-height:1050px;position:relative;font-family:Arial,sans-serif;">
-          <!-- Header -->
           <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:3px double #1e3a8a;padding-bottom:14px;">
             <img src="${SCHOOL_INFO.logo}" crossorigin="anonymous" style="width:85px;height:85px;object-fit:contain;" />
             <div style="text-align:center;flex:1;">
@@ -1399,98 +2146,34 @@
                 OFFICIAL ADMISSION CONFIRMATION FORM (${app.session || CURRENT_SESSION.sessionString})
               </div>
             </div>
-            <div style="text-align:center;">
-              <img src="${app.photoBase64}" style="width:95px;height:115px;object-fit:cover;border:2px solid #0f172a;border-radius:6px;" />
-            </div>
+            <img src="${app.photoBase64}" style="width:95px;height:115px;object-fit:cover;border:2px solid #0f172a;border-radius:6px;" />
           </div>
-
-          <!-- Top IDs Row -->
           <div style="display:flex;justify-content:space-between;background:#f1f5f9;padding:10px 14px;margin:14px 0;border:1px solid #cbd5e1;font-size:13px;font-weight:bold;">
             <div>Application No: <span style="color:#1d4ed8;">${app.appId}</span></div>
             <div>Master Student ID: <span style="color:#15803d;">${app.masterId || "APPROVED"}</span></div>
-            <div>Approval Date: <span>${app.approvedDate || new Date().toLocaleDateString("en-IN")}</span></div>
+            <div>Date: <span>${app.approvedDate || new Date().toLocaleDateString("en-IN")}</span></div>
           </div>
-
-          <!-- Details Table -->
-          <table style="width:100%;border-collapse:collapse;font-size:13px;margin-top:10px;">
-            <tr>
-              <td style="border:1px solid #94a3b8;padding:9px;font-weight:bold;background:#f8fafc;width:28%;">Student Full Name</td>
-              <td style="border:1px solid #94a3b8;padding:9px;font-weight:bold;width:72%;" colspan="3">${app.studentName}</td>
-            </tr>
-            <tr>
-              <td style="border:1px solid #94a3b8;padding:9px;font-weight:bold;background:#f8fafc;">Class Admitted</td>
-              <td style="border:1px solid #94a3b8;padding:9px;font-weight:bold;color:#1e3a8a;">${app.classApplying}</td>
-              <td style="border:1px solid #94a3b8;padding:9px;font-weight:bold;background:#f8fafc;">Stream / Subject</td>
-              <td style="border:1px solid #94a3b8;padding:9px;">${app.stream || "General"}</td>
-            </tr>
-            <tr>
-              <td style="border:1px solid #94a3b8;padding:9px;font-weight:bold;background:#f8fafc;">Date of Birth</td>
-              <td style="border:1px solid #94a3b8;padding:9px;">${app.dob}</td>
-              <td style="border:1px solid #94a3b8;padding:9px;font-weight:bold;background:#f8fafc;">Gender & Category</td>
-              <td style="border:1px solid #94a3b8;padding:9px;">${app.gender} / ${app.category}</td>
-            </tr>
-            <tr>
-              <td style="border:1px solid #94a3b8;padding:9px;font-weight:bold;background:#f8fafc;">Father's Name</td>
-              <td style="border:1px solid #94a3b8;padding:9px;">${app.fatherName}</td>
-              <td style="border:1px solid #94a3b8;padding:9px;font-weight:bold;background:#f8fafc;">Mother's Name</td>
-              <td style="border:1px solid #94a3b8;padding:9px;">${app.motherName}</td>
-            </tr>
-            <tr>
-              <td style="border:1px solid #94a3b8;padding:9px;font-weight:bold;background:#f8fafc;">Aadhaar Number</td>
-              <td style="border:1px solid #94a3b8;padding:9px;">${app.aadhaar}</td>
-              <td style="border:1px solid #94a3b8;padding:9px;font-weight:bold;background:#f8fafc;">Jan-Aadhaar No</td>
-              <td style="border:1px solid #94a3b8;padding:9px;">${app.janaadhaar || "N/A"}</td>
-            </tr>
-            <tr>
-              <td style="border:1px solid #94a3b8;padding:9px;font-weight:bold;background:#f8fafc;">Registered Mobile</td>
-              <td style="border:1px solid #94a3b8;padding:9px;font-weight:bold;">${app.mobile}</td>
-              <td style="border:1px solid #94a3b8;padding:9px;font-weight:bold;background:#f8fafc;">Registered Email</td>
-              <td style="border:1px solid #94a3b8;padding:9px;">${app.email}</td>
-            </tr>
-            <tr>
-              <td style="border:1px solid #94a3b8;padding:9px;font-weight:bold;background:#f8fafc;">Previous School</td>
-              <td style="border:1px solid #94a3b8;padding:9px;">${app.prevSchool || "N/A"}</td>
-              <td style="border:1px solid #94a3b8;padding:9px;font-weight:bold;background:#f8fafc;">School Bus Required</td>
-              <td style="border:1px solid #94a3b8;padding:9px;">${app.transport}</td>
-            </tr>
-            <tr>
-              <td style="border:1px solid #94a3b8;padding:9px;font-weight:bold;background:#f8fafc;">Permanent Address</td>
-              <td style="border:1px solid #94a3b8;padding:9px;" colspan="3">${app.address}</td>
-            </tr>
+          <table style="width:100%;border-collapse:collapse;font-size:13px;">
+            <tr><td style="border:1px solid #94a3b8;padding:9px;font-weight:bold;background:#f8fafc;width:28%;">Student Full Name</td><td style="border:1px solid #94a3b8;padding:9px;font-weight:bold;" colspan="3">${app.studentName}</td></tr>
+            <tr><td style="border:1px solid #94a3b8;padding:9px;font-weight:bold;background:#f8fafc;">Class Admitted</td><td style="border:1px solid #94a3b8;padding:9px;font-weight:bold;color:#1e3a8a;">${app.classApplying}</td><td style="border:1px solid #94a3b8;padding:9px;font-weight:bold;background:#f8fafc;">Stream</td><td style="border:1px solid #94a3b8;padding:9px;">${app.stream || "General"}</td></tr>
+            <tr><td style="border:1px solid #94a3b8;padding:9px;font-weight:bold;background:#f8fafc;">Date of Birth</td><td style="border:1px solid #94a3b8;padding:9px;">${app.dob}</td><td style="border:1px solid #94a3b8;padding:9px;font-weight:bold;background:#f8fafc;">Gender & Category</td><td style="border:1px solid #94a3b8;padding:9px;">${app.gender} / ${app.category}</td></tr>
+            <tr><td style="border:1px solid #94a3b8;padding:9px;font-weight:bold;background:#f8fafc;">Father's Name</td><td style="border:1px solid #94a3b8;padding:9px;">${app.fatherName}</td><td style="border:1px solid #94a3b8;padding:9px;font-weight:bold;background:#f8fafc;">Mother's Name</td><td style="border:1px solid #94a3b8;padding:9px;">${app.motherName}</td></tr>
+            <tr><td style="border:1px solid #94a3b8;padding:9px;font-weight:bold;background:#f8fafc;">Aadhaar No</td><td style="border:1px solid #94a3b8;padding:9px;">${app.aadhaar}</td><td style="border:1px solid #94a3b8;padding:9px;font-weight:bold;background:#f8fafc;">Mobile</td><td style="border:1px solid #94a3b8;padding:9px;font-weight:bold;">${app.mobile}</td></tr>
+            <tr><td style="border:1px solid #94a3b8;padding:9px;font-weight:bold;background:#f8fafc;">Address</td><td style="border:1px solid #94a3b8;padding:9px;" colspan="3">${app.address}</td></tr>
           </table>
-
-          <!-- Declaration -->
-          <div style="margin-top:18px;padding:12px;background:#f8fafc;border:1px solid #cbd5e1;font-size:11.5px;line-height:1.5;">
-            <strong>Student & Parent Declaration:</strong> I hereby declare that all information furnished above is true and correct to the best of my knowledge. I undertake to abide by all academic, disciplinary, and fee regulations of Gurukul Senior Secondary School, Dhankoli.
-          </div>
-
-          <!-- Signatures & Official Approved Stamp -->
-          <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:55px;padding-top:20px;">
+          <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:65px;padding-top:20px;">
             <div style="text-align:center;">
               <img src="${app.signBase64}" style="width:130px;height:48px;object-fit:contain;border-bottom:1px solid #0f172a;" />
               <p style="margin:5px 0 0 0;font-size:12px;font-weight:bold;">Student / Parent Signature</p>
             </div>
-
-            <!-- Official Green Stamp -->
             <div style="border:3px double #15803d;color:#15803d;padding:8px 18px;border-radius:10px;text-align:center;transform:rotate(-5deg);">
-              <div style="font-size:14px;font-weight:900;letter-spacing:1px;">OFFICIALLY APPROVED</div>
+              <div style="font-size:14px;font-weight:900;">OFFICIALLY APPROVED</div>
               <div style="font-size:10px;font-weight:bold;">GURUKUL SR. SEC. SCHOOL, DHANKOLI</div>
-              <div style="font-size:10px;">Verified Online Admission</div>
             </div>
-
-            <!-- Director Signature -->
             <div style="text-align:center;">
-              <div style="font-family:'Brush Script MT',cursive;font-size:24px;color:#1e3a8a;font-weight:bold;border-bottom:1px solid #0f172a;padding:0 20px;">
-                R. C. Royal
-              </div>
+              <div style="font-family:'Brush Script MT',cursive;font-size:24px;color:#1e3a8a;font-weight:bold;border-bottom:1px solid #0f172a;padding:0 20px;">R. C. Royal</div>
               <p style="margin:5px 0 0 0;font-size:12px;font-weight:bold;">R.C. Royal (Director)</p>
-              <p style="margin:0;font-size:10px;color:#475569;">Gurukul Sr. Sec. School, Dhankoli</p>
             </div>
-          </div>
-
-          <div style="position:absolute;bottom:14px;left:24px;right:24px;border-top:1px solid #cbd5e1;padding-top:6px;display:flex;justify-content:space-between;font-size:10px;color:#64748b;">
-            <span>Note: Present this signed form at the school office during offline document verification.</span>
-            <span>Chairman: H.S. Royal | Helpline: 9772564359, 9887071127</span>
           </div>
         </div>
       `;
@@ -1503,26 +2186,19 @@
         jsPDF: { unit: "px", format: [794, 1122], orientation: "portrait" }
       };
 
-      if (triggerDownload) {
-        await html2pdf().set(opt).from(printArea).save();
-      }
+      if (triggerDownload) await html2pdf().set(opt).from(printArea).save();
       const pdfDataUri = await html2pdf().set(opt).from(printArea).outputPdf("datauristring");
       return pdfDataUri.split(",")[1];
     }
 
-    // =========================================================
-    // 10. TRACK APPLICATION & STUDENT EDIT MODE
-    // =========================================================
     function searchApplicationStatus() {
       const q = document.getElementById("trackSearchInput").value.trim().toLowerCase();
       const container = document.getElementById("trackResultContainer");
       if (!q) return;
 
       const matches = Object.values(allAdmissions).filter(a =>
-        a.appId.toLowerCase() === q ||
-        (a.masterId && a.masterId.toLowerCase() === q) ||
-        a.email.toLowerCase() === q ||
-        a.mobile === q
+        a.appId.toLowerCase() === q || (a.masterId && a.masterId.toLowerCase() === q) ||
+        a.email.toLowerCase() === q || a.mobile === q
       );
 
       if (matches.length === 0) {
@@ -1533,22 +2209,14 @@
       container.innerHTML = matches.map(app => `
         <div class="p-4 rounded-xl border bg-slate-50 space-y-2">
           <div class="flex justify-between items-center">
-            <span class="font-extrabold text-blue-800 text-sm">${app.appId}</span>
+            <span class="font-extrabold text-blue-800 text-sm">${app.appId} ${app.masterId ? `(${app.masterId})` : ""}</span>
             <span class="px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-blue-100 text-blue-900">${app.status}</span>
           </div>
           <p class="text-xs font-bold text-slate-800">${app.studentName} — ${app.classApplying}</p>
           ${app.adminRemark ? `<p class="text-xs text-amber-800 bg-amber-50 p-2 rounded border border-amber-200"><strong>Admin Note:</strong> ${app.adminRemark}</p>` : ""}
           <div class="pt-2 flex flex-wrap gap-2">
-            ${app.status === "REVIEW_REQUIRED" ? `
-              <button onclick="loadApplicationForEditing('${app.appId}')" class="bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold px-3.5 py-2 rounded-lg">
-                <i class="fa-solid fa-pen-to-square"></i> Edit & Resubmit Form
-              </button>
-            ` : ""}
-            ${app.status === "APPROVED" ? `
-              <button onclick="generateSignedAdmissionPDF('${app.appId}', true)" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3.5 py-2 rounded-lg">
-                <i class="fa-solid fa-file-pdf"></i> Download Signed Admission Form PDF
-              </button>
-            ` : ""}
+            ${app.status === "REVIEW_REQUIRED" ? `<button onclick="loadApplicationForEditing('${app.appId}')" class="bg-amber-500 text-white text-xs font-bold px-3.5 py-2 rounded-lg"><i class="fa-solid fa-pen-to-square"></i> Edit & Resubmit</button>` : ""}
+            ${app.status === "APPROVED" ? `<button onclick="generateSignedAdmissionPDF('${app.appId}', true)" class="bg-emerald-600 text-white text-xs font-bold px-3.5 py-2 rounded-lg"><i class="fa-solid fa-file-pdf"></i> Download Signed PDF</button>` : ""}
           </div>
         </div>
       `).join("");
@@ -1583,56 +2251,39 @@
       document.getElementById("adm_photoBase64").value = app.photoBase64;
       document.getElementById("previewStudentSign").src = app.signBase64;
       document.getElementById("adm_signBase64").value = app.signBase64;
-
-      // Already verified email during initial submission
       isEmailVerified = true;
     }
 
-    // =========================================================
-    // 11. 3-LEVEL LOCK ENGINE (GLOBAL + PARTICULAR STUDENT)
-    // =========================================================
     function renderMasterLockControls() {
       const container = document.getElementById("masterLockCardsContainer");
+      if (!container) return;
       container.innerHTML = ALL_MODULES.map(mod => {
         const state = globalPortalLocks[mod.id] || "OPEN";
         return `
           <div class="p-4 rounded-xl border ${state === 'FULL_LOCK' ? 'bg-rose-50 border-rose-300' : state === 'HALF_LOCK' ? 'bg-amber-50 border-amber-300' : 'bg-slate-50 border-slate-200'} flex flex-col justify-between gap-3">
             <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-xl ${mod.color} text-white flex items-center justify-center shadow">
-                <i class="fa-solid ${mod.icon}"></i>
-              </div>
+              <div class="w-10 h-10 rounded-xl ${mod.color} text-white flex items-center justify-center shadow"><i class="fa-solid ${mod.icon}"></i></div>
               <div>
                 <h4 class="font-bold text-sm text-slate-900">${mod.nameEN}</h4>
                 <p class="text-[11px] text-slate-500">${mod.nameHI}</p>
               </div>
             </div>
             <div class="grid grid-cols-3 gap-1.5 pt-2 border-t">
-              <button onclick="setGlobalModuleLock('${mod.id}', 'OPEN')" class="py-1.5 rounded-lg text-[11px] font-extrabold ${state === 'OPEN' ? 'bg-emerald-600 text-white shadow' : 'bg-white border text-slate-600'}">
-                <i class="fa-solid fa-lock-open"></i> Open
-              </button>
-              <button onclick="setGlobalModuleLock('${mod.id}', 'HALF_LOCK')" class="py-1.5 rounded-lg text-[11px] font-extrabold ${state === 'HALF_LOCK' ? 'bg-amber-500 text-white shadow' : 'bg-white border text-slate-600'}">
-                <i class="fa-solid fa-eye"></i> Half Lock
-              </button>
-              <button onclick="setGlobalModuleLock('${mod.id}', 'FULL_LOCK')" class="py-1.5 rounded-lg text-[11px] font-extrabold ${state === 'FULL_LOCK' ? 'bg-rose-600 text-white shadow' : 'bg-white border text-slate-600'}">
-                <i class="fa-solid fa-lock"></i> Full Lock
-              </button>
+              <button onclick="db.ref('portalLocks/${mod.id}').set('OPEN')" class="py-1.5 rounded-lg text-[11px] font-extrabold ${state === 'OPEN' ? 'bg-emerald-600 text-white shadow' : 'bg-white border text-slate-600'}">Open</button>
+              <button onclick="db.ref('portalLocks/${mod.id}').set('HALF_LOCK')" class="py-1.5 rounded-lg text-[11px] font-extrabold ${state === 'HALF_LOCK' ? 'bg-amber-500 text-white shadow' : 'bg-white border text-slate-600'}">Half Lock</button>
+              <button onclick="db.ref('portalLocks/${mod.id}').set('FULL_LOCK')" class="py-1.5 rounded-lg text-[11px] font-extrabold ${state === 'FULL_LOCK' ? 'bg-rose-600 text-white shadow' : 'bg-white border text-slate-600'}">Full Lock</button>
             </div>
           </div>
         `;
       }).join("");
     }
 
-    async function setGlobalModuleLock(moduleId, lockState) {
-      await db.ref(`portalLocks/${moduleId}`).set(lockState);
-    }
-
     function renderMasterStudents() {
       const tbody = document.getElementById("masterStudentTableBody");
+      if (!tbody) return;
       const q = (document.getElementById("searchStudentInput")?.value || "").toLowerCase();
       const list = Object.values(allStudents).filter(s => s.status !== "LEFT" && (
-        s.studentName.toLowerCase().includes(q) ||
-        s.masterId.toLowerCase().includes(q) ||
-        s.currentClass.toLowerCase().includes(q)
+        s.studentName.toLowerCase().includes(q) || s.masterId.toLowerCase().includes(q) || s.currentClass.toLowerCase().includes(q)
       ));
 
       if (list.length === 0) {
@@ -1656,10 +2307,9 @@
                 <i class="fa-solid fa-user-lock"></i> Personal Locks (${lockedCount})
               </button>
             </td>
-            <td class="p-3 text-right">
-              <button onclick="generateSignedAdmissionPDF('${stu.masterId}', true)" class="bg-slate-800 text-white px-3 py-1.5 rounded-lg text-xs font-bold">
-                <i class="fa-solid fa-file-pdf text-amber-300"></i> Signed PDF
-              </button>
+            <td class="p-3 text-right space-x-1">
+              <button onclick="generateStudentDigitalIdCardPDF('${stu.masterId}')" class="bg-blue-700 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold"><i class="fa-solid fa-id-card"></i> ID Card</button>
+              <button onclick="generateSignedAdmissionPDF('${stu.masterId}', true)" class="bg-slate-800 text-amber-300 px-2.5 py-1.5 rounded-lg text-xs font-bold"><i class="fa-solid fa-file-pdf"></i> Form</button>
             </td>
           </tr>
         `;
@@ -1670,20 +2320,51 @@
       const stu = allStudents[masterId];
       if (!stu) return;
       const currentLocks = stu.individualLocks || {};
-      const moduleNames = ALL_MODULES.map((m, idx) => `${idx + 1}. ${m.id} [${currentLocks[m.id] ? "LOCKED 🔒" : "OPEN ✅"}]`).join("\n");
-      const choice = prompt(`Toggle Individual Portal Lock for ${stu.studentName} (${masterId}):\nEnter Module Number (1-${ALL_MODULES.length}) to Lock/Unlock:\n\n${moduleNames}`);
+      const moduleNames = ALL_MODULES.map((m, idx) => `${idx + 1}. ${m.nameEN} [${currentLocks[m.id] ? "LOCKED 🔒" : "OPEN ✅"}]`).join("\n");
+      const choice = await showCustomPrompt(`Toggle Personal Lock for ${stu.studentName} (${masterId}):\nEnter Module Number (1-${ALL_MODULES.length}):\n\n${moduleNames}`, "", "Personal Student Lock");
       if (!choice) return;
       const idx = parseInt(choice) - 1;
       if (ALL_MODULES[idx]) {
         const modId = ALL_MODULES[idx].id;
-        const newState = !currentLocks[modId];
-        await db.ref(`students/${masterId}/individualLocks/${modId}`).set(newState);
+        await db.ref(`students/${masterId}/individualLocks/${modId}`).set(!currentLocks[modId]);
       }
     }
 
-    // =========================================================
-    // 12. "1 MAY" ANNUAL PROMOTION ENGINE & RED POPUP MONITOR
-    // =========================================================
+    function renderStudentDashboard(stu) {
+      document.getElementById("stuDashPhoto").src = stu.photoBase64 || "https://via.placeholder.com/100";
+      document.getElementById("stuDashMasterId").innerText = stu.masterId;
+      document.getElementById("stuDashName").innerText = stu.studentName;
+      document.getElementById("stuDashMeta").innerText = `${stu.currentClass} (${stu.stream || 'General'}) | Father: ${stu.fatherName}`;
+
+      const grid = document.getElementById("studentModulesGrid");
+      grid.innerHTML = ALL_MODULES.map(mod => {
+        const globalLock = globalPortalLocks[mod.id] || "OPEN";
+        const personalLock = stu.individualLocks && stu.individualLocks[mod.id];
+        const isFullLocked = globalLock === "FULL_LOCK" || personalLock;
+        const isHalfLocked = !isFullLocked && globalLock === "HALF_LOCK";
+
+        return `
+          <div onclick="openStudentModuleModal('${mod.id}')" class="cursor-pointer bg-white p-4 rounded-2xl shadow-sm border hover:shadow-md transition flex flex-col justify-between gap-3 ${isFullLocked ? 'opacity-60 border-rose-200' : 'border-slate-200'}">
+            <div class="flex items-center justify-between">
+              <div class="w-11 h-11 rounded-xl ${mod.color} text-white flex items-center justify-center text-lg shadow"><i class="fa-solid ${mod.icon}"></i></div>
+              ${isFullLocked ? `<span class="bg-rose-100 text-rose-700 text-[10px] font-black px-2 py-0.5 rounded-full"><i class="fa-solid fa-lock"></i> LOCKED</span>`
+                : isHalfLocked ? `<span class="bg-amber-100 text-amber-800 text-[10px] font-black px-2 py-0.5 rounded-full">VIEW ONLY</span>`
+                : `<span class="bg-emerald-100 text-emerald-700 text-[10px] font-black px-2 py-0.5 rounded-full">ACTIVE</span>`}
+            </div>
+            <div>
+              <h4 class="font-extrabold text-sm text-slate-900">${currentLang === "EN" ? mod.nameEN : mod.nameHI}</h4>
+              <p class="text-[11px] text-slate-400">ID: ${stu.masterId}</p>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function downloadCurrentStudentAdmissionPDF() {
+      if (loggedInStudent) generateSignedAdmissionPDF(loggedInStudent.masterId, true);
+    }
+
+    // 1st May Annual Promotion & Red Alerts
     let promotionDecisions = {};
     const CLASS_PROMOTION_MAP = {
       "Nursery": "LKG", "LKG": "UKG", "UKG": "Class 1",
@@ -1695,12 +2376,10 @@
 
     async function checkMay1PromotionPopup() {
       const now = new Date();
-      const isAfterMay1 = (now.getMonth() + 1) >= 5; // May is month 5
+      const isAfterMay1 = (now.getMonth() + 1) >= 5;
       const currentYear = String(now.getFullYear());
       const snap = await db.ref(`annualPromotionCompleted/${currentYear}`).once("value");
-      const isDoneForThisYear = snap.val() === true;
-
-      if (isAfterMay1 && !isDoneForThisYear && Object.keys(allStudents).length > 0) {
+      if (isAfterMay1 && snap.val() !== true && Object.keys(allStudents).length > 0) {
         openMay1PromotionModal(false);
       }
     }
@@ -1714,9 +2393,8 @@
 
       const tbody = document.getElementById("may1StudentTableBody");
       const activeList = Object.values(allStudents).filter(s => s.status !== "LEFT");
-
       if (activeList.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-slate-500 font-bold">No active students to promote yet. Once students are admitted, their list will appear here every 1st May.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-slate-500 font-bold">No active students to promote yet.</td></tr>`;
         return;
       }
 
@@ -1725,25 +2403,21 @@
         promotionDecisions[stu.masterId] = "PROMOTE";
         const nextCls = CLASS_PROMOTION_MAP[stu.currentClass] || stu.currentClass;
         return `
-          <tr class="hover:bg-red-50/40">
-            <td class="p-3 font-extrabold text-slate-900">${stu.masterId}</td>
+          <tr>
+            <td class="p-3 font-extrabold">${stu.masterId}</td>
             <td class="p-3 font-bold">${stu.studentName}</td>
             <td class="p-3 text-xs">${stu.fatherName}</td>
-            <td class="p-3 font-bold text-blue-700">${stu.currentClass} <i class="fa-solid fa-arrow-right text-xs mx-1"></i> <span class="text-emerald-700">${nextCls}</span></td>
+            <td class="p-3 font-bold text-blue-700">${stu.currentClass} → ${nextCls}</td>
             <td class="p-3 text-center">
-              <select onchange="promotionDecisions['${stu.masterId}'] = this.value" class="promotion-select border-2 border-slate-300 rounded-lg px-2.5 py-1.5 text-xs font-extrabold bg-white">
+              <select onchange="promotionDecisions['${stu.masterId}'] = this.value" class="promotion-select border-2 rounded-lg px-2.5 py-1.5 text-xs font-extrabold">
                 <option value="PROMOTE">✅ PASS — Promote to ${nextCls}</option>
                 <option value="RETAIN">⚠️ FAIL — Retain in ${stu.currentClass}</option>
-                <option value="LEFT">❌ LEFT SCHOOL — Remove/Archive</option>
+                <option value="LEFT">❌ LEFT SCHOOL — Archive</option>
               </select>
             </td>
           </tr>
         `;
       }).join("");
-    }
-
-    function closeMay1ModalIfTest() {
-      document.getElementById("may1PromotionModal").classList.add("hidden");
     }
 
     function markAllPromotionDecisions(action) {
@@ -1757,20 +2431,19 @@
         const stu = allStudents[masterId];
         if (!stu) continue;
         if (decision === "PROMOTE") {
-          const nextCls = CLASS_PROMOTION_MAP[stu.currentClass] || stu.currentClass;
-          await db.ref(`students/${masterId}/currentClass`).set(nextCls);
+          await db.ref(`students/${masterId}/currentClass`).set(CLASS_PROMOTION_MAP[stu.currentClass] || stu.currentClass);
         } else if (decision === "LEFT") {
           await db.ref(`students/${masterId}/status`).set("LEFT");
         }
       }
       await db.ref(`annualPromotionCompleted/${currentYear}`).set(true);
       document.getElementById("may1PromotionModal").classList.add("hidden");
-      alert("Annual Student Status Updated Successfully! This popup is now locked for 1 year until next 1st May.");
+      await showCustomAlert("Annual Student Promotion Completed! This popup is locked until next 1st May.", "Promotion Completed", "SUCCESS");
     }
 
-    // Global Admin Pending Tasks Red Alert Monitor
     function renderAdminTaskMonitor() {
       const container = document.getElementById("adminTaskChecklistContainer");
+      if (!container) return;
       container.innerHTML = Object.entries(adminTasksChecklist).map(([key, item]) => {
         const isPending = item.status === "PENDING";
         return `
@@ -1797,147 +2470,33 @@
     function checkAndShowPendingTasksPopup(forceShow = false) {
       const pendingItems = [];
       const pendingAdmCount = Object.values(allAdmissions).filter(a => a.status === "PENDING").length;
-      if (pendingAdmCount > 0) {
-        pendingItems.push(`${pendingAdmCount} New Admission Application(s) are awaiting Admin Approval/Action.`);
-      }
+      if (pendingAdmCount > 0) pendingItems.push(`${pendingAdmCount} New Admission Application(s) awaiting Admin Action.`);
       Object.values(adminTasksChecklist).forEach(t => {
         if (t.status === "PENDING") pendingItems.push(`${t.title} is currently pending!`);
       });
 
       if (pendingItems.length > 0 || forceShow) {
         const listEl = document.getElementById("pendingTasksListContainer");
-        listEl.innerHTML = (pendingItems.length ? pendingItems : ["All tasks are up-to-date! (This is a preview of the Red Alert Popup)"]).map(msg => `
+        listEl.innerHTML = (pendingItems.length ? pendingItems : ["All tasks are up-to-date!"]).map(msg => `
           <div class="p-3 rounded-xl bg-red-50 border border-red-200 text-red-900 text-xs sm:text-sm font-bold flex items-center gap-2.5">
-            <i class="fa-solid fa-circle-exclamation text-red-600 text-base"></i>
-            <span>${msg}</span>
+            <i class="fa-solid fa-circle-exclamation text-red-600 text-base"></i><span>${msg}</span>
           </div>
         `).join("");
         document.getElementById("pendingTasksRedModal").classList.remove("hidden");
       }
     }
 
-    // =========================================================
-    // 13. AUTHENTICATION (STUDENT & ADMIN LOGIN)
-    // =========================================================
-    let currentLoginRole = "STUDENT";
-    let loggedInStudent = null;
-
-    function switchLoginRole(role) {
-      currentLoginRole = role;
-      const stuBtn = document.getElementById("tabStudentLogin");
-      const admBtn = document.getElementById("tabAdminLogin");
-      const label = document.getElementById("loginIdLabel");
-
-      if (role === "ADMIN") {
-        admBtn.className = "flex-1 py-2 text-xs font-extrabold rounded-lg bg-blue-700 text-white shadow transition";
-        stuBtn.className = "flex-1 py-2 text-xs font-extrabold rounded-lg text-slate-600 hover:text-slate-900 transition";
-        label.innerText = "Admin Username (Default: ADMIN)";
-      } else {
-        stuBtn.className = "flex-1 py-2 text-xs font-extrabold rounded-lg bg-blue-700 text-white shadow transition";
-        admBtn.className = "flex-1 py-2 text-xs font-extrabold rounded-lg text-slate-600 hover:text-slate-900 transition";
-        label.innerText = "Student Master ID (e.g. GSSS-2026-1001)";
-      }
-    }
-
-    function handleLoginSubmit(event) {
-      event.preventDefault();
-      const userId = document.getElementById("loginUserId").value.trim();
-      const pass = document.getElementById("loginPassword").value.trim();
-
-      if (currentLoginRole === "ADMIN") {
-        if (userId.toUpperCase() === "ADMIN" && pass === "GSSS@123") {
-          document.getElementById("publicAuthView").classList.add("hidden");
-          document.getElementById("studentDashboardView").classList.add("hidden");
-          document.getElementById("adminDashboardView").classList.remove("hidden");
-          document.getElementById("logoutBtn").classList.remove("hidden");
-          document.getElementById("logoutBtn").classList.add("flex");
-
-          checkMay1PromotionPopup();
-          checkAndShowPendingTasksPopup(false);
-        } else {
-          alert("Invalid Admin Credentials! Use ID: ADMIN and Password: GSSS@123");
-        }
-      } else {
-        const stu = allStudents[userId.toUpperCase()];
-        if (stu && stu.status !== "LEFT" && (stu.password === pass || stu.dob === pass)) {
-          loggedInStudent = stu;
-          document.getElementById("publicAuthView").classList.add("hidden");
-          document.getElementById("adminDashboardView").classList.add("hidden");
-          document.getElementById("studentDashboardView").classList.remove("hidden");
-          document.getElementById("logoutBtn").classList.remove("hidden");
-          document.getElementById("logoutBtn").classList.add("flex");
-          renderStudentDashboard(stu);
-        } else {
-          alert("Invalid Student Master ID or Password!");
-        }
-      }
-    }
-
-    function renderStudentDashboard(stu) {
-      document.getElementById("stuDashPhoto").src = stu.photoBase64 || "https://via.placeholder.com/100";
-      document.getElementById("stuDashMasterId").innerText = stu.masterId;
-      document.getElementById("stuDashName").innerText = stu.studentName;
-      document.getElementById("stuDashMeta").innerText = `${stu.currentClass} (${stu.stream}) | Father: ${stu.fatherName}`;
-
-      const grid = document.getElementById("studentModulesGrid");
-      grid.innerHTML = ALL_MODULES.map(mod => {
-        const globalLock = globalPortalLocks[mod.id] || "OPEN";
-        const personalLock = stu.individualLocks && stu.individualLocks[mod.id];
-        const isFullLocked = globalLock === "FULL_LOCK" || personalLock;
-        const isHalfLocked = !isFullLocked && globalLock === "HALF_LOCK";
-
-        return `
-          <div onclick="handleStudentModuleClick('${mod.id}', ${isFullLocked}, ${isHalfLocked})" class="cursor-pointer bg-white p-4 rounded-2xl shadow-sm border hover:shadow-md transition flex flex-col justify-between gap-3 ${isFullLocked ? 'opacity-60 border-rose-200' : 'border-slate-200'}">
-            <div class="flex items-center justify-between">
-              <div class="w-11 h-11 rounded-xl ${mod.color} text-white flex items-center justify-center text-lg shadow">
-                <i class="fa-solid ${mod.icon}"></i>
-              </div>
-              ${isFullLocked ? `<span class="bg-rose-100 text-rose-700 text-[10px] font-black px-2 py-0.5 rounded-full"><i class="fa-solid fa-lock"></i> LOCKED</span>`
-                : isHalfLocked ? `<span class="bg-amber-100 text-amber-800 text-[10px] font-black px-2 py-0.5 rounded-full"><i class="fa-solid fa-eye"></i> VIEW ONLY</span>`
-                : `<span class="bg-emerald-100 text-emerald-700 text-[10px] font-black px-2 py-0.5 rounded-full">ACTIVE</span>`}
-            </div>
-            <div>
-              <h4 class="font-extrabold text-sm text-slate-900">${currentLang === "EN" ? mod.nameEN : mod.nameHI}</h4>
-              <p class="text-[11px] text-slate-400">Connected to ${stu.masterId}</p>
-            </div>
-          </div>
-        `;
-      }).join("");
-    }
-
-    function handleStudentModuleClick(modId, isFullLocked, isHalfLocked) {
-      if (isFullLocked) {
-        alert("🔒 This portal is currently locked by the School Administration for your account.");
-        return;
-      }
-      alert(`Module: ${modId} (${isHalfLocked ? "View-Only Mode" : "Full Access Mode"})\nConnected to Student ID: ${loggedInStudent.masterId}`);
-    }
-
-    function downloadCurrentStudentAdmissionPDF() {
-      if (!loggedInStudent) return;
-      generateSignedAdmissionPDF(loggedInStudent.masterId, true);
-    }
-
     function switchAdminTab(tabId) {
       document.querySelectorAll(".admin-tab-pane").forEach(el => el.classList.add("hidden"));
       document.getElementById(tabId).classList.remove("hidden");
-
       document.querySelectorAll(".admin-tab-btn").forEach(btn => {
-        btn.className = "admin-tab-btn text-slate-600 hover:bg-slate-100 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap flex items-center gap-2";
+        btn.className = "admin-tab-btn text-slate-600 hover:bg-slate-100 px-4 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap flex items-center gap-2";
       });
-      document.getElementById(`btn_${tabId}`).className = "admin-tab-btn bg-blue-700 text-white px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap flex items-center gap-2 shadow";
+      document.getElementById(`btn_${tabId}`).className = "admin-tab-btn bg-blue-700 text-white px-4 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap flex items-center gap-2 shadow";
     }
 
     function openHelplineModal() {
       document.getElementById("helplineModal").classList.remove("hidden");
-    }
-
-    function logoutUser() {
-      loggedInStudent = null;
-      document.getElementById("adminDashboardView").classList.add("hidden");
-      document.getElementById("studentDashboardView").classList.add("hidden");
-      document.getElementById("publicAuthView").classList.remove("hidden");
-      document.getElementById("logoutBtn").classList.add("hidden");
     }
   </script>
 </body>
