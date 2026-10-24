@@ -1,0 +1,1944 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Gurukul Sr. Sec. School, Dhankoli | Smart ERP & App</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <!-- html2pdf.js for Official Signed PDF Generation -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+  <!-- Firebase SDK (Compat for universal mobile/desktop/APK support) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', 'Noto Sans Devanagari', sans-serif;
+      background-color: #f1f5f9;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .glass-header {
+      background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 60%, #1d4ed8 100%);
+    }
+    .red-alert-gradient {
+      background: linear-gradient(135deg, #7f1d1d 0%, #dc2626 50%, #991b1b 100%);
+    }
+    .custom-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+    .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    @keyframes pulse-red {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.7); }
+      50% { box-shadow: 0 0 0 12px rgba(220, 38, 38, 0); }
+    }
+    .pulse-alert { animation: pulse-red 2s infinite; }
+    /* Printable PDF A4 Styling */
+    #pdfPrintArea {
+      width: 794px;
+      min-height: 1122px;
+      background: #ffffff;
+      color: #0f172a;
+      padding: 32px;
+      box-sizing: border-box;
+    }
+  </style>
+</head>
+<body class="text-slate-800 min-h-screen flex flex-col">
+
+  <!-- ========================================================= -->
+  <!-- TOP GLOBAL HEADER (Desktop + Mobile App Bar)              -->
+  <!-- ========================================================= -->
+  <header class="glass-header text-white sticky top-0 z-40 shadow-lg">
+    <div class="max-w-7xl mx-auto px-3 sm:px-6 py-2.5 flex items-center justify-between gap-2">
+      <!-- School Brand -->
+      <div class="flex items-center gap-3">
+        <img src="https://gsssdhankoli.github.io/Logo.png/logo.png" alt="GSSS Logo" class="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-white p-0.5 object-contain shadow-md border-2 border-amber-400" onerror="this.src='https://via.placeholder.com/80?text=GSSS'" />
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="font-extrabold text-sm sm:text-lg tracking-tight leading-tight" data-i18n="school_name">GURUKUL SR. SEC. SCHOOL</h1>
+            <span id="liveSessionBadge" class="bg-amber-400 text-slate-950 text-[10px] sm:text-xs font-extrabold px-2 py-0.5 rounded-full shadow">2026-27</span>
+          </div>
+          <p class="text-[11px] sm:text-xs text-blue-200 font-medium" data-i18n="school_sub">Bhadasar Road, Dhankoli | Dir: R.C. Royal | Chairman: H.S. Royal</p>
+        </div>
+      </div>
+
+      <!-- Right Controls: Language Switcher + Helpline + Logout -->
+      <div class="flex items-center gap-2">
+        <!-- Language Toggle (Primary English / Hindi) -->
+        <button onclick="toggleLanguage()" class="bg-white/15 hover:bg-white/25 border border-white/30 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition">
+          <i class="fa-solid fa-language text-amber-300 text-sm"></i>
+          <span id="langBtnText">EN | हिं</span>
+        </button>
+
+        <!-- One-Click Helpline Button -->
+        <button onclick="openHelplineModal()" class="bg-emerald-500 hover:bg-emerald-600 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 shadow transition" title="One-Click Helpline">
+          <i class="fa-solid fa-phone-volume"></i>
+          <span class="hidden sm:inline" data-i18n="helpline">Helpline</span>
+        </button>
+
+        <!-- Logout Button (Hidden when logged out) -->
+        <button id="logoutBtn" onclick="logoutUser()" class="hidden bg-rose-600 hover:bg-rose-700 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold items-center gap-1.5 shadow transition">
+          <i class="fa-solid fa-power-off"></i>
+          <span class="hidden sm:inline" data-i18n="logout">Logout</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========================================================= -->
+  <!-- RED ALERT POPUP 1: 1 MAY ANNUAL PROMOTION MANDATORY POPUP -->
+  <!-- ========================================================= -->
+  <div id="may1PromotionModal" class="hidden fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-3 overflow-y-auto">
+    <div class="bg-white rounded-2xl max-w-5xl w-full overflow-hidden shadow-2xl border-4 border-red-600 my-auto">
+      <div class="red-alert-gradient text-white p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div class="flex items-center gap-4">
+          <img src="https://gsssdhankoli.github.io/Logo.png/logo.png" class="w-16 h-16 rounded-full bg-white p-1 border-2 border-yellow-300 shadow-lg pulse-alert" />
+          <div>
+            <span class="bg-yellow-400 text-red-950 text-xs font-black px-2.5 py-0.5 rounded uppercase tracking-wider">Mandatory Annual Action Required</span>
+            <h2 class="text-xl sm:text-2xl font-extrabold mt-1" data-i18n="may1_title">1st May — Annual Student Promotion & Status Update</h2>
+            <p class="text-xs sm:text-sm text-red-100" data-i18n="may1_desc">New session has started! Please update every student's status (Pass/Promote, Fail/Retain, or Left School) to unlock normal operations for this year.</p>
+          </div>
+        </div>
+        <button id="closeMay1TestBtn" onclick="closeMay1ModalIfTest()" class="hidden bg-white/20 hover:bg-white/30 text-white text-xs font-bold px-3 py-1.5 rounded-lg">
+          Close Preview
+        </button>
+      </div>
+
+      <div class="p-4 sm:p-6 max-h-[70vh] overflow-y-auto custom-scroll">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-4 bg-red-50 border border-red-200 p-3 rounded-xl">
+          <div class="text-xs sm:text-sm font-bold text-red-900">
+            <i class="fa-solid fa-triangle-exclamation text-red-600 mr-1"></i>
+            Target Academic Session: <span id="promotionTargetSession" class="underline font-black"></span>
+          </div>
+          <div class="flex gap-2">
+            <button onclick="markAllPromotionDecisions('PROMOTE')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg">Mark All Pass (Promote)</button>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto border rounded-xl">
+          <table class="w-full text-left border-collapse text-xs sm:text-sm">
+            <thead class="bg-slate-900 text-white">
+              <tr>
+                <th class="p-3">Master ID</th>
+                <th class="p-3">Student Name</th>
+                <th class="p-3">Father's Name</th>
+                <th class="p-3">Current Class</th>
+                <th class="p-3 text-center">Select Action (Pass / Fail / Left)</th>
+              </tr>
+            </thead>
+            <tbody id="may1StudentTableBody" class="divide-y divide-slate-200"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="bg-slate-100 px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-3 border-t">
+        <p class="text-xs text-slate-600 font-semibold">Once submitted, this popup will automatically close for 1 full year until next 1st May.</p>
+        <button onclick="executeAnnualPromotion()" class="w-full sm:w-auto bg-red-600 hover:bg-red-700 text-white font-extrabold px-6 py-3 rounded-xl shadow-lg flex items-center justify-center gap-2">
+          <i class="fa-solid fa-check-double"></i> Confirm & Complete Annual Update
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- RED ALERT POPUP 2: PENDING ADMIN TASKS REMINDER           -->
+  <!-- ========================================================= -->
+  <div id="pendingTasksRedModal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full overflow-hidden shadow-2xl border-4 border-red-600">
+      <div class="red-alert-gradient text-white p-5 text-center relative">
+        <img src="https://gsssdhankoli.github.io/Logo.png/logo.png" class="w-16 h-16 mx-auto rounded-full bg-white p-1 border-2 border-yellow-300 shadow-lg mb-2 pulse-alert" />
+        <span class="bg-yellow-400 text-red-950 text-[11px] font-black px-3 py-0.5 rounded-full uppercase">Admin Action Alert</span>
+        <h3 class="text-xl font-extrabold mt-2" data-i18n="pending_alert_title">Pending School Tasks Detected!</h3>
+        <p class="text-xs text-red-100 mt-1">Gurukul Senior Secondary School, Dhankoli</p>
+      </div>
+      <div class="p-5 space-y-2.5 max-h-72 overflow-y-auto" id="pendingTasksListContainer"></div>
+      <div class="bg-slate-100 p-4 flex justify-end gap-2 border-t">
+        <button onclick="document.getElementById('pendingTasksRedModal').classList.add('hidden')" class="bg-red-600 hover:bg-red-700 text-white text-xs sm:text-sm font-bold px-5 py-2.5 rounded-xl shadow">
+          I Understand, Go to Panel <i class="fa-solid fa-arrow-right ml-1"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- MAIN CONTENT CONTAINER                                    -->
+  <!-- ========================================================= -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 py-5">
+
+    <!-- ======================================================= -->
+    <!-- VIEW 1: PUBLIC LANDING & LOGIN PORTAL                   -->
+    <!-- ======================================================= -->
+    <section id="publicAuthView" class="space-y-6">
+      <!-- Top Hero Banner -->
+      <div class="bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 rounded-2xl p-5 sm:p-8 text-white shadow-xl relative overflow-hidden">
+        <div class="grid md:grid-cols-3 gap-6 items-center relative z-10">
+          <div class="md:col-span-2 space-y-3">
+            <div class="inline-flex items-center gap-2 bg-amber-400/20 border border-amber-400/40 text-amber-300 text-xs font-bold px-3 py-1 rounded-full">
+              <i class="fa-solid fa-star"></i>
+              <span data-i18n="hero_badge">Official Digital Campus & ERP Portal</span>
+            </div>
+            <h2 class="text-2xl sm:text-4xl font-extrabold leading-tight" data-i18n="hero_heading">
+              Gurukul Senior Secondary School, Dhankoli
+            </h2>
+            <p class="text-xs sm:text-sm text-blue-100 leading-relaxed" data-i18n="hero_desc">
+              All-in-One Smart Portal for Online Admissions, Live CBT Exams, Results, Attendance, Scholarship Exams, Digital Admit Cards & Fee Management.
+            </p>
+            <!-- Quick Public Action Buttons -->
+            <div class="flex flex-wrap gap-3 pt-2">
+              <button onclick="openPublicModal('admissionFormModal')" class="bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold px-5 py-3 rounded-xl text-xs sm:text-sm shadow-lg flex items-center gap-2 transition transform hover:-translate-y-0.5">
+                <i class="fa-solid fa-user-plus"></i>
+                <span data-i18n="btn_apply_admission">Apply for New Admission</span>
+              </button>
+              <button onclick="openPublicModal('trackAdmissionModal')" class="bg-white/15 hover:bg-white/25 border border-white/30 text-white font-bold px-4 py-3 rounded-xl text-xs sm:text-sm flex items-center gap-2 transition">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <span data-i18n="btn_track_admission">Track / Edit Application & Download Form</span>
+              </button>
+            </div>
+          </div>
+
+         <!-- Login Card -->
+          <div class="bg-white text-slate-800 rounded-2xl p-5 shadow-2xl border border-slate-100">
+            <div class="flex rounded-xl bg-slate-100 p-1 mb-4">
+              <button id="tabStudentLogin" onclick="switchLoginRole('STUDENT')" class="flex-1 py-2 text-xs font-extrabold rounded-lg bg-blue-700 text-white shadow transition" data-i18n="student_login">
+                Student / Parent
+              </button>
+              <button id="tabAdminLogin" onclick="switchLoginRole('ADMIN')" class="flex-1 py-2 text-xs font-extrabold rounded-lg text-slate-600 hover:text-slate-900 transition" data-i18n="admin_login">
+                Admin Login
+              </button>
+            </div>
+
+            <form onsubmit="handleLoginSubmit(event)" class="space-y-3.5">
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1" id="loginIdLabel">Student Master ID (e.g. GSSS-2026-1001)</label>
+                <div class="relative">
+                  <i class="fa-solid fa-id-badge absolute left-3.5 top-3 text-slate-400"></i>
+                  <input type="text" id="loginUserId" required placeholder="Enter ID" class="w-full pl-10 pr-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-semibold focus:outline-none focus:border-blue-600" />
+                </div>
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1" data-i18n="password_label">Password / DOB</label>
+                <div class="relative">
+                  <i class="fa-solid fa-lock absolute left-3.5 top-3 text-slate-400"></i>
+                  <input type="password" id="loginPassword" required placeholder="••••••••" class="w-full pl-10 pr-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-semibold focus:outline-none focus:border-blue-600" />
+                </div>
+              </div>
+              <button type="submit" class="w-full bg-blue-700 hover:bg-blue-800 text-white font-extrabold py-3 rounded-xl text-sm shadow-lg transition flex items-center justify-center gap-2">
+                <i class="fa-solid fa-right-to-bracket"></i>
+                <span data-i18n="login_btn">Secure Login to Portal</span>
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================= -->
+    <!-- VIEW 2: ADMIN MASTER CONTROL PORTAL                     -->
+    <!-- ======================================================= -->
+    <section id="adminDashboardView" class="hidden space-y-6">
+      <!-- Top Admin Status Bar -->
+      <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
+          <div class="w-11 h-11 rounded-xl bg-blue-700 text-white flex items-center justify-center text-lg font-bold shadow">
+            <i class="fa-solid fa-user-shield"></i>
+          </div>
+          <div>
+            <h2 class="text-base sm:text-lg font-extrabold text-slate-900" data-i18n="admin_welcome">Master Admin Control Panel</h2>
+            <p class="text-xs text-slate-500">Director: R.C. Royal | Chairman: H.S. Royal | Live Session: <span id="adminSessionText" class="font-bold text-blue-700"></span></p>
+          </div>
+        </div>
+
+        <!-- Admin Quick Action Buttons -->
+        <div class="flex flex-wrap items-center gap-2">
+          <button onclick="checkEmailServersQuota()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-bold px-3 py-2 rounded-xl flex items-center gap-1.5">
+            <i class="fa-solid fa-envelope-circle-check"></i>
+            <span id="quotaStatusLabel">3-Email Engine: Ready</span>
+          </button>
+          <button onclick="openMay1PromotionModal(true)" class="bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 text-xs font-bold px-3 py-2 rounded-xl flex items-center gap-1.5">
+            <i class="fa-solid fa-calendar-check"></i> Test 1st May Alert
+          </button>
+          <button onclick="openPublicModal('admissionFormModal', true)" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl shadow flex items-center gap-1.5">
+            <i class="fa-solid fa-user-plus"></i> + Direct Student Admission
+          </button>
+        </div>
+      </div>
+
+      <!-- Admin KPI Cards -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+          <span class="text-xs font-bold text-slate-400 uppercase">Total Active Students</span>
+          <div class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1" id="statTotalStudents">0</div>
+          <span class="text-[11px] text-emerald-600 font-semibold">Master ID: GSSS-Series</span>
+        </div>
+        <div class="bg-white p-4 rounded-2xl shadow-sm border border-amber-200 bg-amber-50/30">
+          <span class="text-xs font-bold text-amber-700 uppercase">Pending Admission Forms</span>
+          <div class="text-2xl sm:text-3xl font-extrabold text-amber-600 mt-1" id="statPendingAdmissions">0</div>
+          <span class="text-[11px] text-amber-700 font-semibold">Awaiting Admin Action</span>
+        </div>
+        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+          <span class="text-xs font-bold text-slate-400 uppercase">Approved Admissions</span>
+          <div class="text-2xl sm:text-3xl font-extrabold text-emerald-600 mt-1" id="statApprovedAdmissions">0</div>
+          <span class="text-[11px] text-slate-500 font-semibold">Signed PDF Issued</span>
+        </div>
+        <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+          <span class="text-xs font-bold text-slate-400 uppercase">Locked Modules</span>
+          <div class="text-2xl sm:text-3xl font-extrabold text-rose-600 mt-1" id="statLockedModules">0</div>
+          <span class="text-[11px] text-slate-500 font-semibold">Full or Half Locked</span>
+        </div>
+      </div>
+
+      <!-- Admin Navigation Tabs -->
+      <div class="flex overflow-x-auto gap-2 bg-white p-2 rounded-2xl shadow-sm border border-slate-200 custom-scroll">
+        <button onclick="switchAdminTab('tabAdmissions')" id="btn_tabAdmissions" class="admin-tab-btn bg-blue-700 text-white px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap flex items-center gap-2">
+          <i class="fa-solid fa-file-signature"></i> Admission Applications Desk
+        </button>
+        <button onclick="switchAdminTab('tabStudentsList')" id="btn_tabStudentsList" class="admin-tab-btn text-slate-600 hover:bg-slate-100 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap flex items-center gap-2">
+          <i class="fa-solid fa-users"></i> Master Student Directory & Student Locks
+        </button>
+        <button onclick="switchAdminTab('tabMasterLocks')" id="btn_tabMasterLocks" class="admin-tab-btn text-slate-600 hover:bg-slate-100 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap flex items-center gap-2">
+          <i class="fa-solid fa-lock"></i> 3-Level Portal Lock Control
+        </button>
+        <button onclick="switchAdminTab('tabPendingMonitor')" id="btn_tabPendingMonitor" class="admin-tab-btn text-slate-600 hover:bg-slate-100 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap flex items-center gap-2">
+          <i class="fa-solid fa-bell"></i> Red Alert Task Monitor
+        </button>
+      </div>
+
+      <!-- ADMIN TAB 1: ADMISSION APPLICATIONS DESK -->
+      <div id="tabAdmissions" class="admin-tab-pane bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-slate-200 space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h3 class="text-base sm:text-lg font-extrabold text-slate-900">Online & Direct Admission Applications</h3>
+            <p class="text-xs text-slate-500">Approve, Send Back for Review, Invite to School, or Reject with Instant Official English Email & Signed PDF.</p>
+          </div>
+          <select id="filterAdmissionStatus" onchange="renderAdminAdmissions()" class="bg-slate-100 border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold">
+            <option value="ALL">All Applications</option>
+            <option value="PENDING">Pending Review</option>
+            <option value="REVIEW_REQUIRED">Sent for Review</option>
+            <option value="INVITED">Invited Offline</option>
+            <option value="APPROVED">Approved</option>
+            <option value="REJECTED">Rejected</option>
+          </select>
+        </div>
+
+        <div class="overflow-x-auto border rounded-xl">
+          <table class="w-full text-left border-collapse text-xs sm:text-sm">
+            <thead class="bg-slate-900 text-white">
+              <tr>
+                <th class="p-3">App ID</th>
+                <th class="p-3">Photo & Student</th>
+                <th class="p-3">Class & Stream</th>
+                <th class="p-3">Father & Contact</th>
+                <th class="p-3">Status</th>
+                <th class="p-3 text-right">Admin Actions (Auto Email)</th>
+              </tr>
+            </thead>
+            <tbody id="adminAdmissionTableBody" class="divide-y divide-slate-200"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ADMIN TAB 2: MASTER STUDENTS DIRECTORY & INDIVIDUAL STUDENT LOCK -->
+      <div id="tabStudentsList" class="admin-tab-pane hidden bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-slate-200 space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h3 class="text-base sm:text-lg font-extrabold text-slate-900">Enrolled School Students (GSSS Master Database)</h3>
+            <p class="text-xs text-slate-500">All 15+ portals connect automatically to these Master Student IDs. You can also lock specific modules for any individual student.</p>
+          </div>
+          <input type="text" id="searchStudentInput" oninput="renderMasterStudents()" placeholder="Search Name, ID or Class..." class="bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-xs font-semibold w-full sm:w-64" />
+        </div>
+
+        <div class="overflow-x-auto border rounded-xl">
+          <table class="w-full text-left border-collapse text-xs sm:text-sm">
+            <thead class="bg-slate-900 text-white">
+              <tr>
+                <th class="p-3">Master ID & Password</th>
+                <th class="p-3">Student Name</th>
+                <th class="p-3">Class</th>
+                <th class="p-3">Father & Mobile</th>
+                <th class="p-3">Individual Portal Lock</th>
+                <th class="p-3 text-right">Signed Form PDF</th>
+              </tr>
+            </thead>
+            <tbody id="masterStudentTableBody" class="divide-y divide-slate-200"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ADMIN TAB 3: 3-LEVEL MASTER PORTAL LOCK CONTROL -->
+      <div id="tabMasterLocks" class="admin-tab-pane hidden bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-slate-200 space-y-4">
+        <div>
+          <h3 class="text-base sm:text-lg font-extrabold text-slate-900">Global Portal Lock Controller (Full Lock / Half Lock / Open)</h3>
+          <p class="text-xs text-slate-500">Control access to every module across the entire school app in real-time.</p>
+        </div>
+        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4" id="masterLockCardsContainer"></div>
+      </div>
+
+      <!-- ADMIN TAB 4: RED ALERT PENDING TASK MONITOR -->
+      <div id="tabPendingMonitor" class="admin-tab-pane hidden bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-slate-200 space-y-4">
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="text-base sm:text-lg font-extrabold text-slate-900">Admin Red Alert Reminder Settings</h3>
+            <p class="text-xs text-slate-500">Any task marked as Pending here will trigger the Red Alert Popup whenever Admin opens the portal until marked Completed.</p>
+          </div>
+          <button onclick="checkAndShowPendingTasksPopup(true)" class="bg-red-600 text-white text-xs font-bold px-3.5 py-2 rounded-xl shadow">
+            Preview Red Popup Now
+          </button>
+        </div>
+        <div class="grid sm:grid-cols-2 gap-3" id="adminTaskChecklistContainer"></div>
+      </div>
+    </section>
+
+    <!-- ======================================================= -->
+    <!-- VIEW 3: STUDENT / PARENT APP DASHBOARD                  -->
+    <!-- ======================================================= -->
+    <section id="studentDashboardView" class="hidden space-y-6">
+      <!-- Student Digital ID Card Banner -->
+      <div class="bg-gradient-to-r from-blue-900 to-indigo-800 rounded-2xl p-5 text-white shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div class="flex items-center gap-4">
+          <img id="stuDashPhoto" src="https://via.placeholder.com/100" class="w-20 h-20 rounded-2xl object-cover border-2 border-amber-400 bg-white shadow-md" />
+          <div>
+            <span id="stuDashMasterId" class="bg-amber-400 text-slate-950 text-xs font-black px-2.5 py-0.5 rounded-full">GSSS-2026-1001</span>
+            <h2 id="stuDashName" class="text-xl sm:text-2xl font-extrabold mt-1">Student Name</h2>
+            <p id="stuDashMeta" class="text-xs sm:text-sm text-blue-200">Class: 10th | Father: Mr. Name</p>
+          </div>
+        </div>
+        <div class="flex gap-2 w-full sm:w-auto">
+          <button onclick="downloadCurrentStudentAdmissionPDF()" class="flex-1 sm:flex-initial bg-white/15 hover:bg-white/25 border border-white/30 text-white text-xs font-bold px-4 py-2.5 rounded-xl flex items-center justify-center gap-2">
+            <i class="fa-solid fa-file-pdf text-amber-300"></i> Signed Admission PDF
+          </button>
+        </div>
+      </div>
+
+      <!-- All 12 Connected Student Portals Grid (Respects Full Lock, Half Lock & Individual Student Lock) -->
+      <div>
+        <h3 class="text-sm font-extrabold text-slate-500 uppercase tracking-wider mb-3" data-i18n="student_modules_heading">Connected Student Modules</h3>
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4" id="studentModulesGrid"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ========================================================= -->
+  <!-- MODAL: COMPLETE ONLINE ADMISSION FORM (WITH EMAIL OTP)    -->
+  <!-- ========================================================= -->
+  <div id="admissionFormModal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl max-w-4xl w-full overflow-hidden shadow-2xl border border-slate-200 my-auto">
+      <!-- Modal Header -->
+      <div class="glass-header text-white px-5 py-4 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <img src="https://gsssdhankoli.github.io/Logo.png/logo.png" class="w-10 h-10 rounded-full bg-white p-0.5" />
+          <div>
+            <h3 class="font-extrabold text-base sm:text-lg" id="admissionModalTitle">Official School Admission Form</h3>
+            <p class="text-[11px] text-blue-200">Gurukul Senior Secondary School, Bhadasar Road, Dhankoli</p>
+          </div>
+        </div>
+        <button onclick="closePublicModal('admissionFormModal')" class="w-8 h-8 rounded-lg bg-white/15 hover:bg-white/25 flex items-center justify-center">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Form Body -->
+      <form id="schoolAdmissionForm" onsubmit="submitAdmissionForm(event)" class="p-4 sm:p-6 max-h-[80vh] overflow-y-auto custom-scroll space-y-5">
+        <input type="hidden" id="editApplicationId" value="" />
+        <input type="hidden" id="isAdminDirectMode" value="false" />
+
+        <!-- Section 1: Student Academic & Personal Details -->
+        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-4">
+          <h4 class="text-xs font-extrabold uppercase tracking-wider text-blue-800 border-b pb-1.5">1. Student Details (विद्यार्थी का विवरण)</h4>
+          <div class="grid sm:grid-cols-3 gap-3.5">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Student Full Name *</label>
+              <input type="text" id="adm_studentName" required placeholder="As per Marksheet/Aadhaar" class="w-full px-3 py-2 border rounded-xl text-sm font-semibold" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Class Applying For *</label>
+              <select id="adm_class" required onchange="toggleStreamField()" class="w-full px-3 py-2 border rounded-xl text-sm font-semibold bg-white">
+                <option value="">-- Select Class --</option>
+                <option value="Nursery">Nursery</option>
+                <option value="LKG">LKG</option>
+                <option value="UKG">UKG</option>
+                <option value="Class 1">Class 1st</option>
+                <option value="Class 2">Class 2nd</option>
+                <option value="Class 3">Class 3rd</option>
+                <option value="Class 4">Class 4th</option>
+                <option value="Class 5">Class 5th</option>
+                <option value="Class 6">Class 6th</option>
+                <option value="Class 7">Class 7th</option>
+                <option value="Class 8">Class 8th</option>
+                <option value="Class 9">Class 9th</option>
+                <option value="Class 10">Class 10th</option>
+                <option value="Class 11">Class 11th</option>
+                <option value="Class 12">Class 12th</option>
+              </select>
+            </div>
+            <div id="adm_streamWrapper" class="hidden">
+              <label class="block text-xs font-bold text-slate-700 mb-1">Stream / Optional Subjects (11th/12th)</label>
+              <select id="adm_stream" class="w-full px-3 py-2 border rounded-xl text-sm font-semibold bg-white">
+                <option value="General">All Compulsory Subjects</option>
+                <option value="Science (PCM)">Science (Physics, Chem, Maths)</option>
+                <option value="Science (PCB)">Science (Physics, Chem, Bio)</option>
+                <option value="Agriculture">Science (Agriculture)</option>
+                <option value="Arts / Humanities">Arts / Humanities</option>
+                <option value="Commerce">Commerce</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Date of Birth (DOB) *</label>
+              <input type="date" id="adm_dob" required class="w-full px-3 py-2 border rounded-xl text-sm font-semibold" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Gender *</label>
+              <select id="adm_gender" required class="w-full px-3 py-2 border rounded-xl text-sm font-semibold bg-white">
+                <option value="Male">Male (बालक)</option>
+                <option value="Female">Female (बालिका)</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Category *</label>
+              <select id="adm_category" required class="w-full px-3 py-2 border rounded-xl text-sm font-semibold bg-white">
+                <option value="General">General</option>
+                <option value="OBC">OBC</option>
+                <option value="SC">SC</option>
+                <option value="ST">ST</option>
+                <option value="EWS">EWS</option>
+                <option value="MBC">MBC</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Blood Group</label>
+              <select id="adm_blood" class="w-full px-3 py-2 border rounded-xl text-sm font-semibold bg-white">
+                <option value="Not Known">Not Known</option>
+                <option value="A+">A+</option>
+                <option value="B+">B+</option>
+                <option value="O+">O+</option>
+                <option value="AB+">AB+</option>
+                <option value="A-">A-</option>
+                <option value="B-">B-</option>
+                <option value="O-">O-</option>
+                <option value="AB-">AB-</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Student Aadhaar Number *</label>
+              <input type="text" id="adm_aadhaar" required maxlength="12" placeholder="12-Digit Aadhaar" class="w-full px-3 py-2 border rounded-xl text-sm font-semibold" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Jan-Aadhaar Number (राजस्थान जन-आधार)</label>
+              <input type="text" id="adm_janaadhaar" placeholder="Optional Jan-Aadhaar No" class="w-full px-3 py-2 border rounded-xl text-sm font-semibold" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 2: Parents, Contact & Address Details -->
+        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-4">
+          <h4 class="text-xs font-extrabold uppercase tracking-wider text-blue-800 border-b pb-1.5">2. Parents & Contact Details (माता-पिता एवं संपर्क जानकारी)</h4>
+          <div class="grid sm:grid-cols-3 gap-3.5">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Father's Full Name *</label>
+              <input type="text" id="adm_fatherName" required placeholder="Father's Name" class="w-full px-3 py-2 border rounded-xl text-sm font-semibold" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Mother's Full Name *</label>
+              <input type="text" id="adm_motherName" required placeholder="Mother's Name" class="w-full px-3 py-2 border rounded-xl text-sm font-semibold" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Father's Occupation</label>
+              <input type="text" id="adm_occupation" placeholder="e.g. Agriculture / Govt Job / Business" class="w-full px-3 py-2 border rounded-xl text-sm font-semibold" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Mobile Number (Calling & WhatsApp) *</label>
+              <input type="tel" id="adm_mobile" required maxlength="10" placeholder="10-Digit Mobile No" class="w-full px-3 py-2 border rounded-xl text-sm font-semibold" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Previous School Name & Class Passed</label>
+              <input type="text" id="adm_prevSchool" placeholder="Previous School Name" class="w-full px-3 py-2 border rounded-xl text-sm font-semibold" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">School Bus Facility Required? *</label>
+              <select id="adm_transport" class="w-full px-3 py-2 border rounded-xl text-sm font-semibold bg-white">
+                <option value="No">No (Self Arrangement)</option>
+                <option value="Yes">Yes (School Bus Required)</option>
+              </select>
+            </div>
+            <div class="sm:col-span-3">
+              <label class="block text-xs font-bold text-slate-700 mb-1">Complete Permanent Address (Village/Ward, Post, Tehsil, District, PIN) *</label>
+              <input type="text" id="adm_address" required placeholder="Enter Full Residential Address" class="w-full px-3 py-2 border rounded-xl text-sm font-semibold" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 3: Passport Photo & Student Signature Upload -->
+        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-4">
+          <h4 class="text-xs font-extrabold uppercase tracking-wider text-blue-800 border-b pb-1.5">3. Upload Student Photo & Signature (फोटो और हस्ताक्षर)</h4>
+          <div class="grid sm:grid-cols-2 gap-4">
+            <div class="flex items-center gap-3 bg-white p-3 rounded-xl border">
+              <img id="previewStudentPhoto" src="https://via.placeholder.com/80x100?text=Photo" class="w-16 h-20 object-cover rounded-lg border" />
+              <div class="flex-1">
+                <label class="block text-xs font-bold text-slate-700 mb-1">Passport Size Photo *</label>
+                <input type="file" accept="image/*" onchange="handleImageUpload(event, 'previewStudentPhoto', 'adm_photoBase64', 250)" class="text-xs w-full" />
+                <input type="hidden" id="adm_photoBase64" />
+              </div>
+            </div>
+            <div class="flex items-center gap-3 bg-white p-3 rounded-xl border">
+              <img id="previewStudentSign" src="https://via.placeholder.com/120x50?text=Signature" class="w-24 h-12 object-contain rounded-lg border bg-slate-50" />
+              <div class="flex-1">
+                <label class="block text-xs font-bold text-slate-700 mb-1">Student / Parent Signature *</label>
+                <input type="file" accept="image/*" onchange="handleImageUpload(event, 'previewStudentSign', 'adm_signBase64', 220)" class="text-xs w-full" />
+                <input type="hidden" id="adm_signBase64" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 4: Email OTP Verification (Auto-skipped only if Admin is doing Direct Admission) -->
+        <div id="emailOtpSection" class="bg-blue-50 p-4 rounded-xl border border-blue-200 space-y-3">
+          <h4 class="text-xs font-extrabold uppercase tracking-wider text-blue-900">4. Official Email & OTP Verification (ईमेल सत्यापन)</h4>
+          <div class="grid sm:grid-cols-3 gap-3 items-end">
+            <div class="sm:col-span-2">
+              <label class="block text-xs font-bold text-slate-700 mb-1">Registered Email ID (All Status Updates & Signed PDF will be sent here) *</label>
+              <input type="email" id="adm_email" required placeholder="student@gmail.com" class="w-full px-3 py-2.5 border rounded-xl text-sm font-semibold bg-white" />
+            </div>
+            <button type="button" id="sendOtpBtn" onclick="sendAdmissionOTP()" class="bg-blue-700 hover:bg-blue-800 text-white font-bold py-2.5 px-4 rounded-xl text-xs sm:text-sm shadow flex items-center justify-center gap-2">
+              <i class="fa-solid fa-paper-plane"></i> Send Email OTP
+            </button>
+          </div>
+
+          <div id="otpVerifyBox" class="hidden pt-2 grid sm:grid-cols-3 gap-3 items-center">
+            <div>
+              <input type="text" id="adm_otpInput" maxlength="6" placeholder="Enter 6-Digit OTP" class="w-full px-3 py-2 border-2 border-blue-500 rounded-xl text-sm font-extrabold tracking-widest text-center bg-white" />
+            </div>
+            <button type="button" onclick="verifyAdmissionOTP()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded-xl text-xs sm:text-sm">
+              <i class="fa-solid fa-check-circle"></i> Verify OTP
+            </button>
+            <span id="otpVerifiedBadge" class="hidden text-xs font-extrabold text-emerald-700">
+              <i class="fa-solid fa-shield-check"></i> Email Verified Successfully!
+            </span>
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-3 pt-2 border-t">
+          <button type="button" onclick="closePublicModal('admissionFormModal')" class="px-5 py-2.5 rounded-xl border font-bold text-xs sm:text-sm text-slate-600">Cancel</button>
+          <button type="submit" id="submitAdmissionBtn" class="bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold px-6 py-3 rounded-xl text-xs sm:text-sm shadow-lg flex items-center gap-2">
+            <i class="fa-solid fa-cloud-arrow-up"></i> Submit Official Admission Form
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- MODAL: TRACK APPLICATION / EDIT REVIEW / DOWNLOAD PDF     -->
+  <!-- ========================================================= -->
+  <div id="trackAdmissionModal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full overflow-hidden shadow-2xl">
+      <div class="glass-header text-white px-5 py-4 flex items-center justify-between">
+        <h3 class="font-extrabold text-base">Track Admission Status / Download Signed PDF</h3>
+        <button onclick="closePublicModal('trackAdmissionModal')" class="w-8 h-8 rounded-lg bg-white/15 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="p-5 space-y-4">
+        <div class="flex gap-2">
+          <input type="text" id="trackSearchInput" placeholder="Enter Application ID (ADM-...) or Registered Email/Mobile" class="flex-1 px-3.5 py-2.5 border rounded-xl text-sm font-semibold" />
+          <button onclick="searchApplicationStatus()" class="bg-blue-700 hover:bg-blue-800 text-white font-bold px-4 py-2.5 rounded-xl text-xs sm:text-sm">Search</button>
+        </div>
+        <div id="trackResultContainer" class="space-y-3"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- MODAL: ONE-CLICK HELPLINE                                 -->
+  <!-- ========================================================= -->
+  <div id="helplineModal" class="hidden fixed inset-0 z-50 bg-slate-950/75 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full overflow-hidden shadow-2xl">
+      <div class="glass-header text-white p-5 text-center relative">
+        <img src="https://gsssdhankoli.github.io/Logo.png/logo.png" class="w-14 h-14 mx-auto rounded-full bg-white p-1 mb-2" />
+        <h3 class="font-extrabold text-lg">24×7 School Helpline Desk</h3>
+        <p class="text-xs text-blue-200">Gurukul Sr. Sec. School, Bhadasar Road, Dhankoli</p>
+        <button onclick="document.getElementById('helplineModal').classList.add('hidden')" class="absolute top-4 right-4 w-8 h-8 rounded-lg bg-white/15 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="p-5 space-y-3">
+        <div class="p-3.5 rounded-xl bg-slate-50 border flex items-center justify-between">
+          <div>
+            <p class="text-xs font-bold text-slate-500">Director: R.C. Royal / Office Helpline 1</p>
+            <p class="text-base font-extrabold text-slate-900">+91 9772564359</p>
+          </div>
+          <div class="flex gap-2">
+            <a href="tel:9772564359" class="bg-blue-600 text-white px-3 py-2 rounded-lg text-xs font-bold"><i class="fa-solid fa-phone"></i> Call</a>
+            <a href="https://wa.me/919772564359" target="_blank" class="bg-emerald-600 text-white px-3 py-2 rounded-lg text-xs font-bold"><i class="fa-brands fa-whatsapp"></i> WhatsApp</a>
+          </div>
+        </div>
+        <div class="p-3.5 rounded-xl bg-slate-50 border flex items-center justify-between">
+          <div>
+            <p class="text-xs font-bold text-slate-500">Chairman: H.S. Royal / Office Helpline 2</p>
+            <p class="text-base font-extrabold text-slate-900">+91 9887071127</p>
+          </div>
+          <div class="flex gap-2">
+            <a href="tel:9887071127" class="bg-blue-600 text-white px-3 py-2 rounded-lg text-xs font-bold"><i class="fa-solid fa-phone"></i> Call</a>
+            <a href="https://wa.me/919887071127" target="_blank" class="bg-emerald-600 text-white px-3 py-2 rounded-lg text-xs font-bold"><i class="fa-brands fa-whatsapp"></i> WhatsApp</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- HIDDEN A4 PRINTABLE SIGNED ADMISSION FORM TEMPLATE        -->
+  <!-- ========================================================= -->
+  <div class="fixed -left-[9999px] top-0">
+    <div id="pdfPrintArea">
+      <!-- Populated dynamically when generating Signed Admission PDF -->
+    </div>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- MASTER JAVASCRIPT ENGINE                                  -->
+  <!-- ========================================================= -->
+  <script>
+    // =========================================================
+    // 1. FIREBASE & TRIPLE-EMAIL ENGINE CONFIGURATION
+    // =========================================================
+    const firebaseConfig = {
+      apiKey: "AIzaSyCv-8rsbHovO8cL9ee63eeRGdzstybYIzk",
+      authDomain: "gsss-dhankoli-erp.firebaseapp.com",
+      databaseURL: "https://gsss-dhankoli-erp-default-rtdb.firebaseio.com",
+      projectId: "gsss-dhankoli-erp",
+      storageBucket: "gsss-dhankoli-erp.firebasestorage.app",
+      messagingSenderId: "127071799763",
+      appId: "1:127071799763:web:85be0cdef91459a7004726",
+      measurementId: "G-R65S8372X2"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // Triple-Email Load Balancer URLs (300 Free Official Emails/Day)
+    const EMAIL_SERVERS = [
+      "https://script.google.com/macros/s/AKfycby_3dY4XozgajpFCAGwGwdf0w1HnOhkWGAk10OK3Ff6S3zInmTbbJDjRnEVaoXuKpF91A/exec",
+      "https://script.google.com/macros/s/AKfycbyuq-rWdRy26qRChlOLEM7lT2FelDsu2iqbPP_-Z4-eeSZR3sT4n_cB0X9Z-HhoN7KC/exec",
+      "https://script.google.com/macros/s/AKfycbxgLDN7y1yg4lgg8dyB1yduFfQmwo9awRn8IynnXZcMNwFFfdQ4TUeb-cby6r5eWUR9QA/exec"
+    ];
+
+    const SCHOOL_INFO = {
+      name: "GURUKUL SENIOR SECONDARY SCHOOL",
+      address: "Bhadasar Road, Dhankoli (Didwana-Kuchaman), Rajasthan",
+      director: "R.C. Royal",
+      chairman: "H.S. Royal",
+      logo: "https://gsssdhankoli.github.io/Logo.png/logo.png",
+      helplines: ["9772564359", "9887071127"]
+    };
+
+    // =========================================================
+    // 2. LIFETIME DYNAMIC ACADEMIC SESSION ENGINE (NO HARDCODING)
+    // =========================================================
+    function getDynamicAcademicSession() {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = now.getMonth() + 1; // Jan=1 ... May=5
+      // New session starts from May (Month >= 4/5)
+      const startYear = month >= 4 ? year : year - 1;
+      const endYearShort = String(startYear + 1).slice(-2);
+      return {
+        sessionString: `${startYear}-${endYearShort}`,
+        yearPrefix: String(startYear)
+      };
+    }
+
+    const CURRENT_SESSION = getDynamicAcademicSession();
+    document.getElementById("liveSessionBadge").innerText = CURRENT_SESSION.sessionString;
+    document.getElementById("adminSessionText").innerText = CURRENT_SESSION.sessionString;
+
+    // =========================================================
+    // 3. BILINGUAL LANGUAGE ENGINE (PRIMARY ENGLISH + HINDI)
+    // =========================================================
+    let currentLang = "EN";
+    const i18nDict = {
+      EN: {
+        school_name: "GURUKUL SR. SEC. SCHOOL",
+        school_sub: "Bhadasar Road, Dhankoli | Dir: R.C. Royal | Chairman: H.S. Royal",
+        helpline: "Helpline",
+        logout: "Logout",
+        hero_badge: "Official Digital Campus & ERP Portal",
+        hero_heading: "Gurukul Senior Secondary School, Dhankoli",
+        hero_desc: "All-in-One Smart Portal for Online Admissions, Live CBT Exams, Results, Attendance, Scholarship Exams, Digital Admit Cards & Fee Management.",
+        btn_apply_admission: "Apply for New Admission",
+        btn_track_admission: "Track / Edit Application & Download Form",
+        student_login: "Student / Parent",
+        admin_login: "Admin Login",
+        password_label: "Password",
+        login_btn: "Secure Login to Portal",
+        admin_welcome: "Master Admin Control Panel",
+        student_modules_heading: "Connected Student Modules"
+      },
+      HI: {
+        school_name: "गुरुकुल सीनियर सेकेंडरी स्कूल",
+        school_sub: "भाड़ासर रोड, धनकोली | निदेशक: R.C. Royal | चेयरमैन: H.S. Royal",
+        helpline: "हेल्पलाइन",
+        logout: "लॉगआउट",
+        hero_badge: "आधिकारिक डिजिटल स्कूल एवं ERP पोर्टल",
+        hero_heading: "गुरुकुल सीनियर सेकेंडरी स्कूल, धनकोली",
+        hero_desc: "ऑनलाइन एडमिशन, लाइव CBT परीक्षा, रिजल्ट, हाजिरी, स्कॉलरशिप टेस्ट, एडमिट कार्ड और फीस प्रबंधन का एकीकृत पोर्टल।",
+        btn_apply_admission: "नए एडमिशन के लिए आवेदन करें",
+        btn_track_admission: "आवेदन स्टेटस देखें / सुधार करें / फॉर्म डाउनलोड करें",
+        student_login: "विद्यार्थी / अभिभावक",
+        admin_login: "एडमिन लॉगिन",
+        password_label: "पासवर्ड",
+        login_btn: "पोर्टल में लॉगिन करें",
+        admin_welcome: "मास्टर एडमिन कंट्रोल पैनल",
+        student_modules_heading: "विद्यार्थी के सभी जुड़े हुए पोर्टल"
+      }
+    };
+
+    function toggleLanguage() {
+      currentLang = currentLang === "EN" ? "HI" : "EN";
+      document.getElementById("langBtnText").innerText = currentLang === "EN" ? "EN | हिं" : "हिं | EN";
+      document.querySelectorAll("[data-i18n]").forEach(el => {
+        const key = el.getAttribute("data-i18n");
+        if (i18nDict[currentLang][key]) el.innerText = i18nDict[currentLang][key];
+      });
+      if (loggedInStudent) renderStudentDashboard(loggedInStudent);
+    }
+
+    // =========================================================
+    // 4. TRIPLE-EMAIL FAILOVER SENDER FUNCTION
+    // =========================================================
+    async function sendOfficialEmail({ to, subject, htmlBody, pdfBase64 = null, pdfFileName = null }) {
+      const payload = { to, subject, htmlBody, pdfBase64, pdfFileName };
+
+      for (let i = 0; i < EMAIL_SERVERS.length; i++) {
+        try {
+          const response = await fetch(EMAIL_SERVERS[i], {
+            method: "POST",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify(payload),
+            redirect: "follow"
+          });
+          const resData = await response.json();
+          if (resData.status === "SUCCESS") {
+            console.log(`Email sent via Server ${i + 1}. Remaining Quota: ${resData.quotaLeft}`);
+            return { success: true, serverUsed: i + 1, quotaLeft: resData.quotaLeft };
+          }
+        } catch (err) {
+          console.warn(`Email Server ${i + 1} failed, switching to next server...`, err);
+        }
+      }
+      return { success: false };
+    }
+
+    async function checkEmailServersQuota() {
+      const label = document.getElementById("quotaStatusLabel");
+      label.innerText = "Checking 3 Servers...";
+      let totalRemaining = 0;
+      for (let i = 0; i < EMAIL_SERVERS.length; i++) {
+        try {
+          const r = await fetch(EMAIL_SERVERS[i]);
+          const d = await r.json();
+          if (d && d.quotaLeft) totalRemaining += Number(d.quotaLeft);
+        } catch (e) {}
+      }
+      label.innerText = `Emails Left Today: ${totalRemaining}`;
+    }
+
+    // =========================================================
+    // 5. ALL 12 CONNECTED MODULES & 3-LEVEL LOCK ENGINE
+    // =========================================================
+    const ALL_MODULES = [
+      { id: "ADMISSION", nameEN: "Online Admission Portal", nameHI: "ऑनलाइन एडमिशन पोर्टल", icon: "fa-user-plus", color: "bg-blue-600" },
+      { id: "DAILY_TEST", nameEN: "Daily Test Results", nameHI: "डेली टेस्ट रिजल्ट", icon: "fa-chart-line", color: "bg-indigo-600" },
+      { id: "HALF_YEARLY", nameEN: "Half-Yearly Exam Result", nameHI: "अर्धवार्षिक परीक्षा परिणाम", icon: "fa-file-invoice", color: "bg-purple-600" },
+      { id: "YEARLY_RESULT", nameEN: "Yearly & Annual Report", nameHI: "वार्षिक परीक्षा एवं रिपोर्ट कार्ड", icon: "fa-award", color: "bg-emerald-600" },
+      { id: "ADMIT_CARD", nameEN: "Exam Admit Cards", nameHI: "परीक्षा प्रवेश पत्र", icon: "fa-id-card", color: "bg-amber-600" },
+      { id: "LIVE_CBT", nameEN: "Live CBT & Mock Tests", nameHI: "लाइव CBT एवं मॉक टेस्ट", icon: "fa-laptop-code", color: "bg-rose-600" },
+      { id: "SCHOLARSHIP", nameEN: "Scholarship Exam (Phase 1 & 2)", nameHI: "स्कॉलरशिप परीक्षा (फेज 1 व 2)", icon: "fa-graduation-cap", color: "bg-cyan-600" },
+      { id: "ATTENDANCE", nameEN: "Smart Attendance Calendar", nameHI: "मासिक उपस्थिति कैलेंडर", icon: "fa-calendar-check", color: "bg-teal-600" },
+      { id: "HOMEWORK_PYQ", nameEN: "Homework & PYQ Solutions", nameHI: "होमवर्क एवं पुराने पेपर (PYQ)", icon: "fa-book-open", color: "bg-orange-600" },
+      { id: "FEES", nameEN: "Fee Status & Digital Receipts", nameHI: "फीस स्टेटस एवं रसीद", icon: "fa-indian-rupee-sign", color: "bg-green-600" },
+      { id: "LIVE_CLASS", nameEN: "Live & Recorded Classes", nameHI: "लाइव एवं रिकॉर्डेड क्लास", icon: "fa-video", color: "bg-red-600" },
+      { id: "BUS_TRACKING", nameEN: "School Bus Live Tracking", nameHI: "स्कूल बस लाइव लोकेशन", icon: "fa-bus", color: "bg-yellow-600" }
+    ];
+
+    let globalPortalLocks = {}; // { MODULE_ID: "OPEN" | "HALF_LOCK" | "FULL_LOCK" }
+    let allAdmissions = {};
+    let allStudents = {};
+    let adminTasksChecklist = {};
+
+    // Listen to Realtime Database
+    db.ref("portalLocks").on("value", snap => {
+      globalPortalLocks = snap.val() || {};
+      renderMasterLockControls();
+      updateAdminKPIs();
+      if (loggedInStudent) renderStudentDashboard(loggedInStudent);
+    });
+
+    db.ref("admissions").on("value", snap => {
+      allAdmissions = snap.val() || {};
+      renderAdminAdmissions();
+      updateAdminKPIs();
+    });
+
+    db.ref("students").on("value", snap => {
+      allStudents = snap.val() || {};
+      renderMasterStudents();
+      updateAdminKPIs();
+      if (loggedInStudent && allStudents[loggedInStudent.masterId]) {
+        loggedInStudent = allStudents[loggedInStudent.masterId];
+        renderStudentDashboard(loggedInStudent);
+      }
+    });
+
+    db.ref("adminTasks").on("value", snap => {
+      const defaultTasks = {
+        DAILY_TEST_UPLOAD: { title: "Upload Weekly/Daily Test Results", status: "COMPLETED" },
+        HALF_YEARLY_UPLOAD: { title: "Upload Half-Yearly Exam Marks", status: "COMPLETED" },
+        YEARLY_EXAM_UPLOAD: { title: "Upload Annual Exam Marks", status: "COMPLETED" },
+        FEES_STRUCTURE_UPDATE: { title: "Verify Class-wise Fee Structure", status: "COMPLETED" }
+      };
+      adminTasksChecklist = Object.assign(defaultTasks, snap.val() || {});
+      renderAdminTaskMonitor();
+    });
+
+    function updateAdminKPIs() {
+      const stuCount = Object.keys(allStudents).filter(k => allStudents[k].status !== "LEFT").length;
+      const pendingAdm = Object.values(allAdmissions).filter(a => a.status === "PENDING").length;
+      const approvedAdm = Object.values(allAdmissions).filter(a => a.status === "APPROVED").length;
+      const lockedMods = Object.values(globalPortalLocks).filter(v => v === "FULL_LOCK" || v === "HALF_LOCK").length;
+
+      document.getElementById("statTotalStudents").innerText = stuCount;
+      document.getElementById("statPendingAdmissions").innerText = pendingAdm;
+      document.getElementById("statApprovedAdmissions").innerText = approvedAdm;
+      document.getElementById("statLockedModules").innerText = lockedMods;
+    }
+
+    // =========================================================
+    // 6. SMART ADMISSION FORM + EMAIL OTP + IMAGE COMPRESSION
+    // =========================================================
+    let generatedOTP = null;
+    let isEmailVerified = false;
+
+    function toggleStreamField() {
+      const cls = document.getElementById("adm_class").value;
+      const wrapper = document.getElementById("adm_streamWrapper");
+      if (cls === "Class 11" || cls === "Class 12") {
+        wrapper.classList.remove("hidden");
+      } else {
+        wrapper.classList.add("hidden");
+      }
+    }
+
+    function handleImageUpload(event, previewId, hiddenInputId, maxWidth) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+          const canvas = document.createElement("canvas");
+          const scale = maxWidth / img.width;
+          canvas.width = maxWidth;
+          canvas.height = img.height * scale;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          const compressedDataUrl = canvas.toDataURL("image/jpeg", 0.75);
+          document.getElementById(previewId).src = compressedDataUrl;
+          document.getElementById(hiddenInputId).value = compressedDataUrl;
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function openPublicModal(modalId, isDirectAdmin = false) {
+      if (modalId === "admissionFormModal" && !isDirectAdmin) {
+        const lockState = globalPortalLocks["ADMISSION"] || "OPEN";
+        if (lockState === "FULL_LOCK") {
+          alert("The Online Admission Portal is currently locked by School Administration.");
+          return;
+        }
+        if (lockState === "HALF_LOCK") {
+          alert("Admission Portal is in View-Only (Half-Lock) mode. New form submissions are temporarily paused by Admin.");
+          return;
+        }
+      }
+
+      document.getElementById(modalId).classList.remove("hidden");
+
+      if (modalId === "admissionFormModal") {
+        document.getElementById("schoolAdmissionForm").reset();
+        document.getElementById("editApplicationId").value = "";
+        document.getElementById("isAdminDirectMode").value = isDirectAdmin ? "true" : "false";
+        document.getElementById("admissionModalTitle").innerText = isDirectAdmin
+          ? "Direct Admin Student Admission (Instant Approval)"
+          : "Official School Admission Form";
+
+        if (isDirectAdmin) {
+          isEmailVerified = true;
+          document.getElementById("sendOtpBtn").classList.add("hidden");
+        } else {
+          isEmailVerified = false;
+          document.getElementById("sendOtpBtn").classList.remove("hidden");
+          document.getElementById("otpVerifyBox").classList.add("hidden");
+          document.getElementById("otpVerifiedBadge").classList.add("hidden");
+        }
+      }
+    }
+
+    function closePublicModal(modalId) {
+      document.getElementById(modalId).classList.add("hidden");
+    }
+
+    async function sendAdmissionOTP() {
+      const email = document.getElementById("adm_email").value.trim();
+      const studentName = document.getElementById("adm_studentName").value.trim() || "Applicant";
+      if (!email || !email.includes("@")) {
+        alert("Please enter a valid Email ID first.");
+        return;
+      }
+
+      generatedOTP = String(Math.floor(100000 + Math.random() * 900000));
+      const btn = document.getElementById("sendOtpBtn");
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Sending OTP...`;
+
+      const htmlBody = buildOfficialEmailTemplate({
+        heading: "Email Verification OTP for School Admission",
+        studentName: studentName,
+        bodyHtml: `
+          <p>Thank you for choosing <strong>Gurukul Senior Secondary School, Bhadasar Road, Dhankoli</strong>.</p>
+          <p>Please use the following 6-digit One-Time Password (OTP) to verify your email address and submit your online admission form:</p>
+          <div style="background:#eff6ff;border:2px dashed #1d4ed8;padding:16px;text-align:center;font-size:28px;font-weight:800;letter-spacing:6px;color:#1e3a8a;border-radius:12px;margin:20px 0;">
+            ${generatedOTP}
+          </div>
+          <p>This OTP is valid for 15 minutes. Do not share this code with anyone.</p>
+        `
+      });
+
+      const res = await sendOfficialEmail({
+        to: email,
+        subject: `${generatedOTP} is your Admission Verification OTP - Gurukul Sr. Sec. School, Dhankoli`,
+        htmlBody
+      });
+
+      btn.disabled = false;
+      btn.innerHTML = `<i class="fa-solid fa-rotate-right"></i> Resend OTP`;
+
+      if (res.success) {
+        document.getElementById("otpVerifyBox").classList.remove("hidden");
+        alert(`6-Digit OTP has been sent to ${email}`);
+      } else {
+        alert("Could not send email. Please check your internet or email address.");
+      }
+    }
+
+    function verifyAdmissionOTP() {
+      const entered = document.getElementById("adm_otpInput").value.trim();
+      if (entered === generatedOTP) {
+        isEmailVerified = true;
+        document.getElementById("otpVerifiedBadge").classList.remove("hidden");
+        alert("Email OTP Verified Successfully!");
+      } else {
+        alert("Invalid OTP! Please check your email and try again.");
+      }
+    }
+
+    async function submitAdmissionForm(event) {
+      event.preventDefault();
+      const isDirect = document.getElementById("isAdminDirectMode").value === "true";
+      const editId = document.getElementById("editApplicationId").value;
+
+      if (!isDirect && !isEmailVerified) {
+        alert("Please verify your Email ID with OTP before submitting the admission form.");
+        return;
+      }
+
+      const photoBase64 = document.getElementById("adm_photoBase64").value;
+      const signBase64 = document.getElementById("adm_signBase64").value;
+      if (!photoBase64 || !signBase64) {
+        alert("Please upload both Student Passport Photo and Signature.");
+        return;
+      }
+
+      const appId = editId || `ADM-${CURRENT_SESSION.yearPrefix}-${Math.floor(1000 + Math.random() * 9000)}`;
+      const applicationData = {
+        appId,
+        session: CURRENT_SESSION.sessionString,
+        studentName: document.getElementById("adm_studentName").value.trim(),
+        classApplying: document.getElementById("adm_class").value,
+        stream: document.getElementById("adm_stream").value || "General",
+        dob: document.getElementById("adm_dob").value,
+        gender: document.getElementById("adm_gender").value,
+        category: document.getElementById("adm_category").value,
+        bloodGroup: document.getElementById("adm_blood").value,
+        aadhaar: document.getElementById("adm_aadhaar").value.trim(),
+        janaadhaar: document.getElementById("adm_janaadhaar").value.trim(),
+        fatherName: document.getElementById("adm_fatherName").value.trim(),
+        motherName: document.getElementById("adm_motherName").value.trim(),
+        occupation: document.getElementById("adm_occupation").value.trim(),
+        mobile: document.getElementById("adm_mobile").value.trim(),
+        prevSchool: document.getElementById("adm_prevSchool").value.trim(),
+        transport: document.getElementById("adm_transport").value,
+        address: document.getElementById("adm_address").value.trim(),
+        email: document.getElementById("adm_email").value.trim(),
+        photoBase64,
+        signBase64,
+        status: "PENDING",
+        adminRemark: "",
+        submittedAt: new Date().toISOString()
+      };
+
+      const btn = document.getElementById("submitAdmissionBtn");
+      btn.disabled = true;
+      btn.innerText = "Submitting Application...";
+
+      await db.ref(`admissions/${appId}`).set(applicationData);
+
+      if (isDirect) {
+        // Instantly Approve if entered directly by Admin
+        await processAdminAdmissionAction(appId, "APPROVE", "Direct Admission by School Admin");
+        btn.disabled = false;
+        btn.innerText = "Submit Official Admission Form";
+        closePublicModal("admissionFormModal");
+        return;
+      }
+
+      // Send Confirmation Email to Student
+      const htmlBody = buildOfficialEmailTemplate({
+        heading: "Admission Application Received Successfully",
+        studentName: applicationData.studentName,
+        bodyHtml: `
+          <p>We have received your online admission application for <strong>${applicationData.classApplying}</strong> (Academic Session <strong>${applicationData.session}</strong>).</p>
+          <table style="width:100%;border-collapse:collapse;margin:15px 0;font-size:14px;">
+            <tr><td style="padding:8px;border:1px solid #cbd5e1;font-weight:bold;">Application ID</td><td style="padding:8px;border:1px solid #cbd5e1;color:#1d4ed8;font-weight:bold;">${appId}</td></tr>
+            <tr><td style="padding:8px;border:1px solid #cbd5e1;font-weight:bold;">Student Name</td><td style="padding:8px;border:1px solid #cbd5e1;">${applicationData.studentName}</td></tr>
+            <tr><td style="padding:8px;border:1px solid #cbd5e1;font-weight:bold;">Father's Name</td><td style="padding:8px;border:1px solid #cbd5e1;">${applicationData.fatherName}</td></tr>
+            <tr><td style="padding:8px;border:1px solid #cbd5e1;font-weight:bold;">Current Status</td><td style="padding:8px;border:1px solid #cbd5e1;">Under Admin Review</td></tr>
+          </table>
+          <p>Our Admission Desk will review your documents shortly and notify you via email.</p>
+        `
+      });
+
+      await sendOfficialEmail({
+        to: applicationData.email,
+        subject: `Application Submitted (${appId}) - Gurukul Sr. Sec. School, Dhankoli`,
+        htmlBody
+      });
+
+      btn.disabled = false;
+      btn.innerText = "Submit Official Admission Form";
+      closePublicModal("admissionFormModal");
+      alert(`Application Submitted Successfully!\nYour Application ID is: ${appId}\nPlease save this ID for tracking.`);
+    }
+
+    // =========================================================
+    // 7. ADMIN 4 ACTIONS ON ADMISSION + AUTO ENGLISH EMAIL + PDF
+    // =========================================================
+    function renderAdminAdmissions() {
+      const tbody = document.getElementById("adminAdmissionTableBody");
+      const filter = document.getElementById("filterAdmissionStatus").value;
+      const list = Object.values(allAdmissions).sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));
+
+      const filtered = filter === "ALL" ? list : list.filter(item => item.status === filter);
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-400 font-semibold">No Admission Applications Found.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(app => {
+        const badgeColors = {
+          PENDING: "bg-amber-100 text-amber-800",
+          REVIEW_REQUIRED: "bg-orange-100 text-orange-800",
+          INVITED: "bg-blue-100 text-blue-800",
+          APPROVED: "bg-emerald-100 text-emerald-800",
+          REJECTED: "bg-rose-100 text-rose-800"
+        };
+        return `
+          <tr class="hover:bg-slate-50">
+            <td class="p-3 font-extrabold text-blue-700">${app.appId}<br><span class="text-[11px] text-slate-400 font-normal">${app.masterId || ""}</span></td>
+            <td class="p-3">
+              <div class="flex items-center gap-2.5">
+                <img src="${app.photoBase64}" class="w-10 h-12 rounded-lg object-cover border" />
+                <div>
+                  <div class="font-bold text-slate-900">${app.studentName}</div>
+                  <div class="text-[11px] text-slate-500">DOB: ${app.dob} | ${app.gender}</div>
+                </div>
+              </div>
+            </td>
+            <td class="p-3 font-semibold">${app.classApplying}<br><span class="text-[11px] text-slate-500">${app.stream}</span></td>
+            <td class="p-3">
+              <div class="font-semibold">${app.fatherName}</div>
+              <div class="text-[11px] text-slate-500">${app.mobile} | ${app.email}</div>
+            </td>
+            <td class="p-3">
+              <span class="px-2.5 py-1 rounded-full text-[11px] font-extrabold ${badgeColors[app.status] || 'bg-slate-100'}">${app.status}</span>
+              ${app.adminRemark ? `<div class="text-[11px] text-slate-500 mt-1 max-w-xs">${app.adminRemark}</div>` : ""}
+            </td>
+            <td class="p-3 text-right space-y-1">
+              <div class="flex flex-wrap justify-end gap-1.5">
+                <button onclick="triggerAdminAdmissionDecision('${app.appId}', 'APPROVE')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold" title="Approve & Send Signed PDF">
+                  <i class="fa-solid fa-check"></i> Approve
+                </button>
+                <button onclick="triggerAdminAdmissionDecision('${app.appId}', 'INVITE')" class="bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold" title="Invite Offline to School">
+                  <i class="fa-solid fa-school"></i> Invite
+                </button>
+                <button onclick="triggerAdminAdmissionDecision('${app.appId}', 'REVIEW')" class="bg-amber-500 hover:bg-amber-600 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold" title="Send Back for Correction">
+                  <i class="fa-solid fa-rotate-left"></i> Review
+                </button>
+                <button onclick="triggerAdminAdmissionDecision('${app.appId}', 'REJECT')" class="bg-rose-600 hover:bg-rose-700 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold" title="Reject">
+                  <i class="fa-solid fa-xmark"></i> Reject
+                </button>
+                ${app.status === "APPROVED" ? `
+                  <button onclick="generateSignedAdmissionPDF('${app.appId}', true)" class="bg-slate-800 hover:bg-slate-900 text-amber-300 px-2.5 py-1.5 rounded-lg text-xs font-bold">
+                    <i class="fa-solid fa-file-pdf"></i> PDF
+                  </button>
+                ` : ""}
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    async function triggerAdminAdmissionDecision(appId, actionType) {
+      let remark = "";
+      if (actionType === "INVITE") {
+        remark = prompt("Enter Date & Time for Offline Document Verification at School Campus:", "Tomorrow at 10:00 AM with Original Documents");
+        if (remark === null) return;
+      } else if (actionType === "REVIEW") {
+        remark = prompt("Enter correction required from student (Form will unlock for student to edit):", "Please upload a clearer passport size photo and check Aadhaar number.");
+        if (remark === null) return;
+      } else if (actionType === "REJECT") {
+        remark = prompt("Enter reason for rejecting this application:", "Incomplete documents / Eligibility criteria not met.");
+        if (remark === null) return;
+      } else if (actionType === "APPROVE") {
+        if (!confirm("Approve this admission? This will generate the Student Master ID (GSSS-...), create student login credentials, and send the Official Signed Admission PDF via English Email.")) return;
+        remark = "Approved by Director R.C. Royal";
+      }
+
+      await processAdminAdmissionAction(appId, actionType, remark);
+    }
+
+    async function processAdminAdmissionAction(appId, actionType, remark) {
+      const app = allAdmissions[appId];
+      if (!app) return;
+
+      if (actionType === "APPROVE") {
+        const masterId = app.masterId || `GSSS-${CURRENT_SESSION.yearPrefix}-${Math.floor(1000 + Math.random() * 9000)}`;
+        const rawPassword = app.password || `GSSS@${app.mobile.slice(-4)}`;
+        const approvedDate = new Date().toLocaleDateString("en-IN");
+
+        app.status = "APPROVED";
+        app.masterId = masterId;
+        app.password = rawPassword;
+        app.approvedDate = approvedDate;
+        app.adminRemark = remark;
+
+        // Save to Master Students Database (All 15+ portals connect to this record)
+        const studentRecord = {
+          ...app,
+          masterId,
+          password: rawPassword,
+          currentClass: app.classApplying,
+          status: "ACTIVE",
+          individualLocks: {}
+        };
+
+        await db.ref(`admissions/${appId}`).set(app);
+        await db.ref(`students/${masterId}`).set(studentRecord);
+
+        // Generate Signed PDF Base64 & Send Official Approval Email in English
+        const pdfBase64 = await generateSignedAdmissionPDF(appId, false);
+
+        const htmlBody = buildOfficialEmailTemplate({
+          heading: "Congratulations! Your Admission is Approved",
+          studentName: app.studentName,
+          bodyHtml: `
+            <p>We are pleased to inform you that your admission application for <strong>${app.classApplying}</strong> at <strong>Gurukul Senior Secondary School, Bhadasar Road, Dhankoli</strong> has been <strong>OFFICIALLY APPROVED</strong> by the School Administration.</p>
+            <div style="background:#f0fdf4;border:2px solid #16a34a;padding:16px;border-radius:12px;margin:16px 0;">
+              <h4 style="margin:0 0 10px 0;color:#166534;">Official Student Login Credentials & Master ID</h4>
+              <p style="margin:4px 0;"><strong>Master Student ID:</strong> <span style="color:#1d4ed8;font-weight:800;">${masterId}</span></p>
+              <p style="margin:4px 0;"><strong>Portal Login Password:</strong> <span style="color:#dc2626;font-weight:800;">${rawPassword}</span></p>
+              <p style="margin:4px 0;"><strong>Class Admitted:</strong> ${app.classApplying} (${app.stream})</p>
+            </div>
+            <p><strong>Important Next Step:</strong> Your <strong>Official Filled Admission Form PDF (with Director's Digital Signature & Approval Stamp)</strong> is attached with this email and is also available for download inside the School App. Please bring a printout of this signed PDF to the school office to complete your offline verification.</p>
+          `
+        });
+
+        await sendOfficialEmail({
+          to: app.email,
+          subject: `Admission Approved (${masterId}) - Signed Form Attached | Gurukul Sr. Sec. School, Dhankoli`,
+          htmlBody,
+          pdfBase64,
+          pdfFileName: `Admission_Form_${masterId}.pdf`
+        });
+
+        alert(`Admission Approved!\nMaster Student ID: ${masterId}\nPassword: ${rawPassword}\nOfficial English Email with Signed PDF sent to ${app.email}.`);
+
+      } else if (actionType === "INVITE") {
+        app.status = "INVITED";
+        app.adminRemark = remark;
+        await db.ref(`admissions/${appId}`).set(app);
+
+        const htmlBody = buildOfficialEmailTemplate({
+          heading: "Invitation for Offline Admission & Document Verification",
+          studentName: app.studentName,
+          bodyHtml: `
+            <p>Your online admission application (ID: <strong>${appId}</strong>) for <strong>${app.classApplying}</strong> has been reviewed and shortlisted.</p>
+            <div style="background:#eff6ff;border-left:4px solid #1d4ed8;padding:14px;margin:16px 0;">
+              <strong>Schedule & Instructions from Admission Office:</strong><br/>
+              ${remark}
+            </div>
+            <p>Please visit <strong>Gurukul Senior Secondary School, Bhadasar Road, Dhankoli</strong> along with your original documents (Transfer Certificate, Marksheet, Aadhaar Card, Jan-Aadhaar & Passport Photos).</p>
+          `
+        });
+
+        await sendOfficialEmail({
+          to: app.email,
+          subject: `Invitation for Offline Admission Verification (${appId}) - Gurukul Sr. Sec. School, Dhankoli`,
+          htmlBody
+        });
+        alert(`Official Invitation Email sent to ${app.email}`);
+
+      } else if (actionType === "REVIEW") {
+        app.status = "REVIEW_REQUIRED";
+        app.adminRemark = remark;
+        await db.ref(`admissions/${appId}`).set(app);
+
+        const htmlBody = buildOfficialEmailTemplate({
+          heading: "Action Required: Please Review & Update Your Admission Form",
+          studentName: app.studentName,
+          bodyHtml: `
+            <p>Your admission application (ID: <strong>${appId}</strong>) requires a minor correction before final approval.</p>
+            <div style="background:#fffbeb;border-left:4px solid #f59e0b;padding:14px;margin:16px 0;color:#92400e;">
+              <strong>Remark from School Admin:</strong><br/>
+              ${remark}
+            </div>
+            <p>We have unlocked your application form. Please open the School App / Portal, click on <strong>"Track / Edit Application"</strong>, enter your Application ID <strong>${appId}</strong>, make the requested changes, and submit again.</p>
+          `
+        });
+
+        await sendOfficialEmail({
+          to: app.email,
+          subject: `Correction Required in Admission Form (${appId}) - Gurukul Sr. Sec. School, Dhankoli`,
+          htmlBody
+        });
+        alert(`Application sent back for review and email dispatched to ${app.email}`);
+
+      } else if (actionType === "REJECT") {
+        app.status = "REJECTED";
+        app.adminRemark = remark;
+        await db.ref(`admissions/${appId}`).set(app);
+
+        const htmlBody = buildOfficialEmailTemplate({
+          heading: "Update Regarding Your Admission Application",
+          studentName: app.studentName,
+          bodyHtml: `
+            <p>Thank you for your interest in <strong>Gurukul Senior Secondary School, Bhadasar Road, Dhankoli</strong>.</p>
+            <p>We regret to inform you that your admission application (ID: <strong>${appId}</strong>) could not be approved at this time due to the following reason:</p>
+            <div style="background:#fef2f2;border-left:4px solid #dc2626;padding:14px;margin:16px 0;color:#991b1b;">
+              ${remark}
+            </div>
+            <p>For any queries, please contact our school helpline at <strong>9772564359</strong> or <strong>9887071127</strong>.</p>
+          `
+        });
+
+        await sendOfficialEmail({
+          to: app.email,
+          subject: `Admission Application Status Update (${appId}) - Gurukul Sr. Sec. School, Dhankoli`,
+          htmlBody
+        });
+        alert(`Rejection Email sent to ${app.email}`);
+      }
+    }
+
+    // =========================================================
+    // 8. OFFICIAL ENGLISH EMAIL HTML BUILDER
+    // =========================================================
+    function buildOfficialEmailTemplate({ heading, studentName, bodyHtml }) {
+      return `
+        <div style="font-family:Arial,sans-serif;max-width:640px;margin:0 auto;border:1px solid #e2e8f0;border-radius:16px;overflow:hidden;background:#ffffff;">
+          <div style="background:linear-gradient(135deg,#0f172a,#1e3a8a);color:#ffffff;padding:24px;text-align:center;">
+            <img src="${SCHOOL_INFO.logo}" alt="Logo" style="width:72px;height:72px;border-radius:50%;background:#fff;padding:4px;border:2px solid #fbbf24;" />
+            <h2 style="margin:10px 0 4px 0;font-size:20px;letter-spacing:0.5px;">GURUKUL SENIOR SECONDARY SCHOOL</h2>
+            <p style="margin:0;font-size:12px;color:#bfdbfe;">Bhadasar Road, Dhankoli | Director: R.C. Royal | Chairman: H.S. Royal</p>
+            <p style="margin:4px 0 0 0;font-size:11px;color:#fde68a;">Helpline: +91 9772564359, +91 9887071127</p>
+          </div>
+          <div style="padding:24px;color:#1e293b;line-height:1.6;font-size:14px;">
+            <h3 style="color:#1e3a8a;margin-top:0;">${heading}</h3>
+            <p>Dear <strong>${studentName}</strong> & Parents,</p>
+            ${bodyHtml}
+            <p style="margin-top:24px;">Warm Regards,<br/><strong>Office of the Director (R.C. Royal)</strong><br/>Gurukul Senior Secondary School, Dhankoli</p>
+          </div>
+          <div style="background:#f8fafc;padding:12px;text-align:center;font-size:11px;color:#64748b;border-top:1px solid #e2e8f0;">
+            This is an automated official email from Gurukul Sr. Sec. School ERP System. Academic Session ${CURRENT_SESSION.sessionString}.
+          </div>
+        </div>
+      `;
+    }
+
+    // =========================================================
+    // 9. SIGNED A4 ADMISSION CONFIRMATION PDF GENERATOR
+    // =========================================================
+    async function generateSignedAdmissionPDF(appId, triggerDownload = true) {
+      const app = allAdmissions[appId] || Object.values(allStudents).find(s => s.appId === appId || s.masterId === appId);
+      if (!app) return null;
+
+      const printArea = document.getElementById("pdfPrintArea");
+      printArea.innerHTML = `
+        <div style="border:3px solid #1e3a8a;padding:24px;min-height:1050px;position:relative;font-family:Arial,sans-serif;">
+          <!-- Header -->
+          <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:3px double #1e3a8a;padding-bottom:14px;">
+            <img src="${SCHOOL_INFO.logo}" crossorigin="anonymous" style="width:85px;height:85px;object-fit:contain;" />
+            <div style="text-align:center;flex:1;">
+              <h1 style="margin:0;font-size:24px;font-weight:900;color:#1e3a8a;">GURUKUL SENIOR SECONDARY SCHOOL</h1>
+              <p style="margin:4px 0;font-size:13px;font-weight:bold;color:#334155;">BHADASAR ROAD, DHANKOLI (DIDWANA-KUCHAMAN) RAJASTHAN</p>
+              <p style="margin:2px 0;font-size:12px;color:#475569;">Director: <strong>R.C. Royal</strong> | Chairman: <strong>H.S. Royal</strong> | Helpline: <strong>9772564359, 9887071127</strong></p>
+              <div style="margin-top:6px;display:inline-block;background:#1e3a8a;color:#fff;padding:4px 16px;border-radius:20px;font-size:12px;font-weight:bold;">
+                OFFICIAL ADMISSION CONFIRMATION FORM (${app.session || CURRENT_SESSION.sessionString})
+              </div>
+            </div>
+            <div style="text-align:center;">
+              <img src="${app.photoBase64}" style="width:95px;height:115px;object-fit:cover;border:2px solid #0f172a;border-radius:6px;" />
+            </div>
+          </div>
+
+          <!-- Top IDs Row -->
+          <div style="display:flex;justify-content:space-between;background:#f1f5f9;padding:10px 14px;margin:14px 0;border:1px solid #cbd5e1;font-size:13px;font-weight:bold;">
+            <div>Application No: <span style="color:#1d4ed8;">${app.appId}</span></div>
+            <div>Master Student ID: <span style="color:#15803d;">${app.masterId || "APPROVED"}</span></div>
+            <div>Approval Date: <span>${app.approvedDate || new Date().toLocaleDateString("en-IN")}</span></div>
+          </div>
+
+          <!-- Details Table -->
+          <table style="width:100%;border-collapse:collapse;font-size:13px;margin-top:10px;">
+            <tr>
+              <td style="border:1px solid #94a3b8;padding:9px;font-weight:bold;background:#f8fafc;width:28%;">Student Full Name</td>
+              <td style="border:1px solid #94a3b8;padding:9px;font-weight:bold;width:72%;" colspan="3">${app.studentName}</td>
+            </tr>
+            <tr>
+              <td style="border:1px solid #94a3b8;padding:9px;font-weight:bold;background:#f8fafc;">Class Admitted</td>
+              <td style="border:1px solid #94a3b8;padding:9px;font-weight:bold;color:#1e3a8a;">${app.classApplying}</td>
+              <td style="border:1px solid #94a3b8;padding:9px;font-weight:bold;background:#f8fafc;">Stream / Subject</td>
+              <td style="border:1px solid #94a3b8;padding:9px;">${app.stream || "General"}</td>
+            </tr>
+            <tr>
+              <td style="border:1px solid #94a3b8;padding:9px;font-weight:bold;background:#f8fafc;">Date of Birth</td>
+              <td style="border:1px solid #94a3b8;padding:9px;">${app.dob}</td>
+              <td style="border:1px solid #94a3b8;padding:9px;font-weight:bold;background:#f8fafc;">Gender & Category</td>
+              <td style="border:1px solid #94a3b8;padding:9px;">${app.gender} / ${app.category}</td>
+            </tr>
+            <tr>
+              <td style="border:1px solid #94a3b8;padding:9px;font-weight:bold;background:#f8fafc;">Father's Name</td>
+              <td style="border:1px solid #94a3b8;padding:9px;">${app.fatherName}</td>
+              <td style="border:1px solid #94a3b8;padding:9px;font-weight:bold;background:#f8fafc;">Mother's Name</td>
+              <td style="border:1px solid #94a3b8;padding:9px;">${app.motherName}</td>
+            </tr>
+            <tr>
+              <td style="border:1px solid #94a3b8;padding:9px;font-weight:bold;background:#f8fafc;">Aadhaar Number</td>
+              <td style="border:1px solid #94a3b8;padding:9px;">${app.aadhaar}</td>
+              <td style="border:1px solid #94a3b8;padding:9px;font-weight:bold;background:#f8fafc;">Jan-Aadhaar No</td>
+              <td style="border:1px solid #94a3b8;padding:9px;">${app.janaadhaar || "N/A"}</td>
+            </tr>
+            <tr>
+              <td style="border:1px solid #94a3b8;padding:9px;font-weight:bold;background:#f8fafc;">Registered Mobile</td>
+              <td style="border:1px solid #94a3b8;padding:9px;font-weight:bold;">${app.mobile}</td>
+              <td style="border:1px solid #94a3b8;padding:9px;font-weight:bold;background:#f8fafc;">Registered Email</td>
+              <td style="border:1px solid #94a3b8;padding:9px;">${app.email}</td>
+            </tr>
+            <tr>
+              <td style="border:1px solid #94a3b8;padding:9px;font-weight:bold;background:#f8fafc;">Previous School</td>
+              <td style="border:1px solid #94a3b8;padding:9px;">${app.prevSchool || "N/A"}</td>
+              <td style="border:1px solid #94a3b8;padding:9px;font-weight:bold;background:#f8fafc;">School Bus Required</td>
+              <td style="border:1px solid #94a3b8;padding:9px;">${app.transport}</td>
+            </tr>
+            <tr>
+              <td style="border:1px solid #94a3b8;padding:9px;font-weight:bold;background:#f8fafc;">Permanent Address</td>
+              <td style="border:1px solid #94a3b8;padding:9px;" colspan="3">${app.address}</td>
+            </tr>
+          </table>
+
+          <!-- Declaration -->
+          <div style="margin-top:18px;padding:12px;background:#f8fafc;border:1px solid #cbd5e1;font-size:11.5px;line-height:1.5;">
+            <strong>Student & Parent Declaration:</strong> I hereby declare that all information furnished above is true and correct to the best of my knowledge. I undertake to abide by all academic, disciplinary, and fee regulations of Gurukul Senior Secondary School, Dhankoli.
+          </div>
+
+          <!-- Signatures & Official Approved Stamp -->
+          <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:55px;padding-top:20px;">
+            <div style="text-align:center;">
+              <img src="${app.signBase64}" style="width:130px;height:48px;object-fit:contain;border-bottom:1px solid #0f172a;" />
+              <p style="margin:5px 0 0 0;font-size:12px;font-weight:bold;">Student / Parent Signature</p>
+            </div>
+
+            <!-- Official Green Stamp -->
+            <div style="border:3px double #15803d;color:#15803d;padding:8px 18px;border-radius:10px;text-align:center;transform:rotate(-5deg);">
+              <div style="font-size:14px;font-weight:900;letter-spacing:1px;">OFFICIALLY APPROVED</div>
+              <div style="font-size:10px;font-weight:bold;">GURUKUL SR. SEC. SCHOOL, DHANKOLI</div>
+              <div style="font-size:10px;">Verified Online Admission</div>
+            </div>
+
+            <!-- Director Signature -->
+            <div style="text-align:center;">
+              <div style="font-family:'Brush Script MT',cursive;font-size:24px;color:#1e3a8a;font-weight:bold;border-bottom:1px solid #0f172a;padding:0 20px;">
+                R. C. Royal
+              </div>
+              <p style="margin:5px 0 0 0;font-size:12px;font-weight:bold;">R.C. Royal (Director)</p>
+              <p style="margin:0;font-size:10px;color:#475569;">Gurukul Sr. Sec. School, Dhankoli</p>
+            </div>
+          </div>
+
+          <div style="position:absolute;bottom:14px;left:24px;right:24px;border-top:1px solid #cbd5e1;padding-top:6px;display:flex;justify-content:space-between;font-size:10px;color:#64748b;">
+            <span>Note: Present this signed form at the school office during offline document verification.</span>
+            <span>Chairman: H.S. Royal | Helpline: 9772564359, 9887071127</span>
+          </div>
+        </div>
+      `;
+
+      const opt = {
+        margin: 0,
+        filename: `GSSS_Admission_${app.masterId || app.appId}.pdf`,
+        image: { type: "jpeg", quality: 0.95 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: "px", format: [794, 1122], orientation: "portrait" }
+      };
+
+      if (triggerDownload) {
+        await html2pdf().set(opt).from(printArea).save();
+      }
+      const pdfDataUri = await html2pdf().set(opt).from(printArea).outputPdf("datauristring");
+      return pdfDataUri.split(",")[1];
+    }
+
+    // =========================================================
+    // 10. TRACK APPLICATION & STUDENT EDIT MODE
+    // =========================================================
+    function searchApplicationStatus() {
+      const q = document.getElementById("trackSearchInput").value.trim().toLowerCase();
+      const container = document.getElementById("trackResultContainer");
+      if (!q) return;
+
+      const matches = Object.values(allAdmissions).filter(a =>
+        a.appId.toLowerCase() === q ||
+        (a.masterId && a.masterId.toLowerCase() === q) ||
+        a.email.toLowerCase() === q ||
+        a.mobile === q
+      );
+
+      if (matches.length === 0) {
+        container.innerHTML = `<div class="p-4 rounded-xl bg-rose-50 text-rose-700 text-xs font-bold">No application found with that ID, Email, or Mobile.</div>`;
+        return;
+      }
+
+      container.innerHTML = matches.map(app => `
+        <div class="p-4 rounded-xl border bg-slate-50 space-y-2">
+          <div class="flex justify-between items-center">
+            <span class="font-extrabold text-blue-800 text-sm">${app.appId}</span>
+            <span class="px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-blue-100 text-blue-900">${app.status}</span>
+          </div>
+          <p class="text-xs font-bold text-slate-800">${app.studentName} — ${app.classApplying}</p>
+          ${app.adminRemark ? `<p class="text-xs text-amber-800 bg-amber-50 p-2 rounded border border-amber-200"><strong>Admin Note:</strong> ${app.adminRemark}</p>` : ""}
+          <div class="pt-2 flex flex-wrap gap-2">
+            ${app.status === "REVIEW_REQUIRED" ? `
+              <button onclick="loadApplicationForEditing('${app.appId}')" class="bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold px-3.5 py-2 rounded-lg">
+                <i class="fa-solid fa-pen-to-square"></i> Edit & Resubmit Form
+              </button>
+            ` : ""}
+            ${app.status === "APPROVED" ? `
+              <button onclick="generateSignedAdmissionPDF('${app.appId}', true)" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3.5 py-2 rounded-lg">
+                <i class="fa-solid fa-file-pdf"></i> Download Signed Admission Form PDF
+              </button>
+            ` : ""}
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function loadApplicationForEditing(appId) {
+      const app = allAdmissions[appId];
+      if (!app) return;
+      closePublicModal("trackAdmissionModal");
+      openPublicModal("admissionFormModal", false);
+
+      document.getElementById("editApplicationId").value = app.appId;
+      document.getElementById("adm_studentName").value = app.studentName;
+      document.getElementById("adm_class").value = app.classApplying;
+      toggleStreamField();
+      document.getElementById("adm_stream").value = app.stream || "General";
+      document.getElementById("adm_dob").value = app.dob;
+      document.getElementById("adm_gender").value = app.gender;
+      document.getElementById("adm_category").value = app.category;
+      document.getElementById("adm_blood").value = app.bloodGroup;
+      document.getElementById("adm_aadhaar").value = app.aadhaar;
+      document.getElementById("adm_janaadhaar").value = app.janaadhaar || "";
+      document.getElementById("adm_fatherName").value = app.fatherName;
+      document.getElementById("adm_motherName").value = app.motherName;
+      document.getElementById("adm_occupation").value = app.occupation || "";
+      document.getElementById("adm_mobile").value = app.mobile;
+      document.getElementById("adm_prevSchool").value = app.prevSchool || "";
+      document.getElementById("adm_transport").value = app.transport;
+      document.getElementById("adm_address").value = app.address;
+      document.getElementById("adm_email").value = app.email;
+      document.getElementById("previewStudentPhoto").src = app.photoBase64;
+      document.getElementById("adm_photoBase64").value = app.photoBase64;
+      document.getElementById("previewStudentSign").src = app.signBase64;
+      document.getElementById("adm_signBase64").value = app.signBase64;
+
+      // Already verified email during initial submission
+      isEmailVerified = true;
+    }
+
+    // =========================================================
+    // 11. 3-LEVEL LOCK ENGINE (GLOBAL + PARTICULAR STUDENT)
+    // =========================================================
+    function renderMasterLockControls() {
+      const container = document.getElementById("masterLockCardsContainer");
+      container.innerHTML = ALL_MODULES.map(mod => {
+        const state = globalPortalLocks[mod.id] || "OPEN";
+        return `
+          <div class="p-4 rounded-xl border ${state === 'FULL_LOCK' ? 'bg-rose-50 border-rose-300' : state === 'HALF_LOCK' ? 'bg-amber-50 border-amber-300' : 'bg-slate-50 border-slate-200'} flex flex-col justify-between gap-3">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl ${mod.color} text-white flex items-center justify-center shadow">
+                <i class="fa-solid ${mod.icon}"></i>
+              </div>
+              <div>
+                <h4 class="font-bold text-sm text-slate-900">${mod.nameEN}</h4>
+                <p class="text-[11px] text-slate-500">${mod.nameHI}</p>
+              </div>
+            </div>
+            <div class="grid grid-cols-3 gap-1.5 pt-2 border-t">
+              <button onclick="setGlobalModuleLock('${mod.id}', 'OPEN')" class="py-1.5 rounded-lg text-[11px] font-extrabold ${state === 'OPEN' ? 'bg-emerald-600 text-white shadow' : 'bg-white border text-slate-600'}">
+                <i class="fa-solid fa-lock-open"></i> Open
+              </button>
+              <button onclick="setGlobalModuleLock('${mod.id}', 'HALF_LOCK')" class="py-1.5 rounded-lg text-[11px] font-extrabold ${state === 'HALF_LOCK' ? 'bg-amber-500 text-white shadow' : 'bg-white border text-slate-600'}">
+                <i class="fa-solid fa-eye"></i> Half Lock
+              </button>
+              <button onclick="setGlobalModuleLock('${mod.id}', 'FULL_LOCK')" class="py-1.5 rounded-lg text-[11px] font-extrabold ${state === 'FULL_LOCK' ? 'bg-rose-600 text-white shadow' : 'bg-white border text-slate-600'}">
+                <i class="fa-solid fa-lock"></i> Full Lock
+              </button>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    async function setGlobalModuleLock(moduleId, lockState) {
+      await db.ref(`portalLocks/${moduleId}`).set(lockState);
+    }
+
+    function renderMasterStudents() {
+      const tbody = document.getElementById("masterStudentTableBody");
+      const q = (document.getElementById("searchStudentInput")?.value || "").toLowerCase();
+      const list = Object.values(allStudents).filter(s => s.status !== "LEFT" && (
+        s.studentName.toLowerCase().includes(q) ||
+        s.masterId.toLowerCase().includes(q) ||
+        s.currentClass.toLowerCase().includes(q)
+      ));
+
+      if (list.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-400 font-semibold">No Enrolled Students Found.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = list.map(stu => {
+        const lockedCount = Object.values(stu.individualLocks || {}).filter(Boolean).length;
+        return `
+          <tr class="hover:bg-slate-50">
+            <td class="p-3">
+              <span class="font-extrabold text-blue-700">${stu.masterId}</span>
+              <div class="text-[11px] text-rose-600 font-bold">Pass: ${stu.password}</div>
+            </td>
+            <td class="p-3 font-bold text-slate-900">${stu.studentName}</td>
+            <td class="p-3 font-semibold">${stu.currentClass}</td>
+            <td class="p-3 text-xs">${stu.fatherName}<br/><span class="text-slate-500">${stu.mobile}</span></td>
+            <td class="p-3">
+              <button onclick="manageStudentSpecificLocks('${stu.masterId}')" class="bg-amber-100 hover:bg-amber-200 text-amber-900 px-3 py-1.5 rounded-lg text-xs font-bold">
+                <i class="fa-solid fa-user-lock"></i> Personal Locks (${lockedCount})
+              </button>
+            </td>
+            <td class="p-3 text-right">
+              <button onclick="generateSignedAdmissionPDF('${stu.masterId}', true)" class="bg-slate-800 text-white px-3 py-1.5 rounded-lg text-xs font-bold">
+                <i class="fa-solid fa-file-pdf text-amber-300"></i> Signed PDF
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    async function manageStudentSpecificLocks(masterId) {
+      const stu = allStudents[masterId];
+      if (!stu) return;
+      const currentLocks = stu.individualLocks || {};
+      const moduleNames = ALL_MODULES.map((m, idx) => `${idx + 1}. ${m.id} [${currentLocks[m.id] ? "LOCKED 🔒" : "OPEN ✅"}]`).join("\n");
+      const choice = prompt(`Toggle Individual Portal Lock for ${stu.studentName} (${masterId}):\nEnter Module Number (1-${ALL_MODULES.length}) to Lock/Unlock:\n\n${moduleNames}`);
+      if (!choice) return;
+      const idx = parseInt(choice) - 1;
+      if (ALL_MODULES[idx]) {
+        const modId = ALL_MODULES[idx].id;
+        const newState = !currentLocks[modId];
+        await db.ref(`students/${masterId}/individualLocks/${modId}`).set(newState);
+      }
+    }
+
+    // =========================================================
+    // 12. "1 MAY" ANNUAL PROMOTION ENGINE & RED POPUP MONITOR
+    // =========================================================
+    let promotionDecisions = {};
+    const CLASS_PROMOTION_MAP = {
+      "Nursery": "LKG", "LKG": "UKG", "UKG": "Class 1",
+      "Class 1": "Class 2", "Class 2": "Class 3", "Class 3": "Class 4",
+      "Class 4": "Class 5", "Class 5": "Class 6", "Class 6": "Class 7",
+      "Class 7": "Class 8", "Class 8": "Class 9", "Class 9": "Class 10",
+      "Class 10": "Class 11", "Class 11": "Class 12", "Class 12": "Passout (Alumni)"
+    };
+
+    async function checkMay1PromotionPopup() {
+      const now = new Date();
+      const isAfterMay1 = (now.getMonth() + 1) >= 5; // May is month 5
+      const currentYear = String(now.getFullYear());
+      const snap = await db.ref(`annualPromotionCompleted/${currentYear}`).once("value");
+      const isDoneForThisYear = snap.val() === true;
+
+      if (isAfterMay1 && !isDoneForThisYear && Object.keys(allStudents).length > 0) {
+        openMay1PromotionModal(false);
+      }
+    }
+
+    function openMay1PromotionModal(isTestPreview = false) {
+      document.getElementById("may1PromotionModal").classList.remove("hidden");
+      document.getElementById("promotionTargetSession").innerText = CURRENT_SESSION.sessionString;
+      const closeBtn = document.getElementById("closeMay1TestBtn");
+      if (isTestPreview) closeBtn.classList.remove("hidden");
+      else closeBtn.classList.add("hidden");
+
+      const tbody = document.getElementById("may1StudentTableBody");
+      const activeList = Object.values(allStudents).filter(s => s.status !== "LEFT");
+
+      if (activeList.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-slate-500 font-bold">No active students to promote yet. Once students are admitted, their list will appear here every 1st May.</td></tr>`;
+        return;
+      }
+
+      promotionDecisions = {};
+      tbody.innerHTML = activeList.map(stu => {
+        promotionDecisions[stu.masterId] = "PROMOTE";
+        const nextCls = CLASS_PROMOTION_MAP[stu.currentClass] || stu.currentClass;
+        return `
+          <tr class="hover:bg-red-50/40">
+            <td class="p-3 font-extrabold text-slate-900">${stu.masterId}</td>
+            <td class="p-3 font-bold">${stu.studentName}</td>
+            <td class="p-3 text-xs">${stu.fatherName}</td>
+            <td class="p-3 font-bold text-blue-700">${stu.currentClass} <i class="fa-solid fa-arrow-right text-xs mx-1"></i> <span class="text-emerald-700">${nextCls}</span></td>
+            <td class="p-3 text-center">
+              <select onchange="promotionDecisions['${stu.masterId}'] = this.value" class="promotion-select border-2 border-slate-300 rounded-lg px-2.5 py-1.5 text-xs font-extrabold bg-white">
+                <option value="PROMOTE">✅ PASS — Promote to ${nextCls}</option>
+                <option value="RETAIN">⚠️ FAIL — Retain in ${stu.currentClass}</option>
+                <option value="LEFT">❌ LEFT SCHOOL — Remove/Archive</option>
+              </select>
+            </td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    function closeMay1ModalIfTest() {
+      document.getElementById("may1PromotionModal").classList.add("hidden");
+    }
+
+    function markAllPromotionDecisions(action) {
+      Object.keys(promotionDecisions).forEach(id => promotionDecisions[id] = action);
+      document.querySelectorAll(".promotion-select").forEach(sel => sel.value = action);
+    }
+
+    async function executeAnnualPromotion() {
+      const currentYear = String(new Date().getFullYear());
+      for (const [masterId, decision] of Object.entries(promotionDecisions)) {
+        const stu = allStudents[masterId];
+        if (!stu) continue;
+        if (decision === "PROMOTE") {
+          const nextCls = CLASS_PROMOTION_MAP[stu.currentClass] || stu.currentClass;
+          await db.ref(`students/${masterId}/currentClass`).set(nextCls);
+        } else if (decision === "LEFT") {
+          await db.ref(`students/${masterId}/status`).set("LEFT");
+        }
+      }
+      await db.ref(`annualPromotionCompleted/${currentYear}`).set(true);
+      document.getElementById("may1PromotionModal").classList.add("hidden");
+      alert("Annual Student Status Updated Successfully! This popup is now locked for 1 year until next 1st May.");
+    }
+
+    // Global Admin Pending Tasks Red Alert Monitor
+    function renderAdminTaskMonitor() {
+      const container = document.getElementById("adminTaskChecklistContainer");
+      container.innerHTML = Object.entries(adminTasksChecklist).map(([key, item]) => {
+        const isPending = item.status === "PENDING";
+        return `
+          <div class="p-4 rounded-xl border ${isPending ? 'bg-red-50 border-red-300' : 'bg-emerald-50 border-emerald-200'} flex items-center justify-between">
+            <div>
+              <h4 class="font-bold text-sm ${isPending ? 'text-red-900' : 'text-emerald-900'}">${item.title}</h4>
+              <span class="text-[11px] font-extrabold ${isPending ? 'text-red-600' : 'text-emerald-600'}">${item.status}</span>
+            </div>
+            <button onclick="toggleAdminTaskStatus('${key}')" class="px-3 py-1.5 rounded-lg text-xs font-bold ${isPending ? 'bg-emerald-600 text-white' : 'bg-red-600 text-white'}">
+              ${isPending ? 'Mark Completed' : 'Trigger Pending Alert'}
+            </button>
+          </div>
+        `;
+      }).join("");
+    }
+
+    async function toggleAdminTaskStatus(key) {
+      const current = adminTasksChecklist[key]?.status || "COMPLETED";
+      const next = current === "COMPLETED" ? "PENDING" : "COMPLETED";
+      await db.ref(`adminTasks/${key}/status`).set(next);
+      await db.ref(`adminTasks/${key}/title`).set(adminTasksChecklist[key].title);
+    }
+
+    function checkAndShowPendingTasksPopup(forceShow = false) {
+      const pendingItems = [];
+      const pendingAdmCount = Object.values(allAdmissions).filter(a => a.status === "PENDING").length;
+      if (pendingAdmCount > 0) {
+        pendingItems.push(`${pendingAdmCount} New Admission Application(s) are awaiting Admin Approval/Action.`);
+      }
+      Object.values(adminTasksChecklist).forEach(t => {
+        if (t.status === "PENDING") pendingItems.push(`${t.title} is currently pending!`);
+      });
+
+      if (pendingItems.length > 0 || forceShow) {
+        const listEl = document.getElementById("pendingTasksListContainer");
+        listEl.innerHTML = (pendingItems.length ? pendingItems : ["All tasks are up-to-date! (This is a preview of the Red Alert Popup)"]).map(msg => `
+          <div class="p-3 rounded-xl bg-red-50 border border-red-200 text-red-900 text-xs sm:text-sm font-bold flex items-center gap-2.5">
+            <i class="fa-solid fa-circle-exclamation text-red-600 text-base"></i>
+            <span>${msg}</span>
+          </div>
+        `).join("");
+        document.getElementById("pendingTasksRedModal").classList.remove("hidden");
+      }
+    }
+
+    // =========================================================
+    // 13. AUTHENTICATION (STUDENT & ADMIN LOGIN)
+    // =========================================================
+    let currentLoginRole = "STUDENT";
+    let loggedInStudent = null;
+
+    function switchLoginRole(role) {
+      currentLoginRole = role;
+      const stuBtn = document.getElementById("tabStudentLogin");
+      const admBtn = document.getElementById("tabAdminLogin");
+      const label = document.getElementById("loginIdLabel");
+
+      if (role === "ADMIN") {
+        admBtn.className = "flex-1 py-2 text-xs font-extrabold rounded-lg bg-blue-700 text-white shadow transition";
+        stuBtn.className = "flex-1 py-2 text-xs font-extrabold rounded-lg text-slate-600 hover:text-slate-900 transition";
+        label.innerText = "Admin Username (Default: ADMIN)";
+      } else {
+        stuBtn.className = "flex-1 py-2 text-xs font-extrabold rounded-lg bg-blue-700 text-white shadow transition";
+        admBtn.className = "flex-1 py-2 text-xs font-extrabold rounded-lg text-slate-600 hover:text-slate-900 transition";
+        label.innerText = "Student Master ID (e.g. GSSS-2026-1001)";
+      }
+    }
+
+    function handleLoginSubmit(event) {
+      event.preventDefault();
+      const userId = document.getElementById("loginUserId").value.trim();
+      const pass = document.getElementById("loginPassword").value.trim();
+
+      if (currentLoginRole === "ADMIN") {
+        if (userId.toUpperCase() === "ADMIN" && pass === "GSSS@123") {
+          document.getElementById("publicAuthView").classList.add("hidden");
+          document.getElementById("studentDashboardView").classList.add("hidden");
+          document.getElementById("adminDashboardView").classList.remove("hidden");
+          document.getElementById("logoutBtn").classList.remove("hidden");
+          document.getElementById("logoutBtn").classList.add("flex");
+
+          checkMay1PromotionPopup();
+          checkAndShowPendingTasksPopup(false);
+        } else {
+          alert("Invalid Admin Credentials! Use ID: ADMIN and Password: GSSS@123");
+        }
+      } else {
+        const stu = allStudents[userId.toUpperCase()];
+        if (stu && stu.status !== "LEFT" && (stu.password === pass || stu.dob === pass)) {
+          loggedInStudent = stu;
+          document.getElementById("publicAuthView").classList.add("hidden");
+          document.getElementById("adminDashboardView").classList.add("hidden");
+          document.getElementById("studentDashboardView").classList.remove("hidden");
+          document.getElementById("logoutBtn").classList.remove("hidden");
+          document.getElementById("logoutBtn").classList.add("flex");
+          renderStudentDashboard(stu);
+        } else {
+          alert("Invalid Student Master ID or Password!");
+        }
+      }
+    }
+
+    function renderStudentDashboard(stu) {
+      document.getElementById("stuDashPhoto").src = stu.photoBase64 || "https://via.placeholder.com/100";
+      document.getElementById("stuDashMasterId").innerText = stu.masterId;
+      document.getElementById("stuDashName").innerText = stu.studentName;
+      document.getElementById("stuDashMeta").innerText = `${stu.currentClass} (${stu.stream}) | Father: ${stu.fatherName}`;
+
+      const grid = document.getElementById("studentModulesGrid");
+      grid.innerHTML = ALL_MODULES.map(mod => {
+        const globalLock = globalPortalLocks[mod.id] || "OPEN";
+        const personalLock = stu.individualLocks && stu.individualLocks[mod.id];
+        const isFullLocked = globalLock === "FULL_LOCK" || personalLock;
+        const isHalfLocked = !isFullLocked && globalLock === "HALF_LOCK";
+
+        return `
+          <div onclick="handleStudentModuleClick('${mod.id}', ${isFullLocked}, ${isHalfLocked})" class="cursor-pointer bg-white p-4 rounded-2xl shadow-sm border hover:shadow-md transition flex flex-col justify-between gap-3 ${isFullLocked ? 'opacity-60 border-rose-200' : 'border-slate-200'}">
+            <div class="flex items-center justify-between">
+              <div class="w-11 h-11 rounded-xl ${mod.color} text-white flex items-center justify-center text-lg shadow">
+                <i class="fa-solid ${mod.icon}"></i>
+              </div>
+              ${isFullLocked ? `<span class="bg-rose-100 text-rose-700 text-[10px] font-black px-2 py-0.5 rounded-full"><i class="fa-solid fa-lock"></i> LOCKED</span>`
+                : isHalfLocked ? `<span class="bg-amber-100 text-amber-800 text-[10px] font-black px-2 py-0.5 rounded-full"><i class="fa-solid fa-eye"></i> VIEW ONLY</span>`
+                : `<span class="bg-emerald-100 text-emerald-700 text-[10px] font-black px-2 py-0.5 rounded-full">ACTIVE</span>`}
+            </div>
+            <div>
+              <h4 class="font-extrabold text-sm text-slate-900">${currentLang === "EN" ? mod.nameEN : mod.nameHI}</h4>
+              <p class="text-[11px] text-slate-400">Connected to ${stu.masterId}</p>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function handleStudentModuleClick(modId, isFullLocked, isHalfLocked) {
+      if (isFullLocked) {
+        alert("🔒 This portal is currently locked by the School Administration for your account.");
+        return;
+      }
+      alert(`Module: ${modId} (${isHalfLocked ? "View-Only Mode" : "Full Access Mode"})\nConnected to Student ID: ${loggedInStudent.masterId}`);
+    }
+
+    function downloadCurrentStudentAdmissionPDF() {
+      if (!loggedInStudent) return;
+      generateSignedAdmissionPDF(loggedInStudent.masterId, true);
+    }
+
+    function switchAdminTab(tabId) {
+      document.querySelectorAll(".admin-tab-pane").forEach(el => el.classList.add("hidden"));
+      document.getElementById(tabId).classList.remove("hidden");
+
+      document.querySelectorAll(".admin-tab-btn").forEach(btn => {
+        btn.className = "admin-tab-btn text-slate-600 hover:bg-slate-100 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap flex items-center gap-2";
+      });
+      document.getElementById(`btn_${tabId}`).className = "admin-tab-btn bg-blue-700 text-white px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap flex items-center gap-2 shadow";
+    }
+
+    function openHelplineModal() {
+      document.getElementById("helplineModal").classList.remove("hidden");
+    }
+
+    function logoutUser() {
+      loggedInStudent = null;
+      document.getElementById("adminDashboardView").classList.add("hidden");
+      document.getElementById("studentDashboardView").classList.add("hidden");
+      document.getElementById("publicAuthView").classList.remove("hidden");
+      document.getElementById("logoutBtn").classList.add("hidden");
+    }
+  </script>
+</body>
+</html>
