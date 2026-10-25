@@ -4,19 +4,18 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Gurukul Sr. Sec. School, Dhankoli | Complete Smart ERP & App</title>
-
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
-
   <style>
     * { box-sizing: border-box; }
     body { font-family: 'Plus Jakarta Sans', 'Noto Sans Devanagari', sans-serif; background-color: #f1f5f9; overflow-x: hidden; -webkit-tap-highlight-color: transparent; }
     .glass-header { background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 60%, #1d4ed8 100%); }
     .red-alert-gradient { background: linear-gradient(135deg, #7f1d1d 0%, #dc2626 50%, #991b1b 100%); }
+    .cyan-gradient { background: linear-gradient(135deg, #083344 0%, #0e7490 60%, #06b6d4 100%); }
     .custom-scroll::-webkit-scrollbar { width: 5px; height: 5px; }
     .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 8px; }
     @keyframes popIn { 0% { transform: scale(0.95); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
@@ -28,7 +27,7 @@
 <body class="text-slate-800 min-h-screen flex flex-col">
 
   <!-- CUSTOM IN-APP DIALOG MODAL -->
-  <div id="customDialogOverlay" class="hidden fixed inset-0 z-[100] bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+  <div id="customDialogOverlay" class="hidden fixed inset-0 z-[110] bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl max-w-md w-full overflow-hidden shadow-2xl border border-slate-200 modal-animate">
       <div id="customDialogHeader" class="glass-header text-white p-4 flex items-center gap-3">
         <img src="https://gsssdhankoli.github.io/Logo.png/logo.png" class="w-10 h-10 rounded-full bg-white p-0.5 border border-amber-400" />
@@ -51,7 +50,75 @@
     </div>
   </div>
 
-  <!-- TOP GLOBAL HEADER -->
+  <!-- IN-APP CUSTOM VIDEO PLAYER MODAL -->
+  <div id="inAppVideoModal" class="hidden fixed inset-0 z-[105] bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-2 sm:p-4">
+    <div class="bg-slate-900 text-white rounded-2xl max-w-4xl w-full overflow-hidden shadow-2xl border border-slate-700 modal-animate">
+      <div class="glass-header px-4 py-3 flex items-center justify-between border-b border-slate-700">
+        <div class="flex items-center gap-2.5">
+          <img src="https://gsssdhankoli.github.io/Logo.png/logo.png" class="w-8 h-8 rounded-full bg-white p-0.5" />
+          <div>
+            <h4 id="inAppVideoTitle" class="font-extrabold text-xs sm:text-sm text-amber-300">Gurukul Smart Classroom Player</h4>
+            <p id="inAppVideoSub" class="text-[10px] text-blue-200">In-App Stream • Gurukul Sr. Sec. School, Dhankoli</p>
+          </div>
+        </div>
+        <button type="button" onclick="closeInAppVideoPlayer()" class="w-8 h-8 rounded-lg bg-rose-600 hover:bg-rose-700 flex items-center justify-center text-white"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div id="inAppVideoContainer" class="w-full aspect-video bg-black flex items-center justify-center"></div>
+    </div>
+  </div>
+
+  <!-- IN-APP CUSTOM GPS MAP MODAL -->
+  <div id="inAppMapModal" class="hidden fixed inset-0 z-[105] bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-2 sm:p-4">
+    <div class="bg-white rounded-2xl max-w-4xl w-full overflow-hidden shadow-2xl border border-slate-200 modal-animate">
+      <div class="glass-header text-white px-4 py-3 flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center text-white"><i class="fa-solid fa-location-dot"></i></div>
+          <div>
+            <h4 id="inAppMapTitle" class="font-extrabold text-xs sm:text-sm">Gurukul Live GPS Map</h4>
+            <p class="text-[10px] text-blue-200">In-App Radar • Gurukul Sr. Sec. School, Dhankoli</p>
+          </div>
+        </div>
+        <button type="button" onclick="document.getElementById('inAppMapModal').classList.add('hidden')" class="w-8 h-8 rounded-lg bg-white/15 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="p-3 bg-slate-100 border-b flex flex-wrap items-center justify-between gap-2 text-xs">
+        <span id="inAppMapInfoText" class="font-bold text-slate-800"></span>
+        <span class="bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full font-extrabold text-[10px]">● Live In-App Radar</span>
+      </div>
+      <div class="w-full h-[65vh] bg-slate-200">
+        <iframe id="inAppMapIframe" class="w-full h-full border-0" loading="lazy" allowfullscreen></iframe>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCHOLARSHIP PHASE-2 OFFLINE EXAM COUNTDOWN POPUP -->
+  <div id="schPhase2CountdownModal" class="hidden fixed inset-0 z-[95] bg-slate-950/85 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full overflow-hidden shadow-2xl border-4 border-cyan-500 modal-animate">
+      <div class="cyan-gradient text-white p-5 text-center relative">
+        <img src="https://gsssdhankoli.github.io/Logo.png/logo.png" class="w-14 h-14 mx-auto rounded-full bg-white p-1 border-2 border-amber-300 mb-2" />
+        <span class="bg-amber-400 text-slate-950 text-[10px] font-black px-3 py-0.5 rounded-full uppercase">Scholarship Stage-2 (Offline Exam)</span>
+        <h3 class="text-lg sm:text-xl font-extrabold mt-1">Phase-2 Offline Exam Countdown</h3>
+        <p class="text-xs text-cyan-100">Gurukul Senior Secondary School, Dhankoli</p>
+      </div>
+      <div class="p-5 space-y-4 text-center">
+        <div class="bg-slate-900 text-white p-3.5 rounded-2xl">
+          <div class="text-[10px] uppercase tracking-wider text-amber-300 font-bold mb-1">Remaining Time for Offline Examination</div>
+          <div id="schPhase2LiveTimer" class="text-xl sm:text-2xl font-black tracking-widest text-emerald-400">00d : 00h : 00m : 00s</div>
+        </div>
+        <div class="text-left bg-cyan-50 p-3.5 rounded-xl border border-cyan-200 space-y-1 text-xs">
+          <div><strong>Exam Date & Time:</strong> <span id="schPopupDateText" class="text-blue-900 font-bold"></span></div>
+          <div><strong>Exam Center:</strong> <span id="schPopupCenterText" class="font-bold"></span></div>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <button type="button" onclick="openScholarshipCenterInAppMap()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-2.5 px-4 rounded-xl text-xs shadow flex items-center justify-center gap-1.5">
+            <i class="fa-solid fa-map-location-dot"></i> Open Live Center Map (In-App)
+          </button>
+          <button type="button" onclick="document.getElementById('schPhase2CountdownModal').classList.add('hidden')" class="bg-slate-200 text-slate-800 font-extrabold py-2.5 px-4 rounded-xl text-xs">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOP HEADER -->
   <header class="glass-header text-white sticky top-0 z-40 shadow-lg">
     <div class="max-w-7xl mx-auto px-3 sm:px-6 py-2.5 flex items-center justify-between gap-2">
       <div class="flex items-center gap-2.5">
@@ -65,29 +132,24 @@
           <p class="text-[10px] sm:text-xs text-blue-200 font-medium">Bhadasar Road, Dhankoli | Dir: R.C. Royal | Chairman: H.S. Royal</p>
         </div>
       </div>
-
       <div class="flex items-center gap-1.5 sm:gap-2">
         <button type="button" id="studentNotifBellBtn" onclick="openStudentModuleModal('NOTIFICATIONS')" class="hidden relative bg-white/15 hover:bg-white/25 border border-white/30 text-white p-2 rounded-lg">
           <i class="fa-solid fa-bell text-amber-300 text-sm"></i>
           <span id="unreadNotifCountBadge" class="hidden absolute -top-1.5 -right-1.5 bg-red-600 text-white text-[10px] font-black w-4 h-4 rounded-full flex items-center justify-center">0</span>
         </button>
         <button type="button" onclick="toggleLanguage()" class="bg-white/15 hover:bg-white/25 border border-white/30 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1">
-          <i class="fa-solid fa-language text-amber-300"></i>
-          <span id="langBtnText">EN | हिं</span>
+          <i class="fa-solid fa-language text-amber-300"></i><span id="langBtnText">EN | हिं</span>
         </button>
         <button type="button" onclick="document.getElementById('helplineModal').classList.remove('hidden')" class="bg-emerald-500 hover:bg-emerald-600 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 shadow">
-          <i class="fa-solid fa-phone-volume"></i>
-          <span class="hidden sm:inline">Helpline</span>
+          <i class="fa-solid fa-phone-volume"></i><span class="hidden sm:inline">Helpline</span>
         </button>
         <button type="button" id="logoutBtn" onclick="logoutUser()" class="hidden bg-rose-600 hover:bg-rose-700 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold items-center gap-1 shadow">
-          <i class="fa-solid fa-power-off"></i>
-          <span class="hidden sm:inline">Logout</span>
+          <i class="fa-solid fa-power-off"></i><span class="hidden sm:inline">Logout</span>
         </button>
       </div>
     </div>
   </header>
 
-  <!-- MAIN CONTAINER -->
   <main class="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 py-4 sm:py-6">
 
     <!-- VIEW 1: PUBLIC LANDING & LOGIN -->
@@ -96,39 +158,37 @@
         <div class="grid md:grid-cols-3 gap-6 items-center">
           <div class="md:col-span-2 space-y-3">
             <div class="inline-flex items-center gap-2 bg-amber-400/20 border border-amber-400/40 text-amber-300 text-xs font-bold px-3 py-1 rounded-full">
-              <i class="fa-solid fa-star"></i>
-              <span>Official Digital Campus & Complete ERP App</span>
+              <i class="fa-solid fa-star"></i><span>Official Digital Campus & Complete ERP App</span>
             </div>
             <h2 class="text-xl sm:text-4xl font-extrabold leading-tight">Gurukul Senior Secondary School, Dhankoli</h2>
             <p class="text-xs sm:text-sm text-blue-100 leading-relaxed">
-              All-in-One Smart Portal for Online Admissions, Live CBT Exams (+4/-1), Scholarship Exam (Phase 1 & 2 + Live Map), Annual Results, Admit Cards, Fees, Live Classes & Bus Tracking.
+              Online Admissions, Scholarship Exam (Phase-1 Live CBT & Phase-2 Offline + 50%ile Auto Qualification), Results, Annual Report Cards, Fees, In-App Live Classes & Bus GPS Radar.
             </p>
             <div class="flex flex-wrap gap-2.5 pt-2">
-              <button type="button" onclick="openPublicModal('admissionFormModal', false)" class="bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold px-4 py-2.5 rounded-xl text-xs sm:text-sm shadow-lg flex items-center gap-2">
-                <i class="fa-solid fa-user-plus"></i> Apply for New Admission
+              <button type="button" onclick="openAdmissionModalWithMode('REGULAR', false)" class="bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold px-4 py-2.5 rounded-xl text-xs sm:text-sm shadow-lg flex items-center gap-2">
+                <i class="fa-solid fa-user-plus"></i> Apply for School Admission
               </button>
-              <button type="button" onclick="openPublicModal('scholarshipPublicModal', false)" class="bg-cyan-400 hover:bg-cyan-300 text-slate-950 font-extrabold px-4 py-2.5 rounded-xl text-xs sm:text-sm shadow-lg flex items-center gap-2">
-                <i class="fa-solid fa-graduation-cap"></i> Scholarship Exam Portal (Phase 1 & 2)
+              <button type="button" onclick="openAdmissionModalWithMode('SCHOLARSHIP', false)" class="bg-cyan-400 hover:bg-cyan-300 text-slate-950 font-extrabold px-4 py-2.5 rounded-xl text-xs sm:text-sm shadow-lg flex items-center gap-2">
+                <i class="fa-solid fa-graduation-cap"></i> Apply for Scholarship Exam
               </button>
-              <button type="button" onclick="openPublicModal('trackAdmissionModal', false)" class="bg-white/15 hover:bg-white/25 border border-white/30 text-white font-bold px-4 py-2.5 rounded-xl text-xs sm:text-sm flex items-center gap-2">
-                <i class="fa-solid fa-magnifying-glass"></i> Track / Edit Admission & Download Form
+              <button type="button" onclick="openPublicModal('trackAdmissionModal')" class="bg-white/15 hover:bg-white/25 border border-white/30 text-white font-bold px-4 py-2.5 rounded-xl text-xs sm:text-sm flex items-center gap-2">
+                <i class="fa-solid fa-magnifying-glass"></i> Track / Edit Form & Download PDF
               </button>
             </div>
           </div>
 
-          <!-- Unified Login Box -->
           <div class="bg-white text-slate-800 rounded-2xl p-5 shadow-2xl border border-slate-100">
             <div class="flex items-center gap-2.5 border-b border-slate-100 pb-3 mb-4">
               <div class="w-10 h-10 rounded-xl bg-blue-700 text-white flex items-center justify-center text-base shadow"><i class="fa-solid fa-user-graduate"></i></div>
               <div>
-                <h3 class="font-extrabold text-sm text-slate-900">Student / Parent Login</h3>
-                <p class="text-[11px] text-slate-500">Auto-saved login on your device</p>
+                <h3 class="font-extrabold text-sm text-slate-900">Student / Scholarship Login</h3>
+                <p class="text-[11px] text-slate-500">Login with GSSS-ID or Approved SCH-ID</p>
               </div>
             </div>
             <div class="space-y-3.5">
               <div>
-                <label class="block text-xs font-bold text-slate-600 mb-1">Student Master ID (e.g. GSSS-2026-1001)</label>
-                <input type="text" id="loginUserId" placeholder="Enter Student ID" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-semibold focus:outline-none focus:border-blue-600" />
+                <label class="block text-xs font-bold text-slate-600 mb-1">Student ID (GSSS-... or SCH-...)</label>
+                <input type="text" id="loginUserId" placeholder="Enter Master ID or SCH ID" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-semibold focus:outline-none focus:border-blue-600" />
               </div>
               <div>
                 <label class="block text-xs font-bold text-slate-600 mb-1">Password / Date of Birth</label>
@@ -154,14 +214,15 @@
           </div>
         </div>
         <div class="flex flex-wrap items-center gap-2">
-          <button type="button" onclick="openAdminCredentialsModal()" class="bg-slate-800 text-amber-300 text-xs font-bold px-3 py-2 rounded-xl flex items-center gap-1.5 shadow"><i class="fa-solid fa-key"></i> Change Admin Login</button>
+          <button type="button" onclick="openAdminCredentialsModal()" class="bg-slate-800 text-amber-300 text-xs font-bold px-3 py-2 rounded-xl flex items-center gap-1.5 shadow"><i class="fa-solid fa-key"></i> Admin Login</button>
           <button type="button" onclick="checkEmailServersQuota()" class="bg-indigo-50 text-indigo-700 border border-indigo-200 text-xs font-bold px-3 py-2 rounded-xl flex items-center gap-1.5"><i class="fa-solid fa-envelope-circle-check"></i> <span id="quotaStatusLabel">3-Email Engine</span></button>
           <button type="button" onclick="openMay1PromotionModal(true)" class="bg-red-50 text-red-700 border border-red-200 text-xs font-bold px-3 py-2 rounded-xl flex items-center gap-1.5"><i class="fa-solid fa-calendar-check"></i> 1st May Alert</button>
-          <button type="button" onclick="openPublicModal('admissionFormModal', true)" class="bg-emerald-600 text-white text-xs font-bold px-3.5 py-2 rounded-xl shadow flex items-center gap-1.5"><i class="fa-solid fa-user-plus"></i> + Direct Admission</button>
+          <button type="button" onclick="openAdmissionModalWithMode('REGULAR', true)" class="bg-emerald-600 text-white text-xs font-bold px-3 py-2 rounded-xl shadow flex items-center gap-1.5"><i class="fa-solid fa-user-plus"></i> + Direct Admission</button>
+          <button type="button" onclick="openAdmissionModalWithMode('SCHOLARSHIP', true)" class="bg-cyan-600 text-white text-xs font-bold px-3 py-2 rounded-xl shadow flex items-center gap-1.5"><i class="fa-solid fa-graduation-cap"></i> + Direct Scholarship</button>
         </div>
       </div>
 
-      <!-- ONE-PAGE ALL-IN-ONE ADMIN BUTTON GRID (12 MODULES) -->
+      <!-- 12 BUTTON COMMAND GRID -->
       <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
         <div class="flex items-center justify-between mb-3">
           <h3 class="text-xs font-extrabold uppercase tracking-wider text-slate-500"><i class="fa-solid fa-grip text-blue-700 mr-1"></i> All 12 Admin Command Portals (One-Page Grid)</h3>
@@ -170,11 +231,11 @@
         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5">
           <button type="button" onclick="switchAdminTab('tabAdmissions')" id="btn_tabAdmissions" class="admin-grid-card active-card p-3 rounded-xl border border-slate-200 bg-white flex items-center gap-2.5 text-left">
             <div class="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0"><i class="fa-solid fa-file-signature"></i></div>
-            <div><div class="font-extrabold text-xs">1. Admissions Desk</div><div class="text-[10px] text-slate-500">Pending & Invite (<span id="statPendingAdmissions">0</span>)</div></div>
+            <div><div class="font-extrabold text-xs">1. Admissions Desk</div><div class="text-[10px] text-slate-500">Pending (<span id="statPendingAdmissions">0</span>)</div></div>
           </button>
           <button type="button" onclick="switchAdminTab('tabStudentsList')" id="btn_tabStudentsList" class="admin-grid-card p-3 rounded-xl border border-slate-200 bg-white flex items-center gap-2.5 text-left">
             <div class="w-9 h-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center shrink-0"><i class="fa-solid fa-users"></i></div>
-            <div><div class="font-extrabold text-xs">2. Master Students</div><div class="text-[10px] text-slate-500">Active: <span id="statTotalStudents">0</span></div></div>
+            <div><div class="font-extrabold text-xs">2. Master Students</div><div class="text-[10px] text-slate-500">Enrolled: <span id="statTotalStudents">0</span></div></div>
           </button>
           <button type="button" onclick="switchAdminTab('tabResultsAdmin')" id="btn_tabResultsAdmin" class="admin-grid-card p-3 rounded-xl border border-slate-200 bg-white flex items-center gap-2.5 text-left">
             <div class="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0"><i class="fa-solid fa-award"></i></div>
@@ -190,15 +251,15 @@
           </button>
           <button type="button" onclick="switchAdminTab('tabScholarshipAdmin')" id="btn_tabScholarshipAdmin" class="admin-grid-card p-3 rounded-xl border border-slate-200 bg-white flex items-center gap-2.5 text-left">
             <div class="w-9 h-9 rounded-xl bg-cyan-600 text-white flex items-center justify-center shrink-0"><i class="fa-solid fa-graduation-cap"></i></div>
-            <div><div class="font-extrabold text-xs">6. Scholarship Exam</div><div class="text-[10px] text-slate-500">Phase 1, 2 & Map Link</div></div>
+            <div><div class="font-extrabold text-xs">6. Scholarship Exam</div><div class="text-[10px] text-slate-500">50%ile & Permanent</div></div>
           </button>
           <button type="button" onclick="switchAdminTab('tabFeesAdmin')" id="btn_tabFeesAdmin" class="admin-grid-card p-3 rounded-xl border border-slate-200 bg-white flex items-center gap-2.5 text-left">
             <div class="w-9 h-9 rounded-xl bg-green-600 text-white flex items-center justify-center shrink-0"><i class="fa-solid fa-indian-rupee-sign"></i></div>
-            <div><div class="font-extrabold text-xs">7. Fees Management</div><div class="text-[10px] text-slate-500">Class & Student Fee</div></div>
+            <div><div class="font-extrabold text-xs">7. Fees Management</div><div class="text-[10px] text-slate-500">Search Name/Father/ID</div></div>
           </button>
           <button type="button" onclick="switchAdminTab('tabLiveBusAdmin')" id="btn_tabLiveBusAdmin" class="admin-grid-card p-3 rounded-xl border border-slate-200 bg-white flex items-center gap-2.5 text-left">
             <div class="w-9 h-9 rounded-xl bg-yellow-600 text-white flex items-center justify-center shrink-0"><i class="fa-solid fa-bus"></i></div>
-            <div><div class="font-extrabold text-xs">8. Live Class & Bus</div><div class="text-[10px] text-slate-500">Video & GPS Tracking</div></div>
+            <div><div class="font-extrabold text-xs">8. Live Class & Bus</div><div class="text-[10px] text-slate-500">In-App Video & Map</div></div>
           </button>
           <button type="button" onclick="switchAdminTab('tabAttendanceAdmin')" id="btn_tabAttendanceAdmin" class="admin-grid-card p-3 rounded-xl border border-slate-200 bg-white flex items-center gap-2.5 text-left">
             <div class="w-9 h-9 rounded-xl bg-teal-600 text-white flex items-center justify-center shrink-0"><i class="fa-solid fa-calendar-check"></i></div>
@@ -219,12 +280,12 @@
         </div>
       </div>
 
-       <!-- TAB 1: ADMISSIONS DESK (AUTO-HIDES APPROVED & REJECTED) -->
+      <!-- TAB 1: ADMISSIONS DESK -->
       <div id="tabAdmissions" class="admin-tab-pane bg-white rounded-2xl p-4 shadow-sm border border-slate-200 space-y-4">
         <div class="flex flex-wrap items-center justify-between gap-2">
           <div>
-            <h3 class="text-sm sm:text-base font-extrabold text-slate-900">Active Admission Applications Desk</h3>
-            <p class="text-xs text-slate-500">Approved and Rejected applications automatically clear from this active desk.</p>
+            <h3 class="text-sm sm:text-base font-extrabold text-slate-900">Active Admission & Scholarship Applications Desk</h3>
+            <p class="text-xs text-slate-500">Approved and Rejected forms automatically clear from this active desk. Approving a Scholarship form generates a SCH-ID login.</p>
           </div>
           <select id="filterAdmissionStatus" onchange="renderAdminAdmissions()" class="bg-slate-100 border border-slate-300 rounded-xl px-3 py-1.5 text-xs font-bold">
             <option value="ACTIVE_ONLY">Active Pending / Review / Invited Only</option>
@@ -235,7 +296,7 @@
         <div class="overflow-x-auto border rounded-xl">
           <table class="w-full text-left border-collapse text-xs">
             <thead class="bg-slate-900 text-white">
-              <tr><th class="p-2.5">App ID</th><th class="p-2.5">Student</th><th class="p-2.5">Class</th><th class="p-2.5">Father & Contact</th><th class="p-2.5">Status</th><th class="p-2.5 text-right">Actions</th></tr>
+              <tr><th class="p-2.5">App ID & Type</th><th class="p-2.5">Student</th><th class="p-2.5">Class</th><th class="p-2.5">Father & Contact</th><th class="p-2.5">Status</th><th class="p-2.5 text-right">Actions (Auto Email)</th></tr>
             </thead>
             <tbody id="adminAdmissionTableBody" class="divide-y divide-slate-200"></tbody>
           </table>
@@ -246,19 +307,19 @@
       <div id="tabStudentsList" class="admin-tab-pane hidden bg-white rounded-2xl p-4 shadow-sm border border-slate-200 space-y-4">
         <div class="flex flex-wrap items-center justify-between gap-2">
           <h3 class="text-sm sm:text-base font-extrabold text-slate-900">Enrolled Students Directory (GSSS Master Database)</h3>
-          <input type="text" id="searchStudentInput" oninput="renderMasterStudents()" placeholder="Search Name, ID or Class..." class="bg-slate-50 border border-slate-300 rounded-xl px-3 py-1.5 text-xs font-semibold w-full sm:w-60" />
+          <input type="text" id="searchStudentInput" oninput="renderMasterStudents()" placeholder="Search Name, Father, ID or Class..." class="bg-slate-50 border border-slate-300 rounded-xl px-3 py-1.5 text-xs font-semibold w-full sm:w-64" />
         </div>
         <div class="overflow-x-auto border rounded-xl">
           <table class="w-full text-left border-collapse text-xs">
             <thead class="bg-slate-900 text-white">
-              <tr><th class="p-2.5">Master ID & Pass</th><th class="p-2.5">Student Name</th><th class="p-2.5">Class & Roll</th><th class="p-2.5">Father & Mobile</th><th class="p-2.5">Locks & Fee</th><th class="p-2.5 text-right">Official PDFs</th></tr>
+              <tr><th class="p-2.5">Master ID & Pass</th><th class="p-2.5">Student Name</th><th class="p-2.5">Class & Roll</th><th class="p-2.5">Father & Mobile</th><th class="p-2.5">Locks</th><th class="p-2.5 text-right">Official PDFs</th></tr>
             </thead>
             <tbody id="masterStudentTableBody" class="divide-y divide-slate-200"></tbody>
           </table>
         </div>
       </div>
 
-      <!-- TAB 3: EXAM & RESULTS (WITH CLASS-WISE MANUAL SUBJECTS & STRICT REPORT LOCK) -->
+      <!-- TAB 3: EXAM & RESULTS -->
       <div id="tabResultsAdmin" class="admin-tab-pane hidden bg-white rounded-2xl p-4 shadow-sm border border-slate-200 space-y-4">
         <div class="flex flex-wrap items-center justify-between gap-2 border-b pb-3">
           <div>
@@ -270,56 +331,32 @@
             <button type="button" id="resSubTab_TERM" onclick="switchResultMode('TERM')" class="px-3 py-1.5 rounded-lg text-xs font-extrabold text-slate-700">2. Half-Yearly & Yearly Exam</button>
           </div>
         </div>
-
-        <!-- Daily Test Box -->
         <div id="dailyTestAdminBox" class="space-y-4">
           <div class="grid sm:grid-cols-5 gap-2.5 bg-emerald-50/60 p-3.5 rounded-xl border border-emerald-200 items-end">
             <div><label class="block text-[11px] font-bold mb-1">Class</label><select id="dt_class" onchange="loadDailyTestMarksTable()" class="class-select w-full px-3 py-2 border rounded-xl text-xs font-bold bg-white"></select></div>
             <div><label class="block text-[11px] font-bold mb-1">Date</label><input type="date" id="dt_date" class="w-full px-3 py-2 border rounded-xl text-xs font-bold bg-white" /></div>
-            <div><label class="block text-[11px] font-bold mb-1">Subject & Topic *</label><input type="text" id="dt_subject" placeholder="e.g. Science Test 1" class="w-full px-3 py-2 border rounded-xl text-xs font-bold bg-white" /></div>
+            <div><label class="block text-[11px] font-bold mb-1">Subject & Topic *</label><input type="text" id="dt_subject" placeholder="e.g. Physics Test 1" class="w-full px-3 py-2 border rounded-xl text-xs font-bold bg-white" /></div>
             <div><label class="block text-[11px] font-bold mb-1">Max Marks *</label><input type="number" id="dt_maxMarks" value="20" class="w-full px-3 py-2 border rounded-xl text-xs font-bold bg-white" /></div>
             <button type="button" onclick="saveDailyTestResult()" class="bg-emerald-600 text-white font-extrabold py-2 px-4 rounded-xl text-xs shadow">Publish Daily Test</button>
           </div>
           <div class="overflow-x-auto border rounded-xl"><table class="w-full text-left border-collapse text-xs"><thead class="bg-slate-900 text-white"><tr><th class="p-2.5">ID</th><th class="p-2.5">Student Name</th><th class="p-2.5">Father</th><th class="p-2.5 w-44">Marks (or AB)</th></tr></thead><tbody id="dailyTestEntryBody" class="divide-y"></tbody></table></div>
           <div id="publishedDailyTestsList" class="space-y-1.5 max-h-40 overflow-y-auto"></div>
         </div>
-
-        <!-- Half-Yearly & Yearly Custom Subjects Box -->
         <div id="termExamAdminBox" class="hidden space-y-4">
           <div class="bg-purple-50 p-3.5 rounded-xl border border-purple-200 space-y-3">
             <div class="grid sm:grid-cols-4 gap-2.5 items-end">
-              <div>
-                <label class="block text-[11px] font-bold mb-1">Select Exam Term</label>
-                <select id="term_examType" onchange="loadTermExamMarksTable()" class="w-full px-3 py-2 border rounded-xl text-xs font-bold bg-white">
-                  <option value="HALF_YEARLY">Half-Yearly Exam (अर्धवार्षिक)</option>
-                  <option value="YEARLY">Yearly / Annual Exam (वार्षिक)</option>
-                </select>
-              </div>
-              <div>
-                <label class="block text-[11px] font-bold mb-1">Select Class</label>
-                <select id="term_class" onchange="loadClassCustomSubjectsUI()" class="class-select w-full px-3 py-2 border rounded-xl text-xs font-bold bg-white"></select>
-              </div>
-              <div>
-                <label class="block text-[11px] font-bold mb-1">Max Marks Per Subject</label>
-                <input type="number" id="term_maxPerSubject" value="100" class="w-full px-3 py-2 border rounded-xl text-xs font-bold bg-white" />
-              </div>
+              <div><label class="block text-[11px] font-bold mb-1">Select Exam Term</label><select id="term_examType" onchange="loadTermExamMarksTable()" class="w-full px-3 py-2 border rounded-xl text-xs font-bold bg-white"><option value="HALF_YEARLY">Half-Yearly Exam (अर्धवार्षिक)</option><option value="YEARLY">Yearly / Annual Exam (वार्षिक)</option></select></div>
+              <div><label class="block text-[11px] font-bold mb-1">Select Class</label><select id="term_class" onchange="loadClassCustomSubjectsUI()" class="class-select w-full px-3 py-2 border rounded-xl text-xs font-bold bg-white"></select></div>
+              <div><label class="block text-[11px] font-bold mb-1">Max Marks Per Subject</label><input type="number" id="term_maxPerSubject" value="100" class="w-full px-3 py-2 border rounded-xl text-xs font-bold bg-white" /></div>
               <button type="button" onclick="saveTermExamMarks()" class="bg-purple-700 text-white font-extrabold py-2 px-4 rounded-xl text-xs shadow">Save & Publish Marks</button>
             </div>
-
-            <!-- Manual Subject Entry for Whole Class -->
             <div class="flex flex-wrap items-center gap-2 pt-2 border-t border-purple-200">
               <span class="text-xs font-extrabold text-purple-900">Subjects for this Class (Comma Separated):</span>
-              <input type="text" id="term_customSubjectsInput" placeholder="e.g. Hindi, English, Maths, Science, Social Science, Sanskrit" class="flex-1 min-w-[240px] px-3 py-1.5 border rounded-xl text-xs font-bold bg-white" />
+              <input type="text" id="term_customSubjectsInput" placeholder="e.g. Hindi, English, Physics, Chemistry, Maths" class="flex-1 min-w-[240px] px-3 py-1.5 border rounded-xl text-xs font-bold bg-white" />
               <button type="button" onclick="saveClassCustomSubjects()" class="bg-slate-900 text-amber-300 px-3.5 py-1.5 rounded-xl text-xs font-extrabold">Set Subjects for Class</button>
             </div>
           </div>
-
-          <div class="overflow-x-auto border rounded-xl">
-            <table class="w-full text-left border-collapse text-xs">
-              <thead class="bg-slate-900 text-white" id="termExamEntryHead"></thead>
-              <tbody id="termExamEntryBody" class="divide-y"></tbody>
-            </table>
-          </div>
+          <div class="overflow-x-auto border rounded-xl"><table class="w-full text-left border-collapse text-xs"><thead class="bg-slate-900 text-white" id="termExamEntryHead"></thead><tbody id="termExamEntryBody" class="divide-y"></tbody></table></div>
         </div>
       </div>
 
@@ -347,14 +384,18 @@
         </div>
       </div>
 
-      <!-- TAB 5 (PHASE 4): LIVE CBT & MOCK TEST ENGINE -->
+      <!-- TAB 5: LIVE CBT & MOCK TEST ENGINE -->
       <div id="tabLiveCBTAdmin" class="admin-tab-pane hidden bg-white rounded-2xl p-4 shadow-sm border border-slate-200 space-y-4">
         <div class="grid md:grid-cols-2 gap-4">
           <div class="bg-pink-50/50 p-4 rounded-xl border border-pink-200 space-y-2.5">
-            <h4 class="font-extrabold text-xs uppercase text-pink-900"><i class="fa-solid fa-laptop-code mr-1"></i> Create Live CBT / Mock Exam (Bulk Questions)</h4>
-            <div class="grid grid-cols-2 gap-2">
-              <input type="text" id="cbt_title" placeholder="Exam Name (e.g. Science CBT Test 1)" class="px-3 py-2 border rounded-xl text-xs font-bold bg-white" />
-              <select id="cbt_class" class="class-select px-3 py-2 border rounded-xl text-xs font-bold bg-white"></select>
+            <h4 class="font-extrabold text-xs uppercase text-pink-900"><i class="fa-solid fa-laptop-code mr-1"></i> Create Live CBT / Scholarship Phase-1 CBT</h4>
+            <div class="grid grid-cols-3 gap-2">
+              <input type="text" id="cbt_title" placeholder="Exam Title *" class="px-3 py-2 border rounded-xl text-xs font-bold bg-white" />
+              <select id="cbt_class" class="class-select px-3 py-2 border rounded-xl text-xs font-bold bg-white"><option value="ALL">All Classes</option></select>
+              <select id="cbt_category" class="px-3 py-2 border rounded-xl text-xs font-bold bg-white">
+                <option value="REGULAR">Regular Class CBT</option>
+                <option value="SCHOLARSHIP_PHASE_1">Scholarship Phase-1 CBT (50%ile Auto-Qualify)</option>
+              </select>
             </div>
             <div class="grid grid-cols-3 gap-2">
               <div><label class="block text-[10px] font-bold">Start Date & Time *</label><input type="datetime-local" id="cbt_startTime" class="w-full px-2 py-1.5 border rounded-xl text-xs font-bold bg-white" /></div>
@@ -365,7 +406,7 @@
               <div>
                 <label class="block text-[10px] font-bold">Result Declaration Mode</label>
                 <select id="cbt_resultMode" onchange="document.getElementById('cbt_resDateWrap').classList.toggle('hidden', this.value==='IMMEDIATE')" class="w-full px-2.5 py-1.5 border rounded-xl text-xs font-bold bg-white">
-                  <option value="IMMEDIATE">Show Result Immediately (+ Auto Email)</option>
+                  <option value="IMMEDIATE">Immediate Result (+ Auto 50%ile & Email)</option>
                   <option value="SCHEDULED">Show on Specific Date/Time</option>
                 </select>
               </div>
@@ -375,102 +416,99 @@
               </div>
             </div>
             <div>
-              <label class="block text-[10px] font-bold text-slate-700 mb-1">Bulk Upload Questions (1 Question Per Line: Question | Opt A | Opt B | Opt C | Opt D | Correct Option A/B/C/D)</label>
+              <label class="block text-[10px] font-bold text-slate-700 mb-1">Bulk Upload Questions (Question | Opt A | Opt B | Opt C | Opt D | Correct Option A/B/C/D)</label>
               <textarea id="cbt_bulkQuestions" rows="5" class="w-full px-3 py-2 border rounded-xl text-xs font-semibold bg-white">Which planet is known as the Red Planet? | Earth | Mars | Jupiter | Venus | B
 What is the chemical formula of Water? | CO2 | H2O | O2 | NaCl | B
 Capital of Rajasthan is? | Jodhpur | Udaipur | Jaipur | Ajmer | C</textarea>
             </div>
             <button type="button" onclick="createLiveCBTExam()" class="w-full bg-pink-600 hover:bg-pink-700 text-white font-extrabold py-2.5 rounded-xl text-xs shadow">Publish Live CBT Exam</button>
           </div>
-
           <div class="space-y-2.5">
-            <h4 class="font-extrabold text-xs uppercase text-slate-700">Active & Scheduled CBT Exams (Stop / Delete / Email Results)</h4>
+            <h4 class="font-extrabold text-xs uppercase text-slate-700">Active & Scheduled CBT Exams (Stop / Delete / Declare 50%ile Results)</h4>
             <div id="adminCBTListContainer" class="space-y-2 max-h-96 overflow-y-auto"></div>
           </div>
         </div>
       </div>
 
-      <!-- TAB 6 (PHASE 4): SCHOLARSHIP EXAM (PHASE 1 ONLINE + PHASE 2 OFFLINE + MAP) -->
+      <!-- TAB 6: SCHOLARSHIP EXAM (PHASE 1 CBT + PHASE 2 COUNTDOWN & PERMANENT CONVERSION) -->
       <div id="tabScholarshipAdmin" class="admin-tab-pane hidden bg-white rounded-2xl p-4 shadow-sm border border-slate-200 space-y-4">
         <div class="grid md:grid-cols-2 gap-4">
           <div class="bg-cyan-50/60 p-4 rounded-xl border border-cyan-200 space-y-2.5">
-            <h4 class="font-extrabold text-xs uppercase text-cyan-900">Configure Scholarship Exam (Phase 1 Online & Phase 2 Offline)</h4>
+            <h4 class="font-extrabold text-xs uppercase text-cyan-900"><i class="fa-solid fa-graduation-cap mr-1"></i> Set Phase-2 (Offline Exam) Date, Location & Countdown</h4>
+            <p class="text-[11px] text-slate-600">Saving this immediately sends a Vibrating Notification and activates the Live Countdown Popup in all Scholarship students' apps!</p>
             <div class="grid grid-cols-2 gap-2">
-              <div><label class="block text-[10px] font-bold">Phase 1 Online Exam Start Time</label><input type="datetime-local" id="sch_phase1Time" class="w-full px-2.5 py-1.5 border rounded-xl text-xs font-bold bg-white" /></div>
-              <div><label class="block text-[10px] font-bold">Phase 1 Linked CBT Test ID</label><input type="text" id="sch_cbtId" placeholder="Paste CBT ID (or leave blank)" class="w-full px-2.5 py-1.5 border rounded-xl text-xs font-bold bg-white" /></div>
+              <div><label class="block text-[10px] font-bold">Phase-2 Exam Date & Time (Countdown) *</label><input type="datetime-local" id="sch_phase2DateTimeIso" class="w-full px-2.5 py-1.5 border rounded-xl text-xs font-bold bg-white" /></div>
+              <div><label class="block text-[10px] font-bold">Display Timing Text *</label><input type="text" id="sch_phase2Date" value="Sunday, 15 Nov 2026 at 10:00 AM" class="w-full px-2.5 py-1.5 border rounded-xl text-xs font-bold bg-white" /></div>
             </div>
-            <div class="grid grid-cols-2 gap-2">
-              <div><label class="block text-[10px] font-bold">Phase 2 (Offline Exam) Date & Time</label><input type="text" id="sch_phase2Date" value="Sunday, 15 Nov 2026 at 10:00 AM" class="w-full px-2.5 py-1.5 border rounded-xl text-xs font-bold bg-white" /></div>
-              <div><label class="block text-[10px] font-bold">Offline Exam Center Name</label><input type="text" id="sch_centerName" value="Gurukul Sr. Sec. School Campus, Bhadasar Road, Dhankoli" class="w-full px-2.5 py-1.5 border rounded-xl text-xs font-bold bg-white" /></div>
+            <div><label class="block text-[10px] font-bold">Offline Exam Center Name & Address *</label><input type="text" id="sch_centerName" value="Gurukul Sr. Sec. School Campus, Bhadasar Road, Dhankoli" class="w-full px-2.5 py-1.5 border rounded-xl text-xs font-bold bg-white" /></div>
+            <div><label class="block text-[10px] font-bold">Exam Center Map Location Query (Opens In-App Map) *</label><input type="text" id="sch_mapUrl" value="Gurukul Senior Secondary School Dhankoli Rajasthan" class="w-full px-3 py-1.5 border rounded-xl text-xs font-bold bg-white" /></div>
+            <div class="flex flex-wrap gap-2">
+              <button type="button" onclick="saveScholarshipSettings()" class="flex-1 bg-cyan-700 text-white font-extrabold py-2.5 px-3 rounded-xl text-xs shadow">Save Phase-2 Schedule & Vibrate Scholarship Phones</button>
+              <button type="button" onclick="switchAdminTab('tabLiveCBTAdmin'); document.getElementById('cbt_category').value='SCHOLARSHIP_PHASE_1';" class="bg-pink-600 text-white font-extrabold px-3 py-2.5 rounded-xl text-xs shadow">+ Upload Phase-1 CBT Paper</button>
             </div>
-            <div>
-              <label class="block text-[10px] font-bold">Live Google Maps Exam Center Location URL *</label>
-              <input type="url" id="sch_mapUrl" value="https://maps.google.com/?q=Gurukul+Senior+Secondary+School+Dhankoli" class="w-full px-3 py-1.5 border rounded-xl text-xs font-bold bg-white" />
-            </div>
-            <button type="button" onclick="saveScholarshipSettings()" class="w-full bg-cyan-700 text-white font-extrabold py-2.5 rounded-xl text-xs shadow">Save Scholarship Schedule & Live Map Location</button>
           </div>
 
           <div class="space-y-2">
-            <h4 class="font-extrabold text-xs uppercase text-slate-700">Registered Scholarship Candidates (SCH-Series)</h4>
+            <h4 class="font-extrabold text-xs uppercase text-slate-700">Approved Scholarship Candidates (SCH-Series) & Permanent Admission</h4>
             <div id="adminScholarshipAppsList" class="space-y-2 max-h-80 overflow-y-auto border rounded-xl p-2.5 bg-slate-50"></div>
           </div>
         </div>
       </div>
 
-      <!-- TAB 7 (PHASE 4): CUSTOM FEES MANAGEMENT (CLASS + PARTICULAR STUDENT OVERRIDE) -->
+      <!-- TAB 7: FEES MANAGEMENT (SEARCH BY NAME, FATHER NAME OR MASTER ID) -->
       <div id="tabFeesAdmin" class="admin-tab-pane hidden bg-white rounded-2xl p-4 shadow-sm border border-slate-200 space-y-4">
-        <div class="grid md:grid-cols-2 gap-4">
+        <div class="grid md:grid-cols-3 gap-4">
           <div class="bg-green-50/60 p-4 rounded-xl border border-green-200 space-y-2.5">
-            <h4 class="font-extrabold text-xs uppercase text-green-900">1. Set Class-Wise Annual Fee Structure</h4>
-            <div class="grid grid-cols-2 gap-2">
-              <select id="fee_class" class="class-select px-3 py-2 border rounded-xl text-xs font-bold bg-white"></select>
-              <input type="number" id="fee_classAmount" placeholder="Total Annual Fee (₹)" class="px-3 py-2 border rounded-xl text-xs font-bold bg-white" />
-            </div>
+            <h4 class="font-extrabold text-xs uppercase text-green-900">1. Set Class-Wise Annual Fee</h4>
+            <select id="fee_class" class="class-select w-full px-3 py-2 border rounded-xl text-xs font-bold bg-white"></select>
+            <input type="number" id="fee_classAmount" placeholder="Total Annual Fee (₹)" class="w-full px-3 py-2 border rounded-xl text-xs font-bold bg-white" />
             <button type="button" onclick="saveClassFeeStructure()" class="w-full bg-green-700 text-white font-extrabold py-2 rounded-xl text-xs shadow">Apply Fee to Selected Class</button>
           </div>
-
-          <div class="bg-slate-50 p-4 rounded-xl border space-y-2.5">
-            <h4 class="font-extrabold text-xs uppercase text-blue-900">2. Particular Student Fee Override / Record Payment</h4>
-            <div class="grid grid-cols-3 gap-2">
-              <input type="text" id="fee_stuId" placeholder="Master ID (GSSS-...)" class="px-2.5 py-2 border rounded-xl text-xs font-bold bg-white" />
-              <input type="number" id="fee_customTotal" placeholder="New Total Fee (Optional)" class="px-2.5 py-2 border rounded-xl text-xs font-bold bg-white" />
-              <input type="number" id="fee_paidNow" placeholder="Add Payment Received (₹)" class="px-2.5 py-2 border rounded-xl text-xs font-bold bg-white" />
+          <div class="md:col-span-2 bg-slate-50 p-4 rounded-xl border space-y-3">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <h4 class="font-extrabold text-xs uppercase text-blue-900">2. Search Student by Name, Father's Name or Master ID</h4>
+              <input type="text" id="feeSearchInput" oninput="renderFeeSearchStudents()" placeholder="Type Student Name, Father's Name or GSSS-ID..." class="flex-1 min-w-[220px] px-3 py-1.5 border-2 border-blue-500 rounded-xl text-xs font-bold bg-white" />
             </div>
-            <button type="button" onclick="updateStudentFeeRecord()" class="w-full bg-blue-700 text-white font-extrabold py-2 rounded-xl text-xs shadow">Update Student Fee & Generate Receipt</button>
+            <div id="feeSearchResultList" class="space-y-1.5 max-h-40 overflow-y-auto border rounded-xl p-2 bg-white"></div>
+            <div class="grid sm:grid-cols-4 gap-2 pt-2 border-t">
+              <input type="text" id="fee_stuId" placeholder="Selected ID (GSSS-...)" class="px-2.5 py-2 border rounded-xl text-xs font-extrabold bg-white text-blue-800" />
+              <input type="number" id="fee_customTotal" placeholder="Modify Total Fee (₹)" class="px-2.5 py-2 border rounded-xl text-xs font-bold bg-white" />
+              <input type="number" id="fee_paidNow" placeholder="Add Payment (₹)" class="px-2.5 py-2 border rounded-xl text-xs font-bold bg-white" />
+              <button type="button" onclick="updateStudentFeeRecord()" class="bg-blue-700 text-white font-extrabold py-2 rounded-xl text-xs shadow">Save & Receipt PDF</button>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- TAB 8 (PHASE 4): LIVE CLASSES & BUS TRACKING -->
+      <!-- TAB 8: IN-APP LIVE CLASSES & IN-APP BUS TRACKING -->
       <div id="tabLiveBusAdmin" class="admin-tab-pane hidden bg-white rounded-2xl p-4 shadow-sm border border-slate-200 space-y-4">
         <div class="grid md:grid-cols-2 gap-4">
           <div class="bg-red-50/50 p-4 rounded-xl border border-red-200 space-y-2.5">
-            <h4 class="font-extrabold text-xs uppercase text-red-900"><i class="fa-solid fa-video mr-1"></i> Publish Live / Recorded Class Link</h4>
+            <h4 class="font-extrabold text-xs uppercase text-red-900"><i class="fa-solid fa-video mr-1"></i> Publish In-App Live / Recorded Class</h4>
             <div class="grid grid-cols-2 gap-2">
-              <select id="lc_class" class="class-select px-3 py-2 border rounded-xl text-xs font-bold bg-white"></select>
+              <select id="lc_class" class="class-select px-3 py-2 border rounded-xl text-xs font-bold bg-white"><option value="ALL">All Classes</option></select>
               <input type="text" id="lc_subject" placeholder="Subject & Teacher Name" class="px-3 py-2 border rounded-xl text-xs font-bold bg-white" />
             </div>
-            <input type="text" id="lc_topic" placeholder="Topic Title & Class Timing" class="w-full px-3 py-2 border rounded-xl text-xs font-bold bg-white" />
-            <input type="url" id="lc_url" placeholder="YouTube Live / Google Meet / Video Link *" class="w-full px-3 py-2 border rounded-xl text-xs font-bold bg-white" />
-            <button type="button" onclick="publishLiveClass()" class="w-full bg-red-600 text-white font-extrabold py-2 rounded-xl text-xs shadow">Publish Live Class</button>
+            <input type="text" id="lc_topic" placeholder="Topic Title & Timing" class="w-full px-3 py-2 border rounded-xl text-xs font-bold bg-white" />
+            <input type="url" id="lc_url" placeholder="Paste YouTube Video/Live Link or Direct MP4 Link *" class="w-full px-3 py-2 border rounded-xl text-xs font-bold bg-white" />
+            <button type="button" onclick="publishLiveClass()" class="w-full bg-red-600 text-white font-extrabold py-2 rounded-xl text-xs shadow">Publish to In-App Video Player</button>
             <div id="adminLiveClassList" class="space-y-1.5 max-h-36 overflow-y-auto pt-2"></div>
           </div>
-
           <div class="bg-yellow-50/60 p-4 rounded-xl border border-yellow-300 space-y-2.5">
-            <h4 class="font-extrabold text-xs uppercase text-yellow-900"><i class="fa-solid fa-bus mr-1"></i> School Bus Live GPS Tracking Setup</h4>
+            <h4 class="font-extrabold text-xs uppercase text-yellow-900"><i class="fa-solid fa-bus mr-1"></i> In-App School Bus Live GPS Radar</h4>
             <div class="grid grid-cols-2 gap-2">
               <input type="text" id="bus_route" placeholder="Bus No & Route (e.g. Bus 1 - Dhankoli)" class="px-3 py-2 border rounded-xl text-xs font-bold bg-white" />
               <input type="text" id="bus_driver" placeholder="Driver Name & Mobile" class="px-3 py-2 border rounded-xl text-xs font-bold bg-white" />
             </div>
-            <input type="text" id="bus_status" placeholder="Current Status (e.g. Departed from School at 1:40 PM)" class="w-full px-3 py-2 border rounded-xl text-xs font-bold bg-white" />
-            <input type="url" id="bus_gpsUrl" value="https://maps.google.com/?q=Dhankoli,Rajasthan" placeholder="Live Google Maps GPS Location Link *" class="w-full px-3 py-2 border rounded-xl text-xs font-bold bg-white" />
-            <button type="button" onclick="saveBusTrackingRoute()" class="w-full bg-yellow-600 text-white font-extrabold py-2 rounded-xl text-xs shadow">Update Live Bus Location</button>
+            <input type="text" id="bus_status" placeholder="Current Status (e.g. Near Bhadasar Road at 1:45 PM)" class="w-full px-3 py-2 border rounded-xl text-xs font-bold bg-white" />
+            <input type="text" id="bus_gpsUrl" value="Bhadasar Road, Dhankoli, Rajasthan" placeholder="Enter Current Village / Landmark / Coordinates *" class="w-full px-3 py-2 border rounded-xl text-xs font-bold bg-white" />
+            <button type="button" onclick="saveBusTrackingRoute()" class="w-full bg-yellow-600 text-white font-extrabold py-2 rounded-xl text-xs shadow">Update In-App Live Bus Map</button>
             <div id="adminBusRoutesList" class="space-y-1.5 max-h-36 overflow-y-auto pt-2"></div>
           </div>
         </div>
       </div>
 
-      <!-- TAB 9: ATTENDANCE -->
+   <!-- TAB 9: ATTENDANCE -->
       <div id="tabAttendanceAdmin" class="admin-tab-pane hidden bg-white rounded-2xl p-4 shadow-sm border border-slate-200 space-y-4">
         <div class="flex flex-wrap items-end justify-between gap-3 bg-slate-50 p-3 rounded-xl border">
           <div class="flex flex-wrap gap-2.5">
@@ -514,7 +552,7 @@ Capital of Rajasthan is? | Jodhpur | Udaipur | Jaipur | Ajmer | C</textarea>
         <div id="adminContentListContainer" class="space-y-1.5 max-h-48 overflow-y-auto"></div>
       </div>
 
-     <!-- TAB 11: VIBRATING ALERTS -->
+      <!-- TAB 11: VIBRATING ALERTS -->
       <div id="tabNotificationsAdmin" class="admin-tab-pane hidden bg-white rounded-2xl p-4 shadow-sm border border-slate-200 space-y-4">
         <div class="grid md:grid-cols-2 gap-4">
           <div class="bg-slate-50 p-4 rounded-xl border space-y-2.5">
@@ -522,9 +560,9 @@ Capital of Rajasthan is? | Jodhpur | Udaipur | Jaipur | Ajmer | C</textarea>
             <select id="notif_targetType" onchange="document.getElementById('notif_targetValueWrapper').classList.toggle('hidden', this.value==='ALL')" class="w-full px-3 py-2 border rounded-xl text-xs font-bold bg-white">
               <option value="ALL">All Students (Entire School)</option>
               <option value="CLASS">Specific Class Only</option>
-              <option value="STUDENT">Particular Student (Personal Alert)</option>
+              <option value="STUDENT">Particular Student (GSSS-ID or SCH-ID)</option>
             </select>
-            <div id="notif_targetValueWrapper" class="hidden"><input type="text" id="notif_targetValue" placeholder="Enter Class (e.g. Class 10) or ID (GSSS-...)" class="w-full px-3 py-2 border rounded-xl text-xs font-bold bg-white" /></div>
+            <div id="notif_targetValueWrapper" class="hidden"><input type="text" id="notif_targetValue" placeholder="Enter Class (e.g. Class 11 Science) or ID" class="w-full px-3 py-2 border rounded-xl text-xs font-bold bg-white" /></div>
             <input type="text" id="notif_title" placeholder="Alert Title *" class="w-full px-3 py-2 border rounded-xl text-xs font-bold bg-white" />
             <textarea id="notif_message" rows="3" placeholder="Complete message..." class="w-full px-3 py-2 border rounded-xl text-xs font-semibold bg-white"></textarea>
             <button type="button" onclick="sendAdminCustomNotification()" class="w-full bg-rose-600 text-white font-extrabold py-2.5 rounded-xl text-xs shadow">Broadcast Vibrating Alert</button>
@@ -545,7 +583,7 @@ Capital of Rajasthan is? | Jodhpur | Udaipur | Jaipur | Ajmer | C</textarea>
       </div>
     </section>
 
-    <!-- VIEW 3: STUDENT / PARENT DASHBOARD -->
+    <!-- VIEW 3: STUDENT / SCHOLARSHIP DASHBOARD -->
     <section id="studentDashboardView" class="hidden space-y-5">
       <div class="bg-gradient-to-r from-blue-900 to-indigo-800 rounded-2xl p-4 sm:p-5 text-white shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4">
         <div class="flex items-center gap-3.5">
@@ -557,37 +595,36 @@ Capital of Rajasthan is? | Jodhpur | Udaipur | Jaipur | Ajmer | C</textarea>
           </div>
         </div>
         <div class="flex flex-wrap gap-2 w-full sm:w-auto">
-          <button type="button" onclick="generateStudentDigitalIdCardPDF()" class="flex-1 sm:flex-initial bg-amber-400 text-slate-950 text-xs font-extrabold px-3 py-2 rounded-xl shadow"><i class="fa-solid fa-id-card"></i> ID Card</button>
-          <button type="button" onclick="generateStudentAnnualReportPDF()" class="flex-1 sm:flex-initial bg-emerald-500 text-white text-xs font-extrabold px-3 py-2 rounded-xl shadow"><i class="fa-solid fa-award"></i> Report Card</button>
-          <button type="button" onclick="downloadCurrentStudentAdmissionPDF()" class="flex-1 sm:flex-initial bg-white/15 border border-white/30 text-white text-xs font-bold px-3 py-2 rounded-xl"><i class="fa-solid fa-file-pdf text-amber-300"></i> Form</button>
+          <button type="button" id="btnStuIdCard" onclick="generateStudentDigitalIdCardPDF()" class="flex-1 sm:flex-initial bg-amber-400 text-slate-950 text-xs font-extrabold px-3 py-2 rounded-xl shadow"><i class="fa-solid fa-id-card"></i> ID Card</button>
+          <button type="button" id="btnStuReportCard" onclick="generateStudentAnnualReportPDF()" class="flex-1 sm:flex-initial bg-emerald-500 text-white text-xs font-extrabold px-3 py-2 rounded-xl shadow"><i class="fa-solid fa-award"></i> Report Card</button>
+          <button type="button" onclick="downloadCurrentStudentAdmissionPDF()" class="flex-1 sm:flex-initial bg-white/15 border border-white/30 text-white text-xs font-bold px-3 py-2 rounded-xl"><i class="fa-solid fa-file-pdf text-amber-300"></i> Signed Form</button>
         </div>
       </div>
       <div>
-        <h3 class="text-xs font-extrabold text-slate-500 uppercase tracking-wider mb-3">All Connected Student Portals (Tap Any Module)</h3>
+        <h3 class="text-xs font-extrabold text-slate-500 uppercase tracking-wider mb-3" id="stuModulesHeadingText">All Connected Student Portals (Tap Any Module)</h3>
         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3" id="studentModulesGrid"></div>
       </div>
     </section>
 
   </main>
 
-  <!-- ========================================================= -->
-  <!-- MODALS (ADMISSION, SCHOLARSHIP, CBT EXAM, VIEWER)         -->
-  <!-- ========================================================= -->
-
-  <!-- ADMISSION FORM MODAL -->
+  <!-- UNIFIED ADMISSION & SCHOLARSHIP APPLICATION MODAL -->
   <div id="admissionFormModal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
     <div class="bg-white rounded-2xl max-w-4xl w-full overflow-hidden shadow-2xl border my-auto modal-animate">
       <div class="glass-header text-white px-4 py-3.5 flex items-center justify-between">
-        <h3 class="font-extrabold text-sm sm:text-base" id="admissionModalTitle">Official School Admission Form</h3>
+        <div>
+          <h3 class="font-extrabold text-sm sm:text-base" id="admissionModalTitle">Official School Admission Form</h3>
+          <p class="text-[10px] text-blue-200">Gurukul Senior Secondary School, Bhadasar Road, Dhankoli</p>
+        </div>
         <button type="button" onclick="closePublicModal('admissionFormModal')" class="w-8 h-8 rounded-lg bg-white/15 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
       </div>
       <div class="p-4 sm:p-6 max-h-[80vh] overflow-y-auto custom-scroll space-y-4">
         <input type="hidden" id="editApplicationId" value="" />
         <input type="hidden" id="isAdminDirectMode" value="false" />
+        <input type="hidden" id="adm_applicationType" value="REGULAR" />
         <div class="grid sm:grid-cols-3 gap-3 bg-slate-50 p-3.5 rounded-xl border">
           <div><label class="block text-[11px] font-bold mb-1">Student Full Name *</label><input type="text" id="adm_studentName" class="w-full px-3 py-2 border rounded-xl text-xs font-semibold bg-white" /></div>
-          <div><label class="block text-[11px] font-bold mb-1">Class Applying For *</label><select id="adm_class" onchange="toggleStreamField()" class="class-select w-full px-3 py-2 border rounded-xl text-xs font-semibold bg-white"></select></div>
-          <div id="adm_streamWrapper" class="hidden"><label class="block text-[11px] font-bold mb-1">Stream</label><select id="adm_stream" class="w-full px-3 py-2 border rounded-xl text-xs font-semibold bg-white"><option value="General">General</option><option value="Science (PCM)">Science (PCM)</option><option value="Science (PCB)">Science (PCB)</option><option value="Agriculture">Agriculture</option><option value="Arts">Arts</option><option value="Commerce">Commerce</option></select></div>
+          <div><label class="block text-[11px] font-bold mb-1">Select Class *</label><select id="adm_class" class="class-select w-full px-3 py-2 border rounded-xl text-xs font-semibold bg-white"></select></div>
           <div><label class="block text-[11px] font-bold mb-1">Date of Birth *</label><input type="date" id="adm_dob" class="w-full px-3 py-2 border rounded-xl text-xs font-semibold bg-white" /></div>
           <div><label class="block text-[11px] font-bold mb-1">Gender *</label><select id="adm_gender" class="w-full px-3 py-2 border rounded-xl text-xs font-semibold bg-white"><option value="Male">Male</option><option value="Female">Female</option></select></div>
           <div><label class="block text-[11px] font-bold mb-1">Category *</label><select id="adm_category" class="w-full px-3 py-2 border rounded-xl text-xs font-semibold bg-white"><option value="General">General</option><option value="OBC">OBC</option><option value="SC">SC</option><option value="ST">ST</option><option value="EWS">EWS</option></select></div>
@@ -600,7 +637,7 @@ Capital of Rajasthan is? | Jodhpur | Udaipur | Jaipur | Ajmer | C</textarea>
           <div><label class="block text-[11px] font-bold mb-1">Mobile Number *</label><input type="tel" id="adm_mobile" maxlength="10" class="w-full px-3 py-2 border rounded-xl text-xs font-semibold bg-white" /></div>
           <div><label class="block text-[11px] font-bold mb-1">Previous School</label><input type="text" id="adm_prevSchool" class="w-full px-3 py-2 border rounded-xl text-xs font-semibold bg-white" /></div>
           <div><label class="block text-[11px] font-bold mb-1">School Bus Required?</label><select id="adm_transport" class="w-full px-3 py-2 border rounded-xl text-xs font-semibold bg-white"><option value="No">No</option><option value="Yes">Yes</option></select></div>
-          <div class="sm:col-span-3"><label class="block text-[11px] font-bold mb-1">Permanent Address *</label><input type="text" id="adm_address" class="w-full px-3 py-2 border rounded-xl text-xs font-semibold bg-white" /></div>
+          <div class="sm:col-span-1"><label class="block text-[11px] font-bold mb-1">Permanent Address *</label><input type="text" id="adm_address" class="w-full px-3 py-2 border rounded-xl text-xs font-semibold bg-white" /></div>
         </div>
         <div class="grid sm:grid-cols-2 gap-3 bg-slate-50 p-3.5 rounded-xl border">
           <div class="flex items-center gap-3 bg-white p-2 rounded-xl border"><img id="previewStudentPhoto" src="https://via.placeholder.com/80x100?text=Photo" class="w-12 h-14 object-cover rounded border" /><div class="flex-1"><label class="block text-[11px] font-bold mb-1">Passport Photo *</label><input type="file" accept="image/*" onchange="handleImageUpload(event, 'previewStudentPhoto', 'adm_photoBase64', 240)" class="text-xs w-full" /><input type="hidden" id="adm_photoBase64" /></div></div>
@@ -619,35 +656,7 @@ Capital of Rajasthan is? | Jodhpur | Udaipur | Jaipur | Ajmer | C</textarea>
         </div>
         <div class="flex justify-end gap-2 pt-2 border-t">
           <button type="button" onclick="closePublicModal('admissionFormModal')" class="px-4 py-2 rounded-xl border font-bold text-xs">Cancel</button>
-          <button type="button" id="submitAdmissionBtn" onclick="submitAdmissionForm()" class="bg-emerald-600 text-white font-extrabold px-5 py-2.5 rounded-xl text-xs shadow">Submit Admission Form</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- SCHOLARSHIP PUBLIC REGISTRATION & TRACKING MODAL -->
-  <div id="scholarshipPublicModal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-3 overflow-y-auto">
-    <div class="bg-white rounded-2xl max-w-2xl w-full overflow-hidden shadow-2xl my-auto modal-animate">
-      <div class="glass-header text-white px-5 py-3.5 flex items-center justify-between">
-        <h3 class="font-extrabold text-sm sm:text-base"><i class="fa-solid fa-graduation-cap text-amber-300 mr-1.5"></i>Gurukul Scholarship Exam Portal (Phase 1 & Phase 2)</h3>
-        <button type="button" onclick="closePublicModal('scholarshipPublicModal')" class="w-8 h-8 rounded-lg bg-white/15 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
-      </div>
-      <div class="p-4 sm:p-6 max-h-[80vh] overflow-y-auto space-y-4">
-        <div class="grid sm:grid-cols-2 gap-3 bg-cyan-50 p-3.5 rounded-xl border border-cyan-200">
-          <input type="text" id="sch_stuName" placeholder="Candidate Full Name *" class="px-3 py-2 border rounded-xl text-xs font-bold bg-white" />
-          <select id="sch_stuClass" class="class-select px-3 py-2 border rounded-xl text-xs font-bold bg-white"></select>
-          <input type="text" id="sch_father" placeholder="Father's Name *" class="px-3 py-2 border rounded-xl text-xs font-bold bg-white" />
-          <input type="tel" id="sch_mobile" maxlength="10" placeholder="Mobile Number *" class="px-3 py-2 border rounded-xl text-xs font-bold bg-white" />
-          <input type="email" id="sch_email" placeholder="Email ID *" class="sm:col-span-2 px-3 py-2 border rounded-xl text-xs font-bold bg-white" />
-          <button type="button" onclick="registerScholarshipCandidate()" class="sm:col-span-2 bg-cyan-700 text-white font-extrabold py-2.5 rounded-xl text-xs shadow">Register for Scholarship Exam (Get SCH-ID)</button>
-        </div>
-        <div class="border-t pt-3 space-y-2">
-          <h4 class="font-extrabold text-xs uppercase text-slate-600">Already Registered? Check Phase 1 & Phase 2 Status & Live Center Map</h4>
-          <div class="flex gap-2">
-            <input type="text" id="sch_trackInput" placeholder="Enter SCH-ID or Mobile Number" class="flex-1 px-3 py-2 border rounded-xl text-xs font-bold" />
-            <button type="button" onclick="trackScholarshipStatus()" class="bg-blue-700 text-white font-bold px-4 py-2 rounded-xl text-xs">Check Status</button>
-          </div>
-          <div id="sch_trackResultBox" class="space-y-2"></div>
+          <button type="button" id="submitAdmissionBtn" onclick="submitAdmissionForm()" class="bg-emerald-600 text-white font-extrabold px-5 py-2.5 rounded-xl text-xs shadow">Submit Official Form</button>
         </div>
       </div>
     </div>
@@ -668,12 +677,12 @@ Capital of Rajasthan is? | Jodhpur | Udaipur | Jaipur | Ajmer | C</textarea>
   <div id="trackAdmissionModal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl max-w-lg w-full overflow-hidden shadow-2xl modal-animate">
       <div class="glass-header text-white px-5 py-3.5 flex items-center justify-between">
-        <h3 class="font-extrabold text-sm">Track Application / Download Signed PDF</h3>
+        <h3 class="font-extrabold text-sm">Track Admission / Scholarship Form & Signed PDF</h3>
         <button type="button" onclick="closePublicModal('trackAdmissionModal')" class="w-8 h-8 rounded-lg bg-white/15 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
       </div>
       <div class="p-5 space-y-4">
         <div class="flex gap-2">
-          <input type="text" id="trackSearchInput" placeholder="Enter ADM ID, Master ID, Email or Mobile" class="flex-1 px-3 py-2 border rounded-xl text-xs font-semibold" />
+          <input type="text" id="trackSearchInput" placeholder="Enter ADM-ID, SCH-ID, GSSS-ID, Email or Mobile" class="flex-1 px-3 py-2 border rounded-xl text-xs font-semibold" />
           <button type="button" onclick="searchApplicationStatus()" class="bg-blue-700 text-white font-bold px-4 py-2 rounded-xl text-xs">Search</button>
         </div>
         <div id="trackResultContainer" class="space-y-2.5 max-h-64 overflow-y-auto"></div>
@@ -739,9 +748,7 @@ Capital of Rajasthan is? | Jodhpur | Udaipur | Jaipur | Ajmer | C</textarea>
     <div id="pdfPrintArea" style="width:794px;min-height:1122px;background:#fff;color:#0f172a;padding:28px;"></div>
   </div>
 
-  <!-- ========================================================= -->
-  <!-- MASTER JAVASCRIPT ENGINE (ALL PHASES 1 TO 4 COMPLETE)     -->
-  <!-- ========================================================= -->
+  <!-- MASTER JAVASCRIPT ENGINE -->
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyCv-8rsbHovO8cL9ee63eeRGdzstybYIzk",
@@ -762,9 +769,15 @@ Capital of Rajasthan is? | Jodhpur | Udaipur | Jaipur | Ajmer | C</textarea>
       "https://script.google.com/macros/s/AKfycbxgLDN7y1yg4lgg8dyB1yduFfQmwo9awRn8IynnXZcMNwFFfdQ4TUeb-cby6r5eWUR9QA/exec"
     ];
     const SCHOOL_INFO = { logo: "https://gsssdhankoli.github.io/Logo.png/logo.png" };
-    const SCHOOL_CLASSES = ["Nursery","LKG","UKG","Class 1","Class 2","Class 3","Class 4","Class 5","Class 6","Class 7","Class 8","Class 9","Class 10","Class 11","Class 12"];
 
-    // Populate all class dropdowns automatically
+    const SCHOOL_CLASSES = [
+      "Nursery", "LKG", "UKG",
+      "Class 1", "Class 2", "Class 3", "Class 4", "Class 5",
+      "Class 6", "Class 7", "Class 8", "Class 9", "Class 10",
+      "Class 11 Science", "Class 11 Arts", "Class 11 Commerce", "Class 11 Agriculture",
+      "Class 12 Science", "Class 12 Arts", "Class 12 Commerce", "Class 12 Agriculture"
+    ];
+
     document.querySelectorAll(".class-select").forEach(sel => {
       const keepAll = sel.innerHTML.includes('value="ALL"');
       sel.innerHTML = (keepAll ? '<option value="ALL">All Classes</option>' : '') +
@@ -783,7 +796,6 @@ Capital of Rajasthan is? | Jodhpur | Udaipur | Jaipur | Ajmer | C</textarea>
     document.getElementById("attAdminDate").value = todayIso;
     document.getElementById("dt_date").value = todayIso;
 
-     // Custom Dialogs
     function showCustomAlert(message, title = "Gurukul Official Alert", type = "INFO") {
       return new Promise(resolve => {
         const overlay = document.getElementById("customDialogOverlay");
@@ -841,9 +853,7 @@ Capital of Rajasthan is? | Jodhpur | Udaipur | Jaipur | Ajmer | C</textarea>
       try {
         const AudioCtx = window.AudioContext || window.webkitAudioContext;
         if (AudioCtx) {
-          const ctx = new AudioCtx();
-          const osc = ctx.createOscillator();
-          const gain = ctx.createGain();
+          const ctx = new AudioCtx(), osc = ctx.createOscillator(), gain = ctx.createGain();
           osc.frequency.setValueAtTime(880, ctx.currentTime);
           osc.frequency.setValueAtTime(1174, ctx.currentTime + 0.15);
           gain.gain.setValueAtTime(0.2, ctx.currentTime);
@@ -854,6 +864,40 @@ Capital of Rajasthan is? | Jodhpur | Udaipur | Jaipur | Ajmer | C</textarea>
       } catch (e) {}
     }
 
+    // IN-APP VIDEO & IN-APP MAP HANDLERS
+    function openInAppVideoPlayer(url, title = "Live / Recorded Class", sub = "Gurukul Digital Classroom") {
+      if (!url) return;
+      document.getElementById("inAppVideoTitle").innerText = title;
+      document.getElementById("inAppVideoSub").innerText = sub;
+      const box = document.getElementById("inAppVideoContainer");
+      const ytMatch = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|live\/|shorts\/))([a-zA-Z0-9_-]{11})/);
+      if (ytMatch && ytMatch[1]) {
+        box.innerHTML = `<iframe class="w-full h-full border-0" src="https://www.youtube.com/embed/${ytMatch[1]}?autoplay=1&rel=0&modestbranding=1" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>`;
+      } else if (url.endsWith(".mp4") || url.endsWith(".webm")) {
+        box.innerHTML = `<video class="w-full h-full" controls autoplay controlsList="nodownload"><source src="${url}" type="video/mp4"></video>`;
+      } else {
+        box.innerHTML = `<iframe class="w-full h-full border-0" src="${url}" allowfullscreen></iframe>`;
+      }
+      document.getElementById("inAppVideoModal").classList.remove("hidden");
+    }
+    function closeInAppVideoPlayer() {
+      document.getElementById("inAppVideoContainer").innerHTML = "";
+      document.getElementById("inAppVideoModal").classList.add("hidden");
+    }
+    function openInAppMapModal(locationQueryOrUrl, title = "Live Location Radar", infoText = "Gurukul Sr. Sec. School, Dhankoli") {
+      document.getElementById("inAppMapTitle").innerText = title;
+      document.getElementById("inAppMapInfoText").innerText = infoText;
+      let cleanQuery = locationQueryOrUrl || "Gurukul Senior Secondary School Dhankoli Rajasthan";
+      if (cleanQuery.includes("?q=")) cleanQuery = decodeURIComponent(cleanQuery.split("?q=")[1]);
+      document.getElementById("inAppMapIframe").src = `https://maps.google.com/maps?q=${encodeURIComponent(cleanQuery)}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
+      document.getElementById("inAppMapModal").classList.remove("hidden");
+    }
+    function openScholarshipCenterInAppMap() {
+      const cfg = allScholarshipData.config || {};
+      document.getElementById("schPhase2CountdownModal").classList.add("hidden");
+      openInAppMapModal(cfg.mapUrl || "Gurukul Senior Secondary School Dhankoli", "Scholarship Phase-2 Exam Center Location", cfg.centerName || "Gurukul Campus, Bhadasar Road, Dhankoli");
+    }
+
     // Global State
     let secretAdminCreds = { id: "ADMIN", pass: "GSSS@123" };
     let globalPortalLocks = {}, allAdmissions = {}, allStudents = {}, allAttendance = {};
@@ -861,23 +905,23 @@ Capital of Rajasthan is? | Jodhpur | Udaipur | Jaipur | Ajmer | C</textarea>
     let allClassSubjects = {}, allAdmitConfigs = {}, allCBTExams = {}, allScholarshipData = {};
     let allClassFees = {}, allLiveClasses = {}, allBusRoutes = {}, adminTasksChecklist = {};
     let loggedInStudent = null, activeStudentDeviceListener = null, activeAdminAlertListener = null;
-    let adminSessionOpenedAt = Date.now(), knownNotifCount = null, currentLang = "EN", cbtCountdownInterval = null;
+    let adminSessionOpenedAt = Date.now(), knownNotifCount = null, currentLang = "EN", cbtCountdownInterval = null, schPhase2TimerInterval = null;
 
     const ALL_MODULES = [
-      { id: "LIVE_CBT", nameEN: "Live CBT & Mock Tests", nameHI: "लाइव CBT एवं मॉक टेस्ट", icon: "fa-laptop-code", color: "bg-pink-600" },
-      { id: "DAILY_TEST", nameEN: "Daily Test Results", nameHI: "डेली टेस्ट रिजल्ट", icon: "fa-chart-line", color: "bg-indigo-600" },
-      { id: "HALF_YEARLY", nameEN: "Half-Yearly Exam Result", nameHI: "अर्धवार्षिक परीक्षा परिणाम", icon: "fa-file-invoice", color: "bg-purple-600" },
-      { id: "YEARLY_RESULT", nameEN: "Yearly & Annual Report", nameHI: "वार्षिक परीक्षा एवं रिपोर्ट कार्ड", icon: "fa-award", color: "bg-emerald-600" },
-      { id: "ADMIT_CARD", nameEN: "Exam Admit Cards", nameHI: "परीक्षा प्रवेश पत्र", icon: "fa-id-card", color: "bg-blue-600" },
-      { id: "SCHOLARSHIP", nameEN: "Scholarship Exam (Phase 1 & 2)", nameHI: "स्कॉलरशिप परीक्षा (फेज 1 व 2)", icon: "fa-graduation-cap", color: "bg-cyan-600" },
-      { id: "FEES", nameEN: "Fee Status & Receipts", nameHI: "फीस स्टेटस एवं रसीद", icon: "fa-indian-rupee-sign", color: "bg-green-600" },
-      { id: "LIVE_CLASS", nameEN: "Live & Recorded Classes", nameHI: "लाइव एवं रिकॉर्डेड क्लास", icon: "fa-video", color: "bg-red-600" },
-      { id: "BUS_TRACKING", nameEN: "School Bus Live Tracking", nameHI: "स्कूल बस लाइव लोकेशन", icon: "fa-bus", color: "bg-yellow-600" },
-      { id: "ATTENDANCE", nameEN: "Smart Attendance Calendar", nameHI: "मासिक उपस्थिति कैलेंडर", icon: "fa-calendar-check", color: "bg-teal-600" },
-      { id: "HOMEWORK_PYQ", nameEN: "Homework & Notes", nameHI: "होमवर्क एवं स्टडी नोट्स", icon: "fa-book-open", color: "bg-orange-600" },
-      { id: "PYQ_PAPERS", nameEN: "PYQ Papers & Solutions", nameHI: "पुराने पेपर एवं सॉल्यूशन", icon: "fa-file-pdf", color: "bg-amber-600" },
-      { id: "NOTIFICATIONS", nameEN: "Notice Board & Alerts", nameHI: "नोटिस बोर्ड एवं पर्सनल अलर्ट", icon: "fa-bell", color: "bg-rose-600" },
-      { id: "ADMISSION", nameEN: "Online Admission Portal", nameHI: "ऑनलाइन एडमिशन पोर्टल", icon: "fa-user-plus", color: "bg-slate-700" }
+      { id: "SCHOLARSHIP", nameEN: "Scholarship Exam (Phase 1 & 2)", nameHI: "स्कॉलरशिप परीक्षा (फेज 1 व 2)", icon: "fa-graduation-cap", color: "bg-cyan-600", allowForSch: true },
+      { id: "LIVE_CBT", nameEN: "Live CBT & Mock Tests", nameHI: "लाइव CBT एवं मॉक टेस्ट", icon: "fa-laptop-code", color: "bg-pink-600", allowForSch: true },
+      { id: "NOTIFICATIONS", nameEN: "Notice Board & Alerts", nameHI: "नोटिस बोर्ड एवं पर्सनल अलर्ट", icon: "fa-bell", color: "bg-rose-600", allowForSch: true },
+      { id: "DAILY_TEST", nameEN: "Daily Test Results", nameHI: "डेली टेस्ट रिजल्ट", icon: "fa-chart-line", color: "bg-indigo-600", allowForSch: false },
+      { id: "HALF_YEARLY", nameEN: "Half-Yearly Exam Result", nameHI: "अर्धवार्षिक परीक्षा परिणाम", icon: "fa-file-invoice", color: "bg-purple-600", allowForSch: false },
+      { id: "YEARLY_RESULT", nameEN: "Yearly & Annual Report", nameHI: "वार्षिक परीक्षा एवं रिपोर्ट कार्ड", icon: "fa-award", color: "bg-emerald-600", allowForSch: false },
+      { id: "ADMIT_CARD", nameEN: "Exam Admit Cards", nameHI: "परीक्षा प्रवेश पत्र", icon: "fa-id-card", color: "bg-blue-600", allowForSch: false },
+      { id: "FEES", nameEN: "Fee Status & Receipts", nameHI: "फीस स्टेटस एवं रसीद", icon: "fa-indian-rupee-sign", color: "bg-green-600", allowForSch: false },
+      { id: "LIVE_CLASS", nameEN: "In-App Live Classes", nameHI: "इन-ऐप लाइव एवं रिकॉर्डेड क्लास", icon: "fa-video", color: "bg-red-600", allowForSch: false },
+      { id: "BUS_TRACKING", nameEN: "In-App Bus Live Radar", nameHI: "स्कूल बस लाइव इन-ऐप मैप", icon: "fa-bus", color: "bg-yellow-600", allowForSch: false },
+      { id: "ATTENDANCE", nameEN: "Smart Attendance Calendar", nameHI: "मासिक उपस्थिति कैलेंडर", icon: "fa-calendar-check", color: "bg-teal-600", allowForSch: false },
+      { id: "HOMEWORK_PYQ", nameEN: "Homework & Notes", nameHI: "होमवर्क एवं स्टडी नोट्स", icon: "fa-book-open", color: "bg-orange-600", allowForSch: false },
+      { id: "PYQ_PAPERS", nameEN: "PYQ Papers & Solutions", nameHI: "पुराने पेपर एवं सॉल्यूशन", icon: "fa-file-pdf", color: "bg-amber-600", allowForSch: false },
+      { id: "ADMISSION", nameEN: "Online Admission Portal", nameHI: "ऑनलाइन एडमिशन पोर्टल", icon: "fa-user-plus", color: "bg-slate-700", allowForSch: true }
     ];
 
     function getMyAdminDeviceId() {
@@ -887,39 +931,38 @@ Capital of Rajasthan is? | Jodhpur | Udaipur | Jaipur | Ajmer | C</textarea>
     }
 
     function closePublicModal(id) { document.getElementById(id).classList.add("hidden"); }
+    function openPublicModal(id) { document.getElementById(id).classList.remove("hidden"); }
     function closeStudentModuleViewer() {
       if (cbtCountdownInterval) clearInterval(cbtCountdownInterval);
       document.getElementById("studentModuleViewerModal").classList.add("hidden");
     }
 
-    async function openPublicModal(modalId, isDirectAdmin = false) {
-      if (modalId === "admissionFormModal" && !isDirectAdmin) {
-        const lockState = globalPortalLocks["ADMISSION"] || "OPEN";
-        if (lockState === "FULL_LOCK") return showCustomAlert("Online Admission Portal is currently locked by Admin.", "Locked", "DANGER");
-        if (lockState === "HALF_LOCK") return showCustomAlert("Admission Portal is in View-Only (Half-Lock) mode.", "View Only", "INFO");
+    async function openAdmissionModalWithMode(mode = "REGULAR", isDirectAdmin = false) {
+      const modKey = mode === "SCHOLARSHIP" ? "SCHOLARSHIP" : "ADMISSION";
+      if (!isDirectAdmin) {
+        const lockState = globalPortalLocks[modKey] || "OPEN";
+        if (lockState === "FULL_LOCK") return showCustomAlert(`The ${mode} Portal is currently locked by Admin.`, "Portal Locked", "DANGER");
+        if (lockState === "HALF_LOCK") return showCustomAlert(`The ${mode} Portal is in View-Only (Half-Lock) mode.`, "View Only", "INFO");
       }
-      if (modalId === "scholarshipPublicModal") {
-        const lockState = globalPortalLocks["SCHOLARSHIP"] || "OPEN";
-        if (lockState === "FULL_LOCK") return showCustomAlert("Scholarship Portal is currently locked by Admin.", "Locked", "DANGER");
-      }
-      document.getElementById(modalId).classList.remove("hidden");
-      if (modalId === "admissionFormModal") {
-        document.getElementById("editApplicationId").value = "";
-        document.getElementById("isAdminDirectMode").value = isDirectAdmin ? "true" : "false";
-        document.getElementById("admissionModalTitle").innerText = isDirectAdmin ? "Direct Admin Admission (Instant Approval)" : "Official School Admission Form";
-        isEmailVerified = isDirectAdmin;
-        document.getElementById("sendOtpBtn").classList.toggle("hidden", isDirectAdmin);
-        document.getElementById("otpVerifyBox").classList.add("hidden");
-      }
+      document.getElementById("editApplicationId").value = "";
+      document.getElementById("isAdminDirectMode").value = isDirectAdmin ? "true" : "false";
+      document.getElementById("adm_applicationType").value = mode;
+      document.getElementById("admissionModalTitle").innerText = mode === "SCHOLARSHIP"
+        ? "Official Scholarship Examination & Admission Form (With Email OTP)"
+        : (isDirectAdmin ? "Direct Admin Student Admission (Instant Approval)" : "Official School Admission Form");
+      isEmailVerified = isDirectAdmin;
+      document.getElementById("sendOtpBtn").classList.toggle("hidden", isDirectAdmin);
+      document.getElementById("otpVerifyBox").classList.add("hidden");
+      document.getElementById("admissionFormModal").classList.remove("hidden");
     }
 
-    // Auth Engine
+   // AUTHENTICATION: ADMIN, REGULAR STUDENT (GSSS-) & SCHOLARSHIP CANDIDATE (SCH-)
     async function executePortalLogin() {
-      const userId = document.getElementById("loginUserId").value.trim();
+      const userId = document.getElementById("loginUserId").value.trim().toUpperCase();
       const pass = document.getElementById("loginPassword").value.trim();
       if (!userId || !pass) return showCustomAlert("Please enter both ID and Password.", "Missing Details", "DANGER");
 
-      if (userId.toUpperCase() === secretAdminCreds.id.toUpperCase() && pass === secretAdminCreds.pass) {
+      if (userId === secretAdminCreds.id.toUpperCase() && pass === secretAdminCreds.pass) {
         localStorage.setItem("GSSS_ADMIN_LOGGED_IN", "true");
         await db.ref("adminConfig/lastLoginActivity").set({
           deviceId: getMyAdminDeviceId(),
@@ -931,16 +974,38 @@ Capital of Rajasthan is? | Jodhpur | Udaipur | Jaipur | Ajmer | C</textarea>
         return;
       }
 
-      const stu = allStudents[userId.toUpperCase()];
+      const stu = allStudents[userId];
       if (stu && stu.status !== "LEFT" && (stu.password === pass || stu.dob === pass)) {
         const token = `DEV_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
         localStorage.setItem("GSSS_SAVED_STUDENT_ID", stu.masterId);
         localStorage.setItem("GSSS_SAVED_DEVICE_TOKEN", token);
         await db.ref(`students/${stu.masterId}/activeSessionToken`).set(token);
-        startStudentSession(stu, token);
-      } else {
-        await showCustomAlert("Invalid ID or Password!", "Login Failed", "DANGER");
+        startStudentSession({ ...stu, isScholarshipOnly: false }, token);
+        return;
       }
+
+      const schCands = (allScholarshipData && allScholarshipData.candidates) ? allScholarshipData.candidates : {};
+      const schStu = schCands[userId];
+      if (schStu && (schStu.password === pass || schStu.dob === pass)) {
+        if (schStu.convertedMasterId && allStudents[schStu.convertedMasterId]) {
+          const permStu = allStudents[schStu.convertedMasterId];
+          const token = `DEV_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+          localStorage.setItem("GSSS_SAVED_STUDENT_ID", permStu.masterId);
+          localStorage.setItem("GSSS_SAVED_DEVICE_TOKEN", token);
+          await db.ref(`students/${permStu.masterId}/activeSessionToken`).set(token);
+          await showCustomAlert(`Congratulations! Your Scholarship ID was promoted to Permanent Master ID: ${permStu.masterId}. Logging you into your full Student Account!`, "Permanent Student Account", "SUCCESS");
+          startStudentSession({ ...permStu, isScholarshipOnly: false }, token);
+          return;
+        }
+        const token = `DEV_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+        localStorage.setItem("GSSS_SAVED_STUDENT_ID", schStu.masterId);
+        localStorage.setItem("GSSS_SAVED_DEVICE_TOKEN", token);
+        await db.ref(`scholarship/candidates/${schStu.masterId}/activeSessionToken`).set(token);
+        startStudentSession({ ...schStu, isScholarshipOnly: true }, token);
+        return;
+      }
+
+      await showCustomAlert("Invalid Student ID (GSSS-... / SCH-...) or Password!", "Login Failed", "DANGER");
     }
 
     function startAdminSession() {
@@ -957,6 +1022,7 @@ Capital of Rajasthan is? | Jodhpur | Udaipur | Jaipur | Ajmer | C</textarea>
       loadDailyTestMarksTable();
       loadClassCustomSubjectsUI();
       loadAdmitCardConfigForClass();
+      renderFeeSearchStudents();
 
       const myDevId = getMyAdminDeviceId();
       if (activeAdminAlertListener) activeAdminAlertListener.off();
@@ -983,8 +1049,15 @@ Capital of Rajasthan is? | Jodhpur | Udaipur | Jaipur | Ajmer | C</textarea>
       renderStudentDashboard(stu);
       checkStudentRealtimeNotifications();
 
+      // If Scholarship student or Phase-2 is scheduled, show Live Countdown Popup automatically
+      if (stu.isScholarshipOnly && allScholarshipData.config && allScholarshipData.config.phase2DateTimeIso) {
+        triggerPhoneVibrationAndSound();
+        showScholarshipPhase2CountdownPopup();
+      }
+
       if (activeStudentDeviceListener) activeStudentDeviceListener.off();
-      const ref = db.ref(`students/${stu.masterId}/activeSessionToken`);
+      const refPath = stu.isScholarshipOnly ? `scholarship/candidates/${stu.masterId}/activeSessionToken` : `students/${stu.masterId}/activeSessionToken`;
+      const ref = db.ref(refPath);
       activeStudentDeviceListener = ref;
       ref.on("value", async snap => {
         const remote = snap.val();
@@ -996,9 +1069,33 @@ Capital of Rajasthan is? | Jodhpur | Udaipur | Jaipur | Ajmer | C</textarea>
       });
     }
 
+    function showScholarshipPhase2CountdownPopup() {
+      const cfg = allScholarshipData.config || {};
+      if (!cfg.phase2DateTimeIso) return;
+      document.getElementById("schPopupDateText").innerText = cfg.phase2Date || new Date(cfg.phase2DateTimeIso).toLocaleString("en-IN");
+      document.getElementById("schPopupCenterText").innerText = cfg.centerName || "Gurukul Sr. Sec. School Campus, Dhankoli";
+      document.getElementById("schPhase2CountdownModal").classList.remove("hidden");
+
+      if (schPhase2TimerInterval) clearInterval(schPhase2TimerInterval);
+      const updateTimer = () => {
+        const diff = new Date(cfg.phase2DateTimeIso).getTime() - Date.now();
+        const el = document.getElementById("schPhase2LiveTimer");
+        if (!el) return;
+        if (diff <= 0) { el.innerText = "EXAMINATION LIVE NOW"; return; }
+        const d = Math.floor(diff / 86400000);
+        const h = Math.floor((diff % 86400000) / 3600000);
+        const m = Math.floor((diff % 3600000) / 60000);
+        const s = Math.floor((diff % 60000) / 1000);
+        el.innerText = `${String(d).padStart(2,'0')}d : ${String(h).padStart(2,'0')}h : ${String(m).padStart(2,'0')}m : ${String(s).padStart(2,'0')}s`;
+      };
+      updateTimer();
+      schPhase2TimerInterval = setInterval(updateTimer, 1000);
+    }
+
     function logoutUser() {
       if (activeStudentDeviceListener) { activeStudentDeviceListener.off(); activeStudentDeviceListener = null; }
       if (activeAdminAlertListener) { activeAdminAlertListener.off(); activeAdminAlertListener = null; }
+      if (schPhase2TimerInterval) clearInterval(schPhase2TimerInterval);
       loggedInStudent = null;
       localStorage.removeItem("GSSS_SAVED_STUDENT_ID");
       localStorage.removeItem("GSSS_SAVED_DEVICE_TOKEN");
@@ -1017,15 +1114,14 @@ Capital of Rajasthan is? | Jodhpur | Udaipur | Jaipur | Ajmer | C</textarea>
       document.getElementById("adminCredentialsModal").classList.remove("hidden");
     }
     async function saveNewAdminCredentials() {
-      const id = document.getElementById("newAdminIdInput").value.trim();
-      const pass = document.getElementById("newAdminPassInput").value.trim();
+      const id = document.getElementById("newAdminIdInput").value.trim(), pass = document.getElementById("newAdminPassInput").value.trim();
       if (!id || !pass) return;
       await db.ref("adminConfig/credentials").set({ id, pass });
       document.getElementById("adminCredentialsModal").classList.add("hidden");
       await showCustomAlert(`Secret Admin Login Updated!\nID: ${id}\nPass: ${pass}`, "Updated", "SUCCESS");
     }
 
-    // Email Engine
+  // Email Engine
     async function sendOfficialEmail({ to, subject, htmlBody, pdfBase64 = null, pdfFileName = null }) {
       const payload = { to, subject, htmlBody, pdfBase64, pdfFileName };
       for (let i = 0; i < EMAIL_SERVERS.length; i++) {
@@ -1038,8 +1134,7 @@ Capital of Rajasthan is? | Jodhpur | Udaipur | Jaipur | Ajmer | C</textarea>
       return { success: false };
     }
     async function checkEmailServersQuota() {
-      const el = document.getElementById("quotaStatusLabel");
-      el.innerText = "Checking...";
+      const el = document.getElementById("quotaStatusLabel"); el.innerText = "Checking...";
       let total = 0;
       for (let i = 0; i < EMAIL_SERVERS.length; i++) {
         try { const r = await fetch(EMAIL_SERVERS[i]); const d = await r.json(); if (d && d.quotaLeft) total += Number(d.quotaLeft); } catch (e) {}
@@ -1050,12 +1145,8 @@ Capital of Rajasthan is? | Jodhpur | Udaipur | Jaipur | Ajmer | C</textarea>
       return `<div style="font-family:Arial,sans-serif;max-width:620px;margin:0 auto;border:1px solid #cbd5e1;border-radius:14px;overflow:hidden;background:#fff;"><div style="background:#1e3a8a;color:#fff;padding:20px;text-align:center;"><img src="${SCHOOL_INFO.logo}" style="width:60px;height:60px;border-radius:50%;background:#fff;padding:3px;" /><h2 style="margin:8px 0 2px 0;font-size:18px;">GURUKUL SENIOR SECONDARY SCHOOL</h2><p style="margin:0;font-size:11px;color:#bfdbfe;">Bhadasar Road, Dhankoli | Dir: R.C. Royal | Chairman: H.S. Royal</p></div><div style="padding:20px;color:#1e293b;font-size:14px;line-height:1.6;"><h3 style="color:#1e3a8a;margin-top:0;">${heading}</h3><p>Dear <strong>${studentName}</strong> & Parents,</p>${bodyHtml}<p style="margin-top:20px;">Warm Regards,<br/><strong>Director R.C. Royal</strong><br/>Gurukul Sr. Sec. School, Dhankoli (9772564359, 9887071127)</p></div></div>`;
     }
 
-    // Admissions & Auto-Clean Desk
+    // Unified Admission & Scholarship Form Submission
     let generatedOTP = null, isEmailVerified = false;
-    function toggleStreamField() {
-      const cls = document.getElementById("adm_class").value;
-      document.getElementById("adm_streamWrapper").classList.toggle("hidden", !(cls === "Class 11" || cls === "Class 12"));
-    }
     function handleImageUpload(event, previewId, hiddenId, maxW) {
       const file = event.target.files[0]; if (!file) return;
       const reader = new FileReader();
@@ -1078,7 +1169,7 @@ Capital of Rajasthan is? | Jodhpur | Udaipur | Jaipur | Ajmer | C</textarea>
       if (!email || !email.includes("@")) return showCustomAlert("Enter a valid Email ID.", "Email Required", "DANGER");
       generatedOTP = String(Math.floor(100000 + Math.random() * 900000));
       const btn = document.getElementById("sendOtpBtn"); btn.disabled = true; btn.innerText = "Sending...";
-      const res = await sendOfficialEmail({ to: email, subject: `${generatedOTP} is your Admission OTP - Gurukul School`, htmlBody: buildOfficialEmailTemplate({ heading: "Email Verification OTP", studentName: name, bodyHtml: `<p>Your 6-Digit verification OTP is:</p><h2 style="background:#eff6ff;padding:12px;text-align:center;letter-spacing:5px;color:#1e3a8a;">${generatedOTP}</h2>` }) });
+      const res = await sendOfficialEmail({ to: email, subject: `${generatedOTP} is your Verification OTP - Gurukul School`, htmlBody: buildOfficialEmailTemplate({ heading: "Email Verification OTP", studentName: name, bodyHtml: `<p>Your 6-Digit verification OTP is:</p><h2 style="background:#eff6ff;padding:12px;text-align:center;letter-spacing:5px;color:#1e3a8a;">${generatedOTP}</h2>` }) });
       btn.disabled = false; btn.innerText = "Resend OTP";
       if (res.success) { document.getElementById("otpVerifyBox").classList.remove("hidden"); await showCustomAlert(`OTP sent to ${email}`, "OTP Sent", "SUCCESS"); }
       else await showCustomAlert("Failed to send OTP.", "Error", "DANGER");
@@ -1092,6 +1183,7 @@ Capital of Rajasthan is? | Jodhpur | Udaipur | Jaipur | Ajmer | C</textarea>
     async function submitAdmissionForm() {
       const isDirect = document.getElementById("isAdminDirectMode").value === "true";
       const editId = document.getElementById("editApplicationId").value;
+      const appType = document.getElementById("adm_applicationType").value || "REGULAR";
       const studentName = document.getElementById("adm_studentName").value.trim();
       const classApplying = document.getElementById("adm_class").value;
       const dob = document.getElementById("adm_dob").value;
@@ -1104,10 +1196,10 @@ Capital of Rajasthan is? | Jodhpur | Udaipur | Jaipur | Ajmer | C</textarea>
       if (!isDirect && !isEmailVerified) return showCustomAlert("Verify Email with OTP first.", "OTP Required", "DANGER");
       if (!photoBase64 || !signBase64) return showCustomAlert("Upload both Photo and Signature.", "Required", "DANGER");
 
-      const appId = editId || `ADM-${CURRENT_SESSION.yearPrefix}-${Math.floor(1000 + Math.random() * 9000)}`;
+      const prefix = appType === "SCHOLARSHIP" ? "SCHAPP" : "ADM";
+      const appId = editId || `${prefix}-${CURRENT_SESSION.yearPrefix}-${Math.floor(1000 + Math.random() * 9000)}`;
       const appData = {
-        appId, session: CURRENT_SESSION.sessionString, studentName, classApplying,
-        stream: document.getElementById("adm_stream").value || "General", dob,
+        appId, appType, session: CURRENT_SESSION.sessionString, studentName, classApplying, dob,
         gender: document.getElementById("adm_gender").value, category: document.getElementById("adm_category").value,
         bloodGroup: document.getElementById("adm_blood").value, aadhaar: document.getElementById("adm_aadhaar").value.trim(),
         janaadhaar: document.getElementById("adm_janaadhaar").value.trim(), fatherName,
@@ -1117,13 +1209,12 @@ Capital of Rajasthan is? | Jodhpur | Udaipur | Jaipur | Ajmer | C</textarea>
         email, photoBase64, signBase64, status: "PENDING", adminRemark: "", submittedAt: new Date().toISOString()
       };
       await db.ref(`admissions/${appId}`).set(appData);
-      if (isDirect) { await processAdminAdmissionAction(appId, "APPROVE", "Direct Admission by Admin"); closePublicModal("admissionFormModal"); return; }
-      await sendOfficialEmail({ to: email, subject: `Application Submitted (${appId})`, htmlBody: buildOfficialEmailTemplate({ heading: "Application Received", studentName, bodyHtml: `<p>Your application for <strong>${classApplying}</strong> is received. Application ID: <strong>${appId}</strong>.</p>` }) });
+      if (isDirect) { await processAdminAdmissionAction(appId, "APPROVE", "Direct Approval by Admin"); closePublicModal("admissionFormModal"); return; }
+      await sendOfficialEmail({ to: email, subject: `${appType} Application Submitted (${appId})`, htmlBody: buildOfficialEmailTemplate({ heading: `${appType} Application Received`, studentName, bodyHtml: `<p>Your ${appType} application for <strong>${classApplying}</strong> has been received. Application ID: <strong>${appId}</strong>.</p>` }) });
       closePublicModal("admissionFormModal");
       await showCustomAlert(`Application Submitted!\nID: ${appId}`, "Submitted", "SUCCESS");
     }
 
-   // FIX 2: Auto-hide Approved & Rejected from Active Admission Desk
     function renderAdminAdmissions() {
       const tbody = document.getElementById("adminAdmissionTableBody"); if (!tbody) return;
       const filter = document.getElementById("filterAdmissionStatus").value;
@@ -1138,11 +1229,11 @@ Capital of Rajasthan is? | Jodhpur | Udaipur | Jaipur | Ajmer | C</textarea>
       }
       tbody.innerHTML = filtered.map(app => `
         <tr class="hover:bg-slate-50">
-          <td class="p-2.5 font-extrabold text-blue-700">${app.appId}</td>
+          <td class="p-2.5 font-extrabold text-blue-700">${app.appId}<br/><span class="px-2 py-0.5 rounded text-[9px] font-black ${app.appType==='SCHOLARSHIP'?'bg-cyan-100 text-cyan-900':'bg-amber-100 text-amber-900'}">${app.appType || 'REGULAR'}</span></td>
           <td class="p-2.5 font-bold">${app.studentName}<br/><span class="text-[10px] text-slate-500">DOB: ${app.dob}</span></td>
           <td class="p-2.5 font-semibold">${app.classApplying}</td>
           <td class="p-2.5">${app.fatherName}<br/><span class="text-[10px] text-slate-500">${app.mobile}</span></td>
-          <td class="p-2.5"><span class="px-2 py-0.5 rounded bg-amber-100 text-amber-900 font-extrabold text-[10px]">${app.status}</span></td>
+          <td class="p-2.5"><span class="px-2 py-0.5 rounded bg-slate-100 font-extrabold text-[10px]">${app.status}</span></td>
           <td class="p-2.5 text-right space-x-1">
             <button type="button" onclick="triggerAdminAdmissionDecision('${app.appId}','APPROVE')" class="bg-emerald-600 text-white px-2 py-1 rounded text-[11px] font-bold">Approve</button>
             <button type="button" onclick="triggerAdminAdmissionDecision('${app.appId}','INVITE')" class="bg-blue-600 text-white px-2 py-1 rounded text-[11px] font-bold">Invite</button>
@@ -1159,7 +1250,7 @@ Capital of Rajasthan is? | Jodhpur | Udaipur | Jaipur | Ajmer | C</textarea>
       else if (action === "REVIEW") remark = await showCustomPrompt("Enter correction note for student:", "Please check details and re-upload clear photo.");
       else if (action === "REJECT") remark = await showCustomPrompt("Enter reason for rejection:", "Incomplete documents.");
       else if (action === "APPROVE") {
-        const ok = await showCustomConfirm("Approve admission, generate Master ID, and send Signed PDF via Email?");
+        const ok = await showCustomConfirm("Approve application, generate Login ID, and send Signed Form PDF via Official English Email?");
         if (!ok) return;
       }
       if (remark === null) return;
@@ -1168,37 +1259,57 @@ Capital of Rajasthan is? | Jodhpur | Udaipur | Jaipur | Ajmer | C</textarea>
 
     async function processAdminAdmissionAction(appId, action, remark) {
       const app = allAdmissions[appId]; if (!app) return;
+      const isSch = app.appType === "SCHOLARSHIP";
+
       if (action === "APPROVE") {
-        const masterId = app.masterId || `GSSS-${CURRENT_SESSION.yearPrefix}-${Math.floor(1000 + Math.random() * 9000)}`;
+        const idPrefix = isSch ? "SCH" : "GSSS";
+        const masterId = app.masterId || `${idPrefix}-${CURRENT_SESSION.yearPrefix}-${Math.floor(1000 + Math.random() * 9000)}`;
         const password = app.password || `GSSS@${app.mobile.slice(-4)}`;
         app.status = "APPROVED"; app.masterId = masterId; app.password = password;
         app.approvedDate = new Date().toLocaleDateString("en-IN"); app.adminRemark = remark;
         await db.ref(`admissions/${appId}`).set(app);
-        await db.ref(`students/${masterId}`).set({ ...app, masterId, password, currentClass: app.classApplying, status: "ACTIVE", individualLocks: {} });
+
+        if (isSch) {
+          await db.ref(`scholarship/candidates/${masterId}`).set({
+            ...app, masterId, password, currentClass: app.classApplying,
+            phase1Status: "APPROVED_FOR_PHASE_1", phase1Score: null, phase1Percentile: null
+          });
+        } else {
+          await db.ref(`students/${masterId}`).set({
+            ...app, masterId, password, currentClass: app.classApplying, status: "ACTIVE", individualLocks: {}
+          });
+        }
+
         const pdfBase64 = await generateSignedAdmissionPDF(appId, false);
         await sendOfficialEmail({
           to: app.email,
-          subject: `Admission Approved (${masterId}) - Signed Form Attached | Gurukul Sr. Sec. School`,
-          htmlBody: buildOfficialEmailTemplate({ heading: "Admission Approved!", studentName: app.studentName, bodyHtml: `<p>Your admission in <strong>${app.classApplying}</strong> is approved.</p><p><strong>Master ID:</strong> ${masterId}<br/><strong>Password:</strong> ${password}</p>` }),
-          pdfBase64, pdfFileName: `Admission_${masterId}.pdf`
+          subject: `${isSch ? 'Scholarship Registration' : 'School Admission'} Approved (${masterId}) - Signed Form Attached`,
+          htmlBody: buildOfficialEmailTemplate({
+            heading: `${isSch ? 'Scholarship Registration' : 'School Admission'} Officially Approved!`,
+            studentName: app.studentName,
+            bodyHtml: `<p>Your ${isSch ? 'Scholarship Examination Registration' : 'School Admission'} for <strong>${app.classApplying}</strong> is approved.</p><p><strong>Login ID:</strong> ${masterId}<br/><strong>Password:</strong> ${password}</p><p>Your Signed Confirmation Form PDF is attached with this email.</p>`
+          }),
+          pdfBase64, pdfFileName: `Confirmation_${masterId}.pdf`
         });
-        await showCustomAlert(`Approved & Moved to Master Student Directory!\nMaster ID: ${masterId}\nPassword: ${password}`, "Approved", "SUCCESS");
+        await showCustomAlert(`Approved!\nID: ${masterId}\nPassword: ${password}\nSigned PDF sent via English Email!`, "Approved", "SUCCESS");
       } else {
         app.status = action === "INVITE" ? "INVITED" : action === "REVIEW" ? "REVIEW_REQUIRED" : "REJECTED";
         app.adminRemark = remark;
         await db.ref(`admissions/${appId}`).set(app);
-        await sendOfficialEmail({ to: app.email, subject: `Application Update (${appId})`, htmlBody: buildOfficialEmailTemplate({ heading: `Status: ${app.status}`, studentName: app.studentName, bodyHtml: `<p>Status: <strong>${app.status}</strong></p><p><strong>Note:</strong> ${remark}</p>` }) });
-        await showCustomAlert(`Status updated to ${app.status}!`, "Completed", "SUCCESS");
+        await sendOfficialEmail({ to: app.email, subject: `Application Update (${appId})`, htmlBody: buildOfficialEmailTemplate({ heading: `Application Status: ${app.status}`, studentName: app.studentName, bodyHtml: `<p>Status: <strong>${app.status}</strong></p><p><strong>Note:</strong> ${remark}</p>` }) });
+        await showCustomAlert(`Status updated to ${app.status} and email sent!`, "Completed", "SUCCESS");
       }
     }
 
     async function generateSignedAdmissionPDF(appId, download = true) {
-      const app = allAdmissions[appId] || Object.values(allStudents).find(s => s.appId === appId || s.masterId === appId);
+      const schCands = (allScholarshipData && allScholarshipData.candidates) ? allScholarshipData.candidates : {};
+      const app = allAdmissions[appId] || allStudents[appId] || schCands[appId] || Object.values(allAdmissions).find(s => s.masterId === appId);
       if (!app) return null;
       const wrap = document.getElementById("pdfPrintWrapper"), area = document.getElementById("pdfPrintArea");
       wrap.classList.remove("hidden");
-      area.innerHTML = `<div style="border:3px solid #1e3a8a;padding:22px;min-height:1040px;font-family:Arial,sans-serif;"><div style="display:flex;align-items:center;justify-content:space-between;border-bottom:3px double #1e3a8a;padding-bottom:12px;"><img src="${SCHOOL_INFO.logo}" crossorigin="anonymous" style="width:80px;height:80px;" /><div style="text-align:center;flex:1;"><h1 style="margin:0;font-size:22px;color:#1e3a8a;font-weight:900;">GURUKUL SENIOR SECONDARY SCHOOL</h1><p style="margin:3px 0;font-size:12px;font-weight:bold;">BHADASAR ROAD, DHANKOLI (DIDWANA-KUCHAMAN) RAJASTHAN</p><p style="margin:2px 0;font-size:11px;">Director: R.C. Royal | Chairman: H.S. Royal | Helpline: 9772564359, 9887071127</p><span style="display:inline-block;margin-top:5px;background:#1e3a8a;color:#fff;padding:3px 14px;border-radius:12px;font-size:11px;font-weight:bold;">OFFICIAL ADMISSION FORM (${app.session})</span></div><img src="${app.photoBase64}" style="width:90px;height:110px;object-fit:cover;border:2px solid #000;" /></div><p style="font-size:13px;font-weight:bold;margin:12px 0;">App ID: ${app.appId} | Master ID: ${app.masterId || 'APPROVED'} | Date: ${app.approvedDate || ''}</p><table style="width:100%;border-collapse:collapse;font-size:13px;"><tr><td style="border:1px solid #94a3b8;padding:8px;font-weight:bold;width:30%;">Student Name</td><td style="border:1px solid #94a3b8;padding:8px;font-weight:bold;">${app.studentName}</td></tr><tr><td style="border:1px solid #94a3b8;padding:8px;font-weight:bold;">Class & Stream</td><td style="border:1px solid #94a3b8;padding:8px;">${app.classApplying} (${app.stream || 'General'})</td></tr><tr><td style="border:1px solid #94a3b8;padding:8px;font-weight:bold;">DOB & Gender</td><td style="border:1px solid #94a3b8;padding:8px;">${app.dob} / ${app.gender} (${app.category})</td></tr><tr><td style="border:1px solid #94a3b8;padding:8px;font-weight:bold;">Father / Mother</td><td style="border:1px solid #94a3b8;padding:8px;">${app.fatherName} / ${app.motherName}</td></tr><tr><td style="border:1px solid #94a3b8;padding:8px;font-weight:bold;">Aadhaar / Mobile</td><td style="border:1px solid #94a3b8;padding:8px;">${app.aadhaar} / ${app.mobile}</td></tr><tr><td style="border:1px solid #94a3b8;padding:8px;font-weight:bold;">Address</td><td style="border:1px solid #94a3b8;padding:8px;">${app.address}</td></tr></table><div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:80px;"><div style="text-align:center;"><img src="${app.signBase64}" style="width:120px;height:45px;object-fit:contain;border-bottom:1px solid #000;" /><p style="font-size:11px;font-weight:bold;margin:4px 0 0 0;">Student / Parent Sign</p></div><div style="border:2px solid #15803d;color:#15803d;padding:6px 14px;border-radius:8px;font-weight:900;font-size:12px;">OFFICIALLY APPROVED</div><div style="text-align:center;"><div style="font-family:cursive;font-size:22px;color:#1e3a8a;font-weight:bold;border-bottom:1px solid #000;padding:0 16px;">R. C. Royal</div><p style="font-size:11px;font-weight:bold;margin:4px 0 0 0;">R.C. Royal (Director)</p></div></div></div>`;
-      const opt = { margin: 0, filename: `Admission_${app.masterId || app.appId}.pdf`, image: { type: "jpeg", quality: 0.95 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: "px", format: [794, 1122], orientation: "portrait" } };
+      const formTitle = app.appType === "SCHOLARSHIP" ? "OFFICIAL SCHOLARSHIP REGISTRATION FORM" : "OFFICIAL ADMISSION CONFIRMATION FORM";
+      area.innerHTML = `<div style="border:3px solid #1e3a8a;padding:22px;min-height:1040px;font-family:Arial,sans-serif;"><div style="display:flex;align-items:center;justify-content:space-between;border-bottom:3px double #1e3a8a;padding-bottom:12px;"><img src="${SCHOOL_INFO.logo}" crossorigin="anonymous" style="width:80px;height:80px;" /><div style="text-align:center;flex:1;"><h1 style="margin:0;font-size:22px;color:#1e3a8a;font-weight:900;">GURUKUL SENIOR SECONDARY SCHOOL</h1><p style="margin:3px 0;font-size:12px;font-weight:bold;">BHADASAR ROAD, DHANKOLI (DIDWANA-KUCHAMAN) RAJASTHAN</p><p style="margin:2px 0;font-size:11px;">Director: R.C. Royal | Chairman: H.S. Royal | Helpline: 9772564359, 9887071127</p><span style="display:inline-block;margin-top:5px;background:#1e3a8a;color:#fff;padding:3px 14px;border-radius:12px;font-size:11px;font-weight:bold;">${formTitle} (${app.session || CURRENT_SESSION.sessionString})</span></div><img src="${app.photoBase64}" style="width:90px;height:110px;object-fit:cover;border:2px solid #000;" /></div><p style="font-size:13px;font-weight:bold;margin:12px 0;">App ID: ${app.appId} | Official ID: ${app.masterId || 'APPROVED'} | Date: ${app.approvedDate || ''}</p><table style="width:100%;border-collapse:collapse;font-size:13px;"><tr><td style="border:1px solid #94a3b8;padding:8px;font-weight:bold;width:30%;">Student Name</td><td style="border:1px solid #94a3b8;padding:8px;font-weight:bold;">${app.studentName}</td></tr><tr><td style="border:1px solid #94a3b8;padding:8px;font-weight:bold;">Class</td><td style="border:1px solid #94a3b8;padding:8px;">${app.currentClass || app.classApplying}</td></tr><tr><td style="border:1px solid #94a3b8;padding:8px;font-weight:bold;">DOB & Gender</td><td style="border:1px solid #94a3b8;padding:8px;">${app.dob} / ${app.gender} (${app.category})</td></tr><tr><td style="border:1px solid #94a3b8;padding:8px;font-weight:bold;">Father / Mother</td><td style="border:1px solid #94a3b8;padding:8px;">${app.fatherName} / ${app.motherName}</td></tr><tr><td style="border:1px solid #94a3b8;padding:8px;font-weight:bold;">Aadhaar / Mobile</td><td style="border:1px solid #94a3b8;padding:8px;">${app.aadhaar} / ${app.mobile}</td></tr><tr><td style="border:1px solid #94a3b8;padding:8px;font-weight:bold;">Address</td><td style="border:1px solid #94a3b8;padding:8px;">${app.address}</td></tr></table><div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:80px;"><div style="text-align:center;"><img src="${app.signBase64}" style="width:120px;height:45px;object-fit:contain;border-bottom:1px solid #000;" /><p style="font-size:11px;font-weight:bold;margin:4px 0 0 0;">Student / Parent Sign</p></div><div style="border:2px solid #15803d;color:#15803d;padding:6px 14px;border-radius:8px;font-weight:900;font-size:12px;">OFFICIALLY APPROVED</div><div style="text-align:center;"><div style="font-family:cursive;font-size:22px;color:#1e3a8a;font-weight:bold;border-bottom:1px solid #000;padding:0 16px;">R. C. Royal</div><p style="font-size:11px;font-weight:bold;margin:4px 0 0 0;">R.C. Royal (Director)</p></div></div></div>`;
+      const opt = { margin: 0, filename: `Official_Form_${app.masterId || app.appId}.pdf`, image: { type: "jpeg", quality: 0.95 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: "px", format: [794, 1122], orientation: "portrait" } };
       if (download) await html2pdf().set(opt).from(area).save();
       const uri = await html2pdf().set(opt).from(area).outputPdf("datauristring");
       wrap.classList.add("hidden");
@@ -1209,11 +1320,11 @@ Capital of Rajasthan is? | Jodhpur | Udaipur | Jaipur | Ajmer | C</textarea>
       const q = document.getElementById("trackSearchInput").value.trim().toLowerCase();
       const box = document.getElementById("trackResultContainer"); if (!q) return;
       const list = Object.values(allAdmissions).filter(a => a.appId.toLowerCase() === q || (a.masterId && a.masterId.toLowerCase() === q) || a.email.toLowerCase() === q || a.mobile === q);
-      box.innerHTML = list.map(a => `<div class="p-3.5 border rounded-xl bg-slate-50 space-y-2"><div class="flex justify-between font-extrabold text-xs"><span>${a.appId} ${a.masterId ? `(${a.masterId})` : ""}</span><span class="text-blue-700">${a.status}</span></div><p class="text-xs font-bold">${a.studentName} — ${a.classApplying}</p>${a.adminRemark ? `<p class="text-xs text-amber-800">Note: ${a.adminRemark}</p>` : ""}<div class="flex gap-2">${a.status === "REVIEW_REQUIRED" ? `<button type="button" onclick="loadApplicationForEditing('${a.appId}')" class="bg-amber-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold">Edit & Resubmit</button>` : ""}${a.status === "APPROVED" ? `<button type="button" onclick="generateSignedAdmissionPDF('${a.appId}',true)" class="bg-emerald-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold">Download Signed PDF</button>` : ""}</div></div>`).join("") || `<div class="p-3 bg-rose-50 text-rose-700 rounded-xl text-xs font-bold">No record found.</div>`;
+      box.innerHTML = list.map(a => `<div class="p-3.5 border rounded-xl bg-slate-50 space-y-2"><div class="flex justify-between font-extrabold text-xs"><span>${a.appId} ${a.masterId ? `(${a.masterId})` : ""}</span><span class="text-blue-700">${a.status}</span></div><p class="text-xs font-bold">${a.studentName} — ${a.classApplying} [${a.appType || 'REGULAR'}]</p>${a.adminRemark ? `<p class="text-xs text-amber-800">Note: ${a.adminRemark}</p>` : ""}<div class="flex gap-2">${a.status === "REVIEW_REQUIRED" ? `<button type="button" onclick="loadApplicationForEditing('${a.appId}')" class="bg-amber-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold">Edit & Resubmit</button>` : ""}${a.status === "APPROVED" ? `<button type="button" onclick="generateSignedAdmissionPDF('${a.appId}',true)" class="bg-emerald-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold">Download Signed PDF</button>` : ""}</div></div>`).join("") || `<div class="p-3 bg-rose-50 text-rose-700 rounded-xl text-xs font-bold">No record found.</div>`;
     }
     function loadApplicationForEditing(appId) {
       const a = allAdmissions[appId]; if (!a) return;
-      closePublicModal("trackAdmissionModal"); openPublicModal("admissionFormModal", false);
+      closePublicModal("trackAdmissionModal"); openAdmissionModalWithMode(a.appType || "REGULAR", false);
       document.getElementById("editApplicationId").value = a.appId;
       document.getElementById("adm_studentName").value = a.studentName;
       document.getElementById("adm_class").value = a.classApplying;
@@ -1231,31 +1342,27 @@ Capital of Rajasthan is? | Jodhpur | Udaipur | Jaipur | Ajmer | C</textarea>
       isEmailVerified = true;
     }
 
-    // FIX 1 & FIX 3: Class-Wise Manual Subjects & Strict Annual Report Card Lock
+    // Class-Wise Manual Subjects & Strict Annual Report Card Lock
     function getSubjectsForClass(cls) {
-      if (allClassSubjects[cls] && Array.isArray(allClassSubjects[cls]) && allClassSubjects[cls].length > 0) {
-        return allClassSubjects[cls];
-      }
+      if (allClassSubjects[cls] && Array.isArray(allClassSubjects[cls]) && allClassSubjects[cls].length > 0) return allClassSubjects[cls];
+      if (cls.includes("Science")) return ["Hindi", "English", "Physics", "Chemistry", "Mathematics/Biology"];
+      if (cls.includes("Arts")) return ["Hindi", "English", "History", "Political Science", "Geography"];
+      if (cls.includes("Commerce")) return ["Hindi", "English", "Accountancy", "Business Studies", "Economics"];
+      if (cls.includes("Agriculture")) return ["Hindi", "English", "Agriculture", "Agri Biology", "Agri Chemistry"];
       return ["Hindi", "English", "Mathematics", "Science", "Social Science", "Sanskrit"];
     }
-
     function loadClassCustomSubjectsUI() {
-      const cls = document.getElementById("term_class")?.value;
-      if (!cls) return;
-      const subs = getSubjectsForClass(cls);
-      document.getElementById("term_customSubjectsInput").value = subs.join(", ");
+      const cls = document.getElementById("term_class")?.value; if (!cls) return;
+      document.getElementById("term_customSubjectsInput").value = getSubjectsForClass(cls).join(", ");
       loadTermExamMarksTable();
     }
-
     async function saveClassCustomSubjects() {
       const cls = document.getElementById("term_class").value;
-      const raw = document.getElementById("term_customSubjectsInput").value;
-      const subs = raw.split(",").map(s => s.trim()).filter(Boolean);
-      if (!subs.length) return showCustomAlert("Please enter at least 1 subject separated by commas.", "Invalid", "DANGER");
+      const subs = document.getElementById("term_customSubjectsInput").value.split(",").map(s => s.trim()).filter(Boolean);
+      if (!subs.length) return showCustomAlert("Enter subjects separated by commas.", "Invalid", "DANGER");
       await db.ref(`classSubjects/${cls}`).set(subs);
       await showCustomAlert(`Custom Subjects saved for ${cls}:\n${subs.join(", ")}`, "Subjects Updated", "SUCCESS");
     }
-
     function switchResultMode(mode) {
       const isDaily = mode === "DAILY";
       document.getElementById("dailyTestAdminBox").classList.toggle("hidden", !isDaily);
@@ -1264,24 +1371,19 @@ Capital of Rajasthan is? | Jodhpur | Udaipur | Jaipur | Ajmer | C</textarea>
       document.getElementById("resSubTab_TERM").className = !isDaily ? "px-3 py-1.5 rounded-lg text-xs font-extrabold bg-purple-700 text-white shadow" : "px-3 py-1.5 rounded-lg text-xs font-extrabold text-slate-700";
       if (isDaily) loadDailyTestMarksTable(); else loadClassCustomSubjectsUI();
     }
-
     function loadDailyTestMarksTable() {
-      const cls = document.getElementById("dt_class")?.value;
-      const tbody = document.getElementById("dailyTestEntryBody"); if (!tbody || !cls) return;
+      const cls = document.getElementById("dt_class")?.value, tbody = document.getElementById("dailyTestEntryBody");
+      if (!tbody || !cls) return;
       const list = Object.values(allStudents).filter(s => s.status !== "LEFT" && s.currentClass === cls);
       tbody.innerHTML = list.map(s => `<tr><td class="p-2.5 font-extrabold text-blue-700">${s.masterId}</td><td class="p-2.5 font-bold">${s.studentName}</td><td class="p-2.5 text-slate-500">${s.fatherName}</td><td class="p-2.5"><input type="text" id="dtMark_${s.masterId}" placeholder="Marks or AB" class="w-full px-3 py-1.5 border rounded-lg text-xs font-extrabold bg-slate-50" /></td></tr>`).join("") || `<tr><td colspan="4" class="p-4 text-center text-slate-400 font-bold">No students in ${cls}.</td></tr>`;
     }
-
     async function saveDailyTestResult() {
       const cls = document.getElementById("dt_class").value, date = document.getElementById("dt_date").value;
       const subject = document.getElementById("dt_subject").value.trim(), maxMarks = Number(document.getElementById("dt_maxMarks").value) || 20;
       if (!subject || !date) return showCustomAlert("Enter Subject and Date.", "Required", "DANGER");
       const list = Object.values(allStudents).filter(s => s.status !== "LEFT" && s.currentClass === cls);
       const marksMap = {};
-      list.forEach(s => {
-        const val = document.getElementById(`dtMark_${s.masterId}`)?.value.trim();
-        if (val) marksMap[s.masterId] = val.toUpperCase() === "AB" ? "AB" : Number(val);
-      });
+      list.forEach(s => { const val = document.getElementById(`dtMark_${s.masterId}`)?.value.trim(); if (val) marksMap[s.masterId] = val.toUpperCase() === "AB" ? "AB" : Number(val); });
       if (!Object.keys(marksMap).length) return showCustomAlert("Enter marks for at least one student.", "Required", "DANGER");
       const testId = `DT_${Date.now()}`;
       await db.ref(`dailyTests/${testId}`).set({ testId, targetClass: cls, date, subject, maxMarks, marks: marksMap, createdAt: new Date().toISOString() });
@@ -1289,61 +1391,39 @@ Capital of Rajasthan is? | Jodhpur | Udaipur | Jaipur | Ajmer | C</textarea>
       await db.ref(`notifications/NOTIF_${Date.now()}`).set({ id: `NOTIF_${Date.now()}`, targetType: "CLASS", targetValue: cls, title: `Daily Test Result: ${subject}`, message: `Result for ${subject} (${date}) is now live!`, createdAt: new Date().toISOString() });
       await showCustomAlert("Daily Test Published!", "Success", "SUCCESS");
     }
-
     function renderPublishedDailyTests() {
       const box = document.getElementById("publishedDailyTestsList"); if (!box) return;
       box.innerHTML = Object.values(allDailyTests).reverse().map(t => `<div class="p-2 border rounded-xl bg-slate-50 flex justify-between items-center text-xs"><span><strong>[${t.targetClass} • ${t.date}]</strong> ${t.subject} (Max: ${t.maxMarks})</span><button type="button" onclick="db.ref('dailyTests/${t.testId}').remove()" class="text-rose-600 font-bold">Delete</button></div>`).join("");
     }
-
     function loadTermExamMarksTable() {
       const term = document.getElementById("term_examType")?.value, cls = document.getElementById("term_class")?.value;
       const thead = document.getElementById("termExamEntryHead"), tbody = document.getElementById("termExamEntryBody");
       if (!thead || !tbody || !term || !cls) return;
       const subs = getSubjectsForClass(cls);
       thead.innerHTML = `<tr><th class="p-2">Student (ID)</th>${subs.map(sub => `<th class="p-2">${sub}</th>`).join("")}<th class="p-2 text-right">Annual PDF</th></tr>`;
-
       const list = Object.values(allStudents).filter(s => s.status !== "LEFT" && s.currentClass === cls);
       if (!list.length) { tbody.innerHTML = `<tr><td colspan="${subs.length + 2}" class="p-4 text-center text-slate-400 font-bold">No active students in ${cls}.</td></tr>`; return; }
-
       const existing = (allTermMarks[term] && allTermMarks[term][cls]) ? allTermMarks[term][cls] : {};
       tbody.innerHTML = list.map(s => {
-        const rec = existing[s.masterId] || { subjectMarks: {} };
-        const sm = rec.subjectMarks || {};
-        return `<tr>
-          <td class="p-2 font-bold">${s.studentName}<br/><span class="text-[10px] text-blue-700 font-extrabold">${s.masterId}</span></td>
-          ${subs.map((sub, idx) => `<td class="p-1.5"><input type="number" id="tm_${s.masterId}_${idx}" value="${sm[sub] ?? ''}" placeholder="Marks" class="w-20 px-2 py-1 border rounded text-xs font-bold" /></td>`).join("")}
-          <td class="p-1.5 text-right"><button type="button" onclick="generateStudentAnnualReportPDF('${s.masterId}')" class="bg-emerald-600 text-white px-2.5 py-1 rounded text-[11px] font-bold">Report PDF</button></td>
-        </tr>`;
+        const sm = (existing[s.masterId] && existing[s.masterId].subjectMarks) ? existing[s.masterId].subjectMarks : {};
+        return `<tr><td class="p-2 font-bold">${s.studentName}<br/><span class="text-[10px] text-blue-700 font-extrabold">${s.masterId}</span></td>${subs.map((sub, idx) => `<td class="p-1.5"><input type="number" id="tm_${s.masterId}_${idx}" value="${sm[sub] ?? ''}" placeholder="Marks" class="w-20 px-2 py-1 border rounded text-xs font-bold" /></td>`).join("")}<td class="p-1.5 text-right"><button type="button" onclick="generateStudentAnnualReportPDF('${s.masterId}')" class="bg-emerald-600 text-white px-2.5 py-1 rounded text-[11px] font-bold">Report PDF</button></td></tr>`;
       }).join("");
     }
-
     async function saveTermExamMarks() {
       const term = document.getElementById("term_examType").value, cls = document.getElementById("term_class").value;
       const maxPerSub = Number(document.getElementById("term_maxPerSubject").value) || 100;
       const subs = getSubjectsForClass(cls);
       const list = Object.values(allStudents).filter(s => s.status !== "LEFT" && s.currentClass === cls);
       if (!list.length) return;
-
       const batchData = {};
       list.forEach(s => {
-        const subjectMarks = {};
-        let totalObt = 0, filledCount = 0;
+        const subjectMarks = {}; let totalObt = 0, filledCount = 0;
         subs.forEach((sub, idx) => {
           const rawVal = document.getElementById(`tm_${s.masterId}_${idx}`)?.value;
-          if (rawVal !== undefined && rawVal !== "") {
-            subjectMarks[sub] = Number(rawVal);
-            totalObt += Number(rawVal);
-            filledCount++;
-          }
+          if (rawVal !== undefined && rawVal !== "") { subjectMarks[sub] = Number(rawVal); totalObt += Number(rawVal); filledCount++; }
         });
-        if (filledCount > 0) {
-          batchData[s.masterId] = {
-            subjectMarks, maxPerSub, totalObtained: totalObt, totalMax: maxPerSub * subs.length,
-            isComplete: filledCount === subs.length, updatedAt: new Date().toLocaleDateString("en-IN")
-          };
-        }
+        if (filledCount > 0) batchData[s.masterId] = { subjectMarks, maxPerSub, totalObtained: totalObt, totalMax: maxPerSub * subs.length, isComplete: filledCount === subs.length, updatedAt: new Date().toLocaleDateString("en-IN") };
       });
-
       await db.ref(`termMarks/${term}/${cls}`).set(batchData);
       if (term === "HALF_YEARLY") await db.ref("adminTasks/HALF_YEARLY_UPLOAD").set({ title: "Upload Half-Yearly Exam Marks", status: "COMPLETED" });
       await db.ref(`notifications/NOTIF_${Date.now()}`).set({ id: `NOTIF_${Date.now()}`, targetType: "CLASS", targetValue: cls, title: `${term === "HALF_YEARLY" ? "Half-Yearly" : "Annual"} Result Out!`, message: `Marks for ${cls} have been uploaded.`, createdAt: new Date().toISOString() });
@@ -1351,16 +1431,13 @@ Capital of Rajasthan is? | Jodhpur | Udaipur | Jaipur | Ajmer | C</textarea>
     }
 
     function calculateStudentAnnualReportData(stu) {
-      const cls = stu.currentClass;
-      const subs = getSubjectsForClass(cls);
+      const cls = stu.currentClass, subs = getSubjectsForClass(cls);
       const hyRec = (allTermMarks["HALF_YEARLY"] && allTermMarks["HALF_YEARLY"][cls] && allTermMarks["HALF_YEARLY"][cls][stu.masterId]) || null;
       const yrRec = (allTermMarks["YEARLY"] && allTermMarks["YEARLY"][cls] && allTermMarks["YEARLY"][cls][stu.masterId]) || null;
       const isBothComplete = Boolean(hyRec && yrRec && hyRec.subjectMarks && yrRec.subjectMarks);
-
       const classDailyTests = Object.values(allDailyTests).filter(t => t.targetClass === cls && t.marks && t.marks[stu.masterId] !== undefined);
       let dtObtained = 0, dtMax = 0;
       classDailyTests.forEach(t => { if (t.marks[stu.masterId] !== "AB") dtObtained += Number(t.marks[stu.masterId]); dtMax += Number(t.maxMarks); });
-
       const subjectRows = subs.map(sub => {
         const hyM = (hyRec && hyRec.subjectMarks && hyRec.subjectMarks[sub] !== undefined) ? Number(hyRec.subjectMarks[sub]) : 0;
         const hyMax = hyRec ? Number(hyRec.maxPerSub || 100) : 100;
@@ -1368,7 +1445,6 @@ Capital of Rajasthan is? | Jodhpur | Udaipur | Jaipur | Ajmer | C</textarea>
         const yrMax = yrRec ? Number(yrRec.maxPerSub || 100) : 100;
         return { label: sub, hyM, hyMax, yrM, yrMax, combinedObt: hyM + yrM, combinedMax: hyMax + yrMax };
       });
-
       const termObt = (hyRec ? hyRec.totalObtained : 0) + (yrRec ? yrRec.totalObtained : 0);
       const termMax = (hyRec ? hyRec.totalMax : 0) + (yrRec ? yrRec.totalMax : 0);
       const grandObt = dtObtained + termObt, grandMax = dtMax + termMax;
@@ -1378,22 +1454,14 @@ Capital of Rajasthan is? | Jodhpur | Udaipur | Jaipur | Ajmer | C</textarea>
       return { isBothComplete, dtCount: classDailyTests.length, dtObtained, dtMax, hyRec, yrRec, subjectRows, grandObt, grandMax, overallPct, grade, resultStatus: pNum >= 33 ? "PASSED" : "FAIL" };
     }
 
-     // FIX 3: Block Annual Report Card Download until BOTH Half-Yearly & Yearly Marks are uploaded
     async function generateStudentAnnualReportPDF(masterIdOverride = null) {
       const stu = masterIdOverride ? allStudents[masterIdOverride] : loggedInStudent;
-      if (!stu) return;
+      if (!stu || stu.isScholarshipOnly) return showCustomAlert("Report Card is available only for enrolled school students.", "Locked", "DANGER");
       const rep = calculateStudentAnnualReportData(stu);
-
       if (!rep.isBothComplete) {
         triggerPhoneVibrationAndSound();
-        await showCustomAlert(
-          `🔒 Annual Report Card Locked!\n\nBoth Half-Yearly Exam AND Yearly (Annual) Exam marks must be completely uploaded for ${stu.studentName} (${stu.currentClass}) before the Annual Report Card PDF can be generated.`,
-          "Incomplete Exam Data",
-          "DANGER"
-        );
-        return;
+        return showCustomAlert(`🔒 Annual Report Card Locked!\n\nBoth Half-Yearly Exam AND Yearly (Annual) Exam marks must be uploaded for ${stu.studentName} (${stu.currentClass}) before downloading.`, "Incomplete Exam Data", "DANGER");
       }
-
       const wrap = document.getElementById("pdfPrintWrapper"), area = document.getElementById("pdfPrintArea");
       wrap.classList.remove("hidden");
       const qr = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(`GSSS-REPORT|${stu.masterId}|${stu.studentName}|PCT:${rep.overallPct}%`)}`;
@@ -1437,12 +1505,11 @@ Capital of Rajasthan is? | Jodhpur | Udaipur | Jaipur | Ajmer | C</textarea>
       wrap.classList.add("hidden");
     }
 
-    // =========================================================
-    // PHASE 4: LIVE CBT & MOCK TEST ENGINE (+4/-1, TIMER, EMAIL)
-    // =========================================================
+    // LIVE CBT & SCHOLARSHIP PHASE-1 CBT ENGINE (WITH AUTO 50%ile STAGE-2 QUALIFICATION)
     async function createLiveCBTExam() {
       const title = document.getElementById("cbt_title").value.trim();
       const targetClass = document.getElementById("cbt_class").value;
+      const category = document.getElementById("cbt_category").value;
       const startTime = document.getElementById("cbt_startTime").value;
       const duration = Number(document.getElementById("cbt_duration").value) || 30;
       const plusMark = Number(document.getElementById("cbt_plusMark").value) || 4;
@@ -1450,21 +1517,18 @@ Capital of Rajasthan is? | Jodhpur | Udaipur | Jaipur | Ajmer | C</textarea>
       const resultMode = document.getElementById("cbt_resultMode").value;
       const resultTime = document.getElementById("cbt_resultTime").value;
       const rawLines = document.getElementById("cbt_bulkQuestions").value.trim().split("\n").filter(Boolean);
-
       if (!title || !startTime || !rawLines.length) return showCustomAlert("Please enter Exam Name, Start Time, and Questions.", "Missing Info", "DANGER");
 
       const questions = rawLines.map((line, i) => {
         const parts = line.split("|").map(x => x.trim());
         return { qNo: i + 1, q: parts[0] || `Question ${i+1}`, A: parts[1] || "Opt A", B: parts[2] || "Opt B", C: parts[3] || "Opt C", D: parts[4] || "Opt D", ans: (parts[5] || "A").toUpperCase() };
       });
-
       const cbtId = `CBT_${Date.now()}`;
       await db.ref(`cbtExams/${cbtId}`).set({
-        cbtId, title, targetClass, startTime, duration, plusMark, minusMark,
+        cbtId, title, targetClass, category, startTime, duration, plusMark, minusMark,
         resultMode, resultTime, status: "ACTIVE", questions, attempts: {}, createdAt: new Date().toISOString()
       });
-      await db.ref(`notifications/NOTIF_${Date.now()}`).set({ id: `NOTIF_${Date.now()}`, targetType: "CLASS", targetValue: targetClass, title: `New Live CBT Scheduled: ${title}`, message: `Exam starts at ${new Date(startTime).toLocaleString("en-IN")}. Marking: +${plusMark}, -${minusMark}.`, createdAt: new Date().toISOString() });
-      await showCustomAlert(`Live CBT Exam (${cbtId}) created with ${questions.length} questions!`, "CBT Created", "SUCCESS");
+      await showCustomAlert(`Live CBT Exam (${cbtId}) created!`, "CBT Created", "SUCCESS");
     }
 
     function renderAdminCBTList() {
@@ -1473,11 +1537,11 @@ Capital of Rajasthan is? | Jodhpur | Udaipur | Jaipur | Ajmer | C</textarea>
       box.innerHTML = list.map(ex => {
         const attCount = Object.keys(ex.attempts || {}).length;
         return `<div class="p-3 border rounded-xl bg-slate-50 space-y-2 text-xs">
-          <div class="flex justify-between items-center"><span class="font-extrabold text-pink-700">${ex.title} (${ex.targetClass})</span><span class="px-2 py-0.5 rounded font-black text-[10px] ${ex.status==='ACTIVE'?'bg-emerald-100 text-emerald-800':'bg-rose-100 text-rose-800'}">${ex.status}</span></div>
+          <div class="flex justify-between items-center"><span class="font-extrabold text-pink-700">${ex.title} (${ex.targetClass} • ${ex.category || 'REGULAR'})</span><span class="px-2 py-0.5 rounded font-black text-[10px] ${ex.status==='ACTIVE'?'bg-emerald-100 text-emerald-800':'bg-rose-100 text-rose-800'}">${ex.status}</span></div>
           <div class="text-[11px] text-slate-600">ID: <strong>${ex.cbtId}</strong> • Start: ${new Date(ex.startTime).toLocaleString("en-IN")} • Marks: +${ex.plusMark}/-${ex.minusMark} • Attempts: <strong>${attCount}</strong></div>
           <div class="flex flex-wrap gap-1.5">
-            <button type="button" onclick="db.ref('cbtExams/${ex.cbtId}/status').set('${ex.status==='ACTIVE'?'STOPPED':'ACTIVE'}')" class="bg-amber-500 text-white px-2.5 py-1 rounded font-bold">${ex.status==='ACTIVE'?'Stop/Pause Exam':'Resume Exam'}</button>
-            <button type="button" onclick="releaseScheduledCBTResultAndEmail('${ex.cbtId}')" class="bg-blue-700 text-white px-2.5 py-1 rounded font-bold">Declare Result & Send Emails</button>
+            <button type="button" onclick="db.ref('cbtExams/${ex.cbtId}/status').set('${ex.status==='ACTIVE'?'STOPPED':'ACTIVE'}')" class="bg-amber-500 text-white px-2.5 py-1 rounded font-bold">${ex.status==='ACTIVE'?'Stop/Pause':'Resume'}</button>
+            <button type="button" onclick="releaseScheduledCBTResultAndEmail('${ex.cbtId}')" class="bg-blue-700 text-white px-2.5 py-1 rounded font-bold">Declare Result, 50%ile & Email</button>
             <button type="button" onclick="db.ref('cbtExams/${ex.cbtId}').remove()" class="bg-rose-600 text-white px-2.5 py-1 rounded font-bold">Delete</button>
           </div>
         </div>`;
@@ -1488,50 +1552,61 @@ Capital of Rajasthan is? | Jodhpur | Udaipur | Jaipur | Ajmer | C</textarea>
       const ex = allCBTExams[cbtId]; if (!ex) return;
       await db.ref(`cbtExams/${cbtId}/resultMode`).set("IMMEDIATE");
       const attempts = ex.attempts || {};
+      const allScores = Object.values(attempts).map(a => a.score);
+      const totalCands = allScores.length;
       const sortedIds = Object.keys(attempts).sort((a, b) => attempts[b].score - attempts[a].score);
+      const schCands = (allScholarshipData && allScholarshipData.candidates) ? allScholarshipData.candidates : {};
+
       for (let i = 0; i < sortedIds.length; i++) {
-        const sId = sortedIds[i], att = attempts[sId], stu = allStudents[sId];
-        if (stu && stu.email) {
+        const sId = sortedIds[i], att = attempts[sId];
+        const countBelowOrEqual = allScores.filter(sc => sc <= att.score).length;
+        const percentile = totalCands > 0 ? Number(((countBelowOrEqual / totalCands) * 100).toFixed(1)) : 100;
+        const qualifiedStage2 = percentile >= 50;
+
+        await db.ref(`cbtExams/${cbtId}/attempts/${sId}/percentile`).set(percentile);
+        await db.ref(`cbtExams/${cbtId}/attempts/${sId}/qualifiedStage2`).set(qualifiedStage2);
+
+        if (ex.category === "SCHOLARSHIP_PHASE_1" && schCands[sId]) {
+          await db.ref(`scholarship/candidates/${sId}/phase1Score`).set(`${att.score}/${ex.questions.length * ex.plusMark}`);
+          await db.ref(`scholarship/candidates/${sId}/phase1Percentile`).set(percentile);
+          await db.ref(`scholarship/candidates/${sId}/phase1Status`).set(qualifiedStage2 ? "QUALIFIED_STAGE_2 (50%ile+)" : "NOT_QUALIFIED");
+        }
+
+        const person = allStudents[sId] || schCands[sId];
+        if (person && person.email) {
           await sendOfficialEmail({
-            to: stu.email,
-            subject: `CBT Exam Result: ${ex.title} (Rank #${i + 1}) - Gurukul School`,
+            to: person.email,
+            subject: `Exam Result & Percentile Declared: ${ex.title} - Gurukul School`,
             htmlBody: buildOfficialEmailTemplate({
-              heading: `Online CBT Result Declared: ${ex.title}`,
-              studentName: stu.studentName,
-              bodyHtml: `<p>Your official result for <strong>${ex.title}</strong> is as follows:</p><ul><li><strong>School Rank:</strong> #${i + 1}</li><li><strong>Total Score:</strong> ${att.score} / ${ex.questions.length * ex.plusMark}</li><li><strong>Correct Answers:</strong> ${att.rightCount}</li><li><strong>Wrong Answers:</strong> ${att.wrongCount}</li></ul>`
+              heading: `Official Result Declared: ${ex.title}`,
+              studentName: person.studentName,
+              bodyHtml: `<p>Your official CBT result is declared:</p><ul><li><strong>Rank:</strong> #${i + 1}</li><li><strong>Score:</strong> ${att.score} / ${ex.questions.length * ex.plusMark}</li><li><strong>Percentile:</strong> ${percentile}%ile</li><li><strong>Right / Wrong:</strong> ${att.rightCount} Right, ${att.wrongCount} Wrong</li>${ex.category === 'SCHOLARSHIP_PHASE_1' ? `<li><strong>Stage-2 Status (50%ile Cutoff):</strong> ${qualifiedStage2 ? 'QUALIFIED FOR STAGE-2 OFFLINE EXAM' : 'NOT QUALIFIED'}</li>` : ''}</ul>`
             })
           });
         }
       }
-      await showCustomAlert("Result unlocked for all students & Scorecards sent via Official English Email!", "Results Dispatched", "SUCCESS");
+      await showCustomAlert("Results, Ranks & 50%ile Stage-2 Qualifications declared and emailed to all candidates!", "Results Dispatched", "SUCCESS");
     }
 
-    // Student CBT Exam Runner (Instructions -> Timer -> Submit -> Rank & Email)
     let activeCBTState = null;
-
     function openCBTInstructionsScreen(cbtId) {
       const ex = allCBTExams[cbtId]; if (!ex || !loggedInStudent) return;
-      const bodyEl = document.getElementById("stuModModalBody");
-      bodyEl.innerHTML = `
+      document.getElementById("stuModModalBody").innerHTML = `
         <div class="p-4 rounded-2xl bg-slate-50 border space-y-3 text-xs">
           <h4 class="text-base font-extrabold text-slate-900">${ex.title} — Official Exam Instructions</h4>
           <ul class="list-disc pl-5 space-y-1.5 text-slate-700 font-semibold">
-            <li>Total Questions: <strong>${ex.questions.length} Multiple Choice Questions</strong></li>
-            <li>Total Duration: <strong>${ex.duration} Minutes</strong> (Auto-submits when timer ends)</li>
-            <li>Marking Scheme: <strong>+${ex.plusMark} Marks</strong> for each Correct Answer, and <strong>-${ex.minusMark} Negative Marking</strong> for each Wrong Answer.</li>
-            <li><strong>Single Attempt Rule:</strong> You can attempt this examination only ONCE. Do not refresh or close the app during the test.</li>
+            <li>Total Questions: <strong>${ex.questions.length} MCQs</strong> | Duration: <strong>${ex.duration} Mins</strong></li>
+            <li>Marking: <strong>+${ex.plusMark}</strong> for Right, <strong>-${ex.minusMark}</strong> for Wrong.</li>
+            ${ex.category === 'SCHOLARSHIP_PHASE_1' ? `<li class="text-cyan-800"><strong>Scholarship Stage-2 Cutoff:</strong> Candidates scoring <strong>50%ile or above</strong> automatically qualify for Phase-2 Offline Exam!</li>` : ''}
+            <li>Single Attempt Only: You can take this exam only once.</li>
           </ul>
-          <label class="flex items-center gap-2 pt-3 border-t font-extrabold text-blue-900 cursor-pointer">
-            <input type="checkbox" id="cbtAgreeCheck" class="w-4 h-4" />
-            <span>I have read and understood all examination rules and instructions.</span>
-          </label>
-          <button type="button" onclick="startLiveCBTAttempt('${cbtId}')" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-3 rounded-xl shadow-lg">Start Live CBT Examination Now</button>
-        </div>
-      `;
+          <label class="flex items-center gap-2 pt-3 border-t font-extrabold text-blue-900 cursor-pointer"><input type="checkbox" id="cbtAgreeCheck" class="w-4 h-4" /><span>I have read and accepted all examination instructions.</span></label>
+          <button type="button" onclick="startLiveCBTAttempt('${cbtId}')" class="w-full bg-emerald-600 text-white font-extrabold py-3 rounded-xl shadow-lg">Start Live CBT Examination Now</button>
+        </div>`;
     }
 
     async function startLiveCBTAttempt(cbtId) {
-      if (!document.getElementById("cbtAgreeCheck")?.checked) return showCustomAlert("Please tick the checkbox to accept exam instructions first.", "Accept Instructions", "DANGER");
+      if (!document.getElementById("cbtAgreeCheck")?.checked) return showCustomAlert("Tick the checkbox to accept instructions first.", "Required", "DANGER");
       const ex = allCBTExams[cbtId];
       activeCBTState = { cbtId, answers: {}, secondsLeft: ex.duration * 60 };
       renderLiveCBTQuestionsUI();
@@ -1539,42 +1614,22 @@ Capital of Rajasthan is? | Jodhpur | Udaipur | Jaipur | Ajmer | C</textarea>
       cbtCountdownInterval = setInterval(() => {
         activeCBTState.secondsLeft--;
         const tEl = document.getElementById("liveCBTTimerBadge");
-        if (tEl) {
-          const m = Math.floor(activeCBTState.secondsLeft / 60), s = activeCBTState.secondsLeft % 60;
-          tEl.innerText = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-        }
-        if (activeCBTState.secondsLeft <= 0) {
-          clearInterval(cbtCountdownInterval);
-          submitLiveCBTAttempt();
-        }
+        if (tEl) tEl.innerText = `${String(Math.floor(activeCBTState.secondsLeft / 60)).padStart(2, '0')}:${String(activeCBTState.secondsLeft % 60).padStart(2, '0')}`;
+        if (activeCBTState.secondsLeft <= 0) { clearInterval(cbtCountdownInterval); submitLiveCBTAttempt(); }
       }, 1000);
     }
 
     function renderLiveCBTQuestionsUI() {
       const ex = allCBTExams[activeCBTState.cbtId];
-      const bodyEl = document.getElementById("stuModModalBody");
-      bodyEl.innerHTML = `
+      document.getElementById("stuModModalBody").innerHTML = `
         <div class="sticky top-0 bg-slate-900 text-white p-3 rounded-xl flex justify-between items-center z-10 shadow">
           <div><span class="font-extrabold text-xs">${ex.title}</span><span class="text-[10px] text-amber-300 ml-2">(+${ex.plusMark} / -${ex.minusMark})</span></div>
           <div class="bg-rose-600 px-3 py-1 rounded-lg font-black text-sm" id="liveCBTTimerBadge">00:00</div>
         </div>
         <div class="space-y-4 pt-2">
-          ${ex.questions.map((q, idx) => `
-            <div class="p-4 border rounded-xl bg-slate-50 space-y-2 text-xs">
-              <div class="font-extrabold text-slate-900">Q${idx + 1}. ${q.q}</div>
-              <div class="grid sm:grid-cols-2 gap-2">
-                ${["A","B","C","D"].map(opt => `
-                  <label class="flex items-center gap-2 p-2.5 border rounded-lg bg-white cursor-pointer hover:bg-blue-50">
-                    <input type="radio" name="cbtQ_${idx}" value="${opt}" onchange="activeCBTState.answers[${idx}]='${opt}'" />
-                    <span class="font-semibold"><strong>(${opt})</strong> ${q[opt]}</span>
-                  </label>
-                `).join("")}
-              </div>
-            </div>
-          `).join("")}
-          <button type="button" onclick="submitLiveCBTAttempt()" class="w-full bg-blue-700 hover:bg-blue-800 text-white font-extrabold py-3 rounded-xl text-sm shadow-lg">Submit Final CBT Exam</button>
-        </div>
-      `;
+          ${ex.questions.map((q, idx) => `<div class="p-4 border rounded-xl bg-slate-50 space-y-2 text-xs"><div class="font-extrabold text-slate-900">Q${idx + 1}. ${q.q}</div><div class="grid sm:grid-cols-2 gap-2">${["A","B","C","D"].map(opt => `<label class="flex items-center gap-2 p-2.5 border rounded-lg bg-white cursor-pointer hover:bg-blue-50"><input type="radio" name="cbtQ_${idx}" value="${opt}" onchange="activeCBTState.answers[${idx}]='${opt}'" /><span class="font-semibold"><strong>(${opt})</strong> ${q[opt]}</span></label>`).join("")}</div></div>`).join("")}
+          <button type="button" onclick="submitLiveCBTAttempt()" class="w-full bg-blue-700 text-white font-extrabold py-3 rounded-xl text-sm shadow-lg">Submit Final CBT Exam</button>
+        </div>`;
     }
 
     async function submitLiveCBTAttempt() {
@@ -1583,19 +1638,28 @@ Capital of Rajasthan is? | Jodhpur | Udaipur | Jaipur | Ajmer | C</textarea>
       let rightCount = 0, wrongCount = 0, leftCount = 0;
       ex.questions.forEach((q, idx) => {
         const chosen = activeCBTState.answers[idx];
-        if (!chosen) leftCount++;
-        else if (chosen === q.ans) rightCount++;
-        else wrongCount++;
+        if (!chosen) leftCount++; else if (chosen === q.ans) rightCount++; else wrongCount++;
       });
       const score = (rightCount * ex.plusMark) - (wrongCount * ex.minusMark);
+      const existingScores = Object.values(ex.attempts || {}).map(a => a.score);
+      existingScores.push(score);
+      const belowOrEq = existingScores.filter(s => s <= score).length;
+      const percentile = Number(((belowOrEq / existingScores.length) * 100).toFixed(1));
+      const qualifiedStage2 = percentile >= 50;
+
       const attemptData = {
         masterId: loggedInStudent.masterId, studentName: loggedInStudent.studentName,
-        score, rightCount, wrongCount, leftCount, answers: activeCBTState.answers,
-        submittedAt: new Date().toISOString()
+        score, rightCount, wrongCount, leftCount, percentile, qualifiedStage2,
+        answers: activeCBTState.answers, submittedAt: new Date().toISOString()
       };
       await db.ref(`cbtExams/${ex.cbtId}/attempts/${loggedInStudent.masterId}`).set(attemptData);
 
-      // If result is IMMEDIATE, send English Email immediately
+      if (ex.category === "SCHOLARSHIP_PHASE_1" && loggedInStudent.isScholarshipOnly) {
+        await db.ref(`scholarship/candidates/${loggedInStudent.masterId}/phase1Score`).set(`${score}/${ex.questions.length * ex.plusMark}`);
+        await db.ref(`scholarship/candidates/${loggedInStudent.masterId}/phase1Percentile`).set(percentile);
+        await db.ref(`scholarship/candidates/${loggedInStudent.masterId}/phase1Status`).set(qualifiedStage2 ? "QUALIFIED_STAGE_2 (50%ile+)" : "NOT_QUALIFIED");
+      }
+
       if (ex.resultMode === "IMMEDIATE" && loggedInStudent.email) {
         await sendOfficialEmail({
           to: loggedInStudent.email,
@@ -1603,86 +1667,96 @@ Capital of Rajasthan is? | Jodhpur | Udaipur | Jaipur | Ajmer | C</textarea>
           htmlBody: buildOfficialEmailTemplate({
             heading: `Your CBT Scorecard: ${ex.title}`,
             studentName: loggedInStudent.studentName,
-            bodyHtml: `<p>You have completed <strong>${ex.title}</strong>.</p><ul><li><strong>Score:</strong> ${score} / ${ex.questions.length * ex.plusMark}</li><li><strong>Right Questions:</strong> ${rightCount}</li><li><strong>Wrong Questions:</strong> ${wrongCount}</li><li><strong>Unattempted:</strong> ${leftCount}</li></ul>`
+            bodyHtml: `<p>You have completed <strong>${ex.title}</strong>.</p><ul><li><strong>Score:</strong> ${score} / ${ex.questions.length * ex.plusMark}</li><li><strong>Percentile:</strong> ${percentile}%ile</li><li><strong>Right / Wrong:</strong> ${rightCount} Right, ${wrongCount} Wrong</li>${ex.category === 'SCHOLARSHIP_PHASE_1' ? `<li><strong>Stage-2 Status (50%ile Cutoff):</strong> ${qualifiedStage2 ? 'QUALIFIED FOR STAGE-2 OFFLINE EXAM' : 'NOT QUALIFIED'}</li>` : ''}</ul>`
           })
         });
       }
-      await showCustomAlert("Your CBT Exam has been submitted successfully!", "Exam Submitted", "SUCCESS");
+      await showCustomAlert("Your CBT Exam has been submitted!", "Exam Submitted", "SUCCESS");
       openStudentModuleModal("LIVE_CBT");
     }
 
-    // =========================================================
-    // PHASE 4: SCHOLARSHIP EXAM (PHASE 1 + PHASE 2 + LIVE MAP)
-    // =========================================================
+    // SCHOLARSHIP PHASE-2 SCHEDULE + PERMANENT ADMISSION WITH FEE RELAXATION (SCH- TO GSSS- CONVERSION)
     async function saveScholarshipSettings() {
       const cfg = {
-        phase1Time: document.getElementById("sch_phase1Time").value,
-        cbtId: document.getElementById("sch_cbtId").value.trim(),
+        phase2DateTimeIso: document.getElementById("sch_phase2DateTimeIso").value,
         phase2Date: document.getElementById("sch_phase2Date").value.trim(),
         centerName: document.getElementById("sch_centerName").value.trim(),
-        mapUrl: document.getElementById("sch_mapUrl").value.trim()
+        mapUrl: document.getElementById("sch_mapUrl").value.trim(),
+        updatedAt: new Date().toISOString()
       };
       await db.ref("scholarship/config").set(cfg);
-      await showCustomAlert("Scholarship Schedule & Live Exam Center Location Saved!", "Saved", "SUCCESS");
-    }
-
-    async function registerScholarshipCandidate() {
-      const name = document.getElementById("sch_stuName").value.trim();
-      const cls = document.getElementById("sch_stuClass").value;
-      const father = document.getElementById("sch_father").value.trim();
-      const mobile = document.getElementById("sch_mobile").value.trim();
-      const email = document.getElementById("sch_email").value.trim();
-      if (!name || !father || !mobile || !email) return showCustomAlert("Fill all required fields.", "Missing Info", "DANGER");
-
-      const schId = `SCH-${CURRENT_SESSION.yearPrefix}-${Math.floor(1000 + Math.random() * 9000)}`;
-      const rec = { schId, name, cls, father, mobile, email, phase1Score: null, phase1Status: "REGISTERED", createdAt: new Date().toISOString() };
-      await db.ref(`scholarship/candidates/${schId}`).set(rec);
-      await sendOfficialEmail({
-        to: email,
-        subject: `Scholarship Registration Confirmed (${schId}) - Gurukul School`,
-        htmlBody: buildOfficialEmailTemplate({ heading: "Scholarship Exam Registration Confirmed", studentName: name, bodyHtml: `<p>Your Scholarship Registration ID is <strong>${schId}</strong> for <strong>${cls}</strong>.</p>` })
+      const nId = `NOTIF_${Date.now()}`;
+      await db.ref(`notifications/${nId}`).set({
+        id: nId, targetType: "ALL", targetValue: "ALL",
+        title: `Scholarship Phase-2 (Offline Exam) Scheduled!`,
+        message: `Offline Exam Date: ${cfg.phase2Date} at ${cfg.centerName}. Open app to view Live Countdown & Map!`,
+        createdAt: new Date().toISOString()
       });
-      await showCustomAlert(`Registered Successfully!\nYour Scholarship ID is: ${schId}\nSave this ID to take Phase 1 Exam & track Phase 2 Center.`, "Registered", "SUCCESS");
-    }
-
-    function trackScholarshipStatus() {
-      const q = document.getElementById("sch_trackInput").value.trim().toLowerCase();
-      const box = document.getElementById("sch_trackResultBox"); if (!q) return;
-      const cands = allScholarshipData.candidates || {};
-      const cfg = allScholarshipData.config || { phase2Date: "TBA", centerName: "Gurukul Campus, Dhankoli", mapUrl: "https://maps.google.com/?q=Gurukul+Senior+Secondary+School+Dhankoli" };
-      const list = Object.values(cands).filter(c => c.schId.toLowerCase() === q || c.mobile === q);
-      box.innerHTML = list.map(c => `
-        <div class="p-3.5 border rounded-xl bg-slate-50 space-y-2 text-xs">
-          <div class="flex justify-between font-extrabold"><span>${c.schId} — ${c.name} (${c.cls})</span><span class="text-cyan-700">${c.phase1Status}</span></div>
-          <p><strong>Phase 1 Marks:</strong> ${c.phase1Score ?? 'Pending Exam'} | <strong>Phase 2 (Offline Exam):</strong> ${cfg.phase2Date}</p>
-          <p><strong>Exam Center:</strong> ${cfg.centerName}</p>
-          <a href="${cfg.mapUrl}" target="_blank" class="inline-flex items-center gap-1.5 bg-emerald-600 text-white font-bold px-3.5 py-2 rounded-lg"><i class="fa-solid fa-location-dot"></i> Open Live Exam Center Map Location</a>
-        </div>
-      `).join("") || `<p class="text-xs text-rose-600 font-bold">No candidate found.</p>`;
+      await showCustomAlert("Phase-2 Schedule & Location Saved! All Scholarship students have been notified with phone vibration & Live Countdown Popup.", "Saved", "SUCCESS");
     }
 
     function renderAdminScholarshipCandidates() {
       const box = document.getElementById("adminScholarshipAppsList"); if (!box) return;
       const cands = Object.values(allScholarshipData.candidates || {}).reverse();
       box.innerHTML = cands.map(c => `
-        <div class="p-2.5 border rounded-xl bg-white flex justify-between items-center text-xs">
-          <div><span class="font-extrabold text-cyan-800">${c.schId}</span> • <strong>${c.name}</strong> (${c.cls})<br/><span class="text-[10px] text-slate-500">Status: ${c.phase1Status} | Score: ${c.phase1Score ?? 'N/A'}</span></div>
-          <button type="button" onclick="qualifyScholarshipCandidate('${c.schId}')" class="bg-emerald-600 text-white px-2.5 py-1 rounded font-bold">Qualify for Phase 2</button>
+        <div class="p-3 border rounded-xl bg-white space-y-2 text-xs">
+          <div class="flex justify-between items-center">
+            <div><span class="font-extrabold text-cyan-800">${c.masterId}</span> • <strong>${c.studentName}</strong> (${c.currentClass})<br/><span class="text-[10px] text-slate-500">Father: ${c.fatherName} | Score: ${c.phase1Score ?? 'Pending'} (${c.phase1Percentile ?? '-'}%ile)</span></div>
+            <span class="px-2 py-0.5 rounded text-[10px] font-black ${c.convertedMasterId ? 'bg-emerald-100 text-emerald-800' : 'bg-cyan-100 text-cyan-900'}">${c.convertedMasterId ? `Converted: ${c.convertedMasterId}` : c.phase1Status}</span>
+          </div>
+          ${!c.convertedMasterId ? `
+            <div class="flex flex-wrap gap-1.5 pt-1 border-t">
+              <button type="button" onclick="convertScholarshipToPermanentAdmission('${c.masterId}')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg font-extrabold"><i class="fa-solid fa-user-check mr-1"></i> Permanent Admission + Fee Relaxation (Convert to GSSS-ID)</button>
+            </div>
+          ` : ""}
         </div>
-      `).join("") || `<p class="text-xs text-slate-400">No scholarship registrations yet.</p>`;
+      `).join("") || `<p class="text-xs text-slate-400">No approved scholarship candidates yet.</p>`;
     }
 
-    async function qualifyScholarshipCandidate(schId) {
-      const score = await showCustomPrompt("Enter Phase 1 Score & Qualify Candidate for Phase 2 Offline Exam:", "85/100");
-      if (score === null) return;
-      await db.ref(`scholarship/candidates/${schId}/phase1Score`).set(score);
-      await db.ref(`scholarship/candidates/${schId}/phase1Status`).set("QUALIFIED_FOR_PHASE_2");
-      await showCustomAlert("Candidate Qualified for Phase 2 Offline Exam!", "Updated", "SUCCESS");
+    async function convertScholarshipToPermanentAdmission(schId) {
+      const c = (allScholarshipData.candidates || {})[schId]; if (!c) return;
+      const defaultClassFee = Number(allClassFees[c.currentClass] || 15000);
+      const relaxedFeeStr = await showCustomPrompt(
+        `Convert ${c.studentName} (${schId}) to Permanent School Admission!\n\nStandard Annual Fee for ${c.currentClass}: ₹${defaultClassFee}\nEnter Final Annual Fee after Scholarship Relaxation (₹):`,
+        String(Math.round(defaultClassFee * 0.5)),
+        "Permanent Admission with Fee Relaxation"
+      );
+      if (relaxedFeeStr === null) return;
+      const relaxedFee = Number(relaxedFeeStr) || 0;
+      const newMasterId = `GSSS-${CURRENT_SESSION.yearPrefix}-${Math.floor(1000 + Math.random() * 9000)}`;
+
+      const permanentRecord = {
+        ...c,
+        masterId: newMasterId,
+        previousScholarshipId: schId,
+        appType: "REGULAR",
+        status: "ACTIVE",
+        customTotalFee: relaxedFee,
+        feeRelaxationNote: `Scholarship Relaxed Fee (Standard: ₹${defaultClassFee}, Final: ₹${relaxedFee})`,
+        individualLocks: {},
+        approvedDate: new Date().toLocaleDateString("en-IN")
+      };
+
+      await db.ref(`students/${newMasterId}`).set(permanentRecord);
+      await db.ref(`scholarship/candidates/${schId}/convertedMasterId`).set(newMasterId);
+      await db.ref(`scholarship/candidates/${schId}/phase1Status`).set("ADMITTED_PERMANENTLY");
+
+      const pdfBase64 = await generateSignedAdmissionPDF(newMasterId, false);
+      await sendOfficialEmail({
+        to: c.email,
+        subject: `Permanent Admission Confirmed (${newMasterId}) with Fee Relaxation - Gurukul School`,
+        htmlBody: buildOfficialEmailTemplate({
+          heading: "Congratulations! Permanent Admission & Fee Relaxation Confirmed",
+          studentName: c.studentName,
+          bodyHtml: `<p>Your Scholarship ID (<strong>${schId}</strong>) has been officially upgraded to Permanent Student Master ID:</p><div style="background:#f0fdf4;border:2px solid #16a34a;padding:14px;border-radius:10px;margin:12px 0;"><strong>New Permanent Master ID:</strong> ${newMasterId}<br/><strong>Login Password:</strong> ${c.password}<br/><strong>Class:</strong> ${c.currentClass}<br/><strong>Approved Annual Fee (After Scholarship Relaxation):</strong> ₹${relaxedFee}</div><p>All 14 School Portals are now unlocked for your account.</p>`
+        }),
+        pdfBase64, pdfFileName: `Permanent_Admission_${newMasterId}.pdf`
+      });
+
+      await showCustomAlert(`Converted Successfully!\n\nOld ID: ${schId}\nNew Permanent Master ID: ${newMasterId}\nRelaxed Annual Fee: ₹${relaxedFee}\nOfficial English Email with Signed PDF sent!`, "Permanent Admission Done", "SUCCESS");
     }
 
-     // =========================================================
-    // PHASE 4: FEES, LIVE CLASSES & BUS TRACKING
-    // =========================================================
+    // FEES MANAGEMENT WITH SEARCH BY NAME, FATHER'S NAME OR MASTER ID
     async function saveClassFeeStructure() {
       const cls = document.getElementById("fee_class").value;
       const amt = Number(document.getElementById("fee_classAmount").value) || 0;
@@ -1690,19 +1764,55 @@ Capital of Rajasthan is? | Jodhpur | Udaipur | Jaipur | Ajmer | C</textarea>
       await showCustomAlert(`Annual Fee for ${cls} set to ₹${amt}`, "Fee Updated", "SUCCESS");
     }
 
+    function renderFeeSearchStudents() {
+      const box = document.getElementById("feeSearchResultList"); if (!box) return;
+      const q = (document.getElementById("feeSearchInput")?.value || "").trim().toLowerCase();
+      const list = Object.values(allStudents).filter(s => s.status !== "LEFT" && (
+        !q || s.studentName.toLowerCase().includes(q) || s.fatherName.toLowerCase().includes(q) || s.masterId.toLowerCase().includes(q)
+      ));
+      box.innerHTML = list.map(s => {
+        const total = s.customTotalFee !== undefined ? Number(s.customTotalFee) : Number(allClassFees[s.currentClass] || 15000);
+        const paid = Number(s.paidFee || 0);
+        const due = Math.max(0, total - paid);
+        return `<div class="p-2 border rounded-lg hover:bg-blue-50 flex items-center justify-between text-xs">
+          <div><span class="font-extrabold text-blue-700">${s.masterId}</span> • <strong>${s.studentName}</strong> (Father: ${s.fatherName}) — ${s.currentClass}<br/><span class="text-[10px] font-bold text-slate-500">Total: ₹${total} | Paid: ₹${paid} | Due: <strong class="text-rose-600">₹${due}</strong></span></div>
+          <button type="button" onclick="selectStudentForFeeEdit('${s.masterId}', ${total})" class="bg-blue-700 text-white px-2.5 py-1 rounded font-bold">Select</button>
+        </div>`;
+      }).join("") || `<p class="text-xs text-slate-400 text-center py-2">No matching student found.</p>`;
+    }
+
+    function selectStudentForFeeEdit(masterId, currentTotal) {
+      document.getElementById("fee_stuId").value = masterId;
+      document.getElementById("fee_customTotal").value = currentTotal;
+      document.getElementById("fee_paidNow").focus();
+    }
+
     async function updateStudentFeeRecord() {
       const id = document.getElementById("fee_stuId").value.trim().toUpperCase();
       const stu = allStudents[id];
-      if (!stu) return showCustomAlert("Student Master ID not found!", "Error", "DANGER");
+      if (!stu) return showCustomAlert("Select or enter a valid Student Master ID first!", "Error", "DANGER");
       const customTotal = document.getElementById("fee_customTotal").value;
       const paidNow = Number(document.getElementById("fee_paidNow").value) || 0;
 
       if (customTotal !== "") await db.ref(`students/${id}/customTotalFee`).set(Number(customTotal));
       if (paidNow > 0) {
-        const prevPaid = Number(stu.paidFee || 0);
-        await db.ref(`students/${id}/paidFee`).set(prevPaid + paidNow);
+        const newPaid = Number(stu.paidFee || 0) + paidNow;
+        await db.ref(`students/${id}/paidFee`).set(newPaid);
+        if (stu.email) {
+          await sendOfficialEmail({
+            to: stu.email,
+            subject: `Fee Payment Receipt (₹${paidNow}) - Gurukul Sr. Sec. School`,
+            htmlBody: buildOfficialEmailTemplate({
+              heading: "Official Fee Payment Confirmation",
+              studentName: stu.studentName,
+              bodyHtml: `<p>We have received a fee payment of <strong>₹${paidNow}</strong> for <strong>${stu.studentName} (${id})</strong>.</p><p><strong>Total Paid So Far:</strong> ₹${newPaid}</p>`
+            })
+          });
+        }
       }
-      await showCustomAlert(`Fee record updated for ${stu.studentName} (${id})!`, "Fee Updated", "SUCCESS");
+      document.getElementById("fee_paidNow").value = "";
+      renderFeeSearchStudents();
+      await showCustomAlert(`Fee updated for ${stu.studentName} (${id})!`, "Fee Updated", "SUCCESS");
     }
 
     async function publishLiveClass() {
@@ -1711,7 +1821,7 @@ Capital of Rajasthan is? | Jodhpur | Udaipur | Jaipur | Ajmer | C</textarea>
       if (!subject || !url) return;
       const id = `LC_${Date.now()}`;
       await db.ref(`liveClasses/${id}`).set({ id, targetClass: cls, subject, topic, url, createdAt: new Date().toLocaleString("en-IN") });
-      await showCustomAlert("Live Class Link Published!", "Published", "SUCCESS");
+      await showCustomAlert("Published to In-App Video Player!", "Published", "SUCCESS");
     }
 
     async function saveBusTrackingRoute() {
@@ -1720,7 +1830,7 @@ Capital of Rajasthan is? | Jodhpur | Udaipur | Jaipur | Ajmer | C</textarea>
       if (!route || !gpsUrl) return;
       const id = `BUS_${Date.now()}`;
       await db.ref(`busRoutes/${id}`).set({ id, route, driver, status, gpsUrl, updatedAt: new Date().toLocaleTimeString("en-IN") });
-      await showCustomAlert("School Bus Live GPS Location Updated!", "Updated", "SUCCESS");
+      await showCustomAlert("In-App Live Bus Map Updated!", "Updated", "SUCCESS");
     }
 
     // Attendance, Homework, Notifications
@@ -1795,12 +1905,16 @@ Capital of Rajasthan is? | Jodhpur | Udaipur | Jaipur | Ajmer | C</textarea>
       knownNotifCount = my.length;
     }
 
-    // =========================================================
-    // STUDENT INTERACTIVE MODULE VIEWER (ALL 14 MODULES LIVE)
-    // =========================================================
+    // STUDENT INTERACTIVE MODULE VIEWER (WITH SCHOLARSHIP MENU RESTRICTION & IN-APP VIDEO/MAP)
     async function openStudentModuleModal(modId) {
       if (!loggedInStudent) return;
       const stu = loggedInStudent;
+      const modObj = ALL_MODULES.find(m => m.id === modId);
+      if (stu.isScholarshipOnly && modObj && !modObj.allowForSch) {
+        triggerPhoneVibrationAndSound();
+        return showCustomAlert("🔒 Scholarship Candidate Account!\n\nOnly Scholarship Exam, Live CBT & Notification portals are active for your account. All regular school portals will unlock automatically once your Permanent Admission is confirmed.", "Scholarship Account Restriction", "DANGER");
+      }
+
       const gLock = globalPortalLocks[modId] || "OPEN";
       const pLock = stu.individualLocks && stu.individualLocks[modId];
       if (gLock === "FULL_LOCK" || pLock) {
@@ -1808,48 +1922,65 @@ Capital of Rajasthan is? | Jodhpur | Udaipur | Jaipur | Ajmer | C</textarea>
         return showCustomAlert("🔒 This portal is currently locked by Admin for your account.", "Portal Locked", "DANGER");
       }
 
-      if (modId === "ADMISSION") return openPublicModal("admissionFormModal", false);
+      if (modId === "ADMISSION") return openAdmissionModalWithMode("REGULAR", false);
 
       const modal = document.getElementById("studentModuleViewerModal");
       const titleEl = document.getElementById("stuModModalTitle");
       const bodyEl = document.getElementById("stuModModalBody");
 
-      if (modId === "LIVE_CBT") {
-        titleEl.innerText = `Live CBT & Mock Exams — ${stu.currentClass}`;
-        const exams = Object.values(allCBTExams).filter(e => e.targetClass === stu.currentClass && e.status === "ACTIVE").reverse();
+      if (modId === "SCHOLARSHIP") {
+        titleEl.innerText = `Scholarship Exam Portal (Phase 1 & Phase 2) — ${stu.studentName}`;
+        const cfg = allScholarshipData.config || {};
+        const schRec = (allScholarshipData.candidates && allScholarshipData.candidates[stu.masterId]) || stu;
+        bodyEl.innerHTML = `
+          <div class="p-4 rounded-2xl bg-cyan-50 border border-cyan-200 space-y-2 text-xs">
+            <div class="flex justify-between items-center"><span class="bg-cyan-700 text-white px-2.5 py-0.5 rounded-full font-black text-[10px]">ID: ${stu.masterId}</span><span class="font-extrabold text-cyan-900">${schRec.phase1Status || 'ACTIVE'}</span></div>
+            <p class="font-bold text-sm text-slate-900">${stu.studentName} (${stu.currentClass})</p>
+            <div class="grid sm:grid-cols-2 gap-2 pt-2">
+              <div class="p-3 bg-white rounded-xl border"><strong>Phase-1 Online CBT Score:</strong> ${schRec.phase1Score ?? 'Not Attempted Yet'} (${schRec.phase1Percentile ?? '-'}%ile)<br/><span class="text-[10px] text-slate-500">Minimum 50%ile required for Stage-2</span></div>
+              <div class="p-3 bg-white rounded-xl border"><strong>Phase-2 Offline Exam Date:</strong> ${cfg.phase2Date || 'To Be Announced'}<br/><strong>Center:</strong> ${cfg.centerName || 'Gurukul Campus, Dhankoli'}</div>
+            </div>
+            <div class="flex flex-wrap gap-2 pt-2">
+              <button type="button" onclick="openStudentModuleModal('LIVE_CBT')" class="bg-pink-600 text-white font-extrabold px-4 py-2 rounded-xl"><i class="fa-solid fa-laptop-code mr-1"></i> Open Phase-1 Live CBT</button>
+              <button type="button" onclick="showScholarshipPhase2CountdownPopup()" class="bg-cyan-700 text-white font-extrabold px-4 py-2 rounded-xl"><i class="fa-solid fa-clock mr-1"></i> Phase-2 Live Countdown</button>
+              <button type="button" onclick="openScholarshipCenterInAppMap()" class="bg-emerald-600 text-white font-extrabold px-4 py-2 rounded-xl"><i class="fa-solid fa-location-dot mr-1"></i> Open In-App Exam Center Map</button>
+            </div>
+          </div>`;
+        modal.classList.remove("hidden");
+
+      } else if (modId === "LIVE_CBT") {
+        titleEl.innerText = `Live CBT & Scholarship Online Exams — ${stu.currentClass}`;
+        const exams = Object.values(allCBTExams).filter(e =>
+          e.status === "ACTIVE" && (e.targetClass === "ALL" || e.targetClass === stu.currentClass) &&
+          (!stu.isScholarshipOnly || e.category === "SCHOLARSHIP_PHASE_1")
+        ).reverse();
         bodyEl.innerHTML = exams.map(ex => {
           const myAtt = ex.attempts && ex.attempts[stu.masterId];
           const startMs = new Date(ex.startTime).getTime(), nowMs = Date.now();
           const isStarted = nowMs >= startMs;
           const canShowResult = ex.resultMode === "IMMEDIATE" || (ex.resultTime && nowMs >= new Date(ex.resultTime).getTime());
-
-          // Calculate Rank if attempted
           let rankStr = "";
           if (myAtt && canShowResult) {
             const scores = Object.values(ex.attempts || {}).map(a => a.score).sort((a, b) => b - a);
-            rankStr = `Rank #${scores.indexOf(myAtt.score) + 1}`;
+            rankStr = `#${scores.indexOf(myAtt.score) + 1}`;
           }
-
           return `<div class="p-4 border rounded-2xl bg-slate-50 space-y-2 text-xs">
             <div class="flex justify-between items-center"><h4 class="font-extrabold text-sm text-slate-900">${ex.title}</h4><span class="bg-pink-100 text-pink-800 px-2.5 py-0.5 rounded-full font-black text-[10px]">+${ex.plusMark} / -${ex.minusMark} • ${ex.duration} Mins</span></div>
             <p class="text-slate-500">Scheduled Start: <strong>${new Date(ex.startTime).toLocaleString("en-IN")}</strong></p>
             ${myAtt ? (canShowResult ? `
-              <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-xl grid grid-cols-4 gap-2 text-center font-bold">
-                <div><div class="text-[10px] text-slate-500">School Rank</div><div class="text-sm font-black text-amber-700">${rankStr}</div></div>
-                <div><div class="text-[10px] text-slate-500">Total Score</div><div class="text-sm font-black text-blue-700">${myAtt.score}</div></div>
-                <div><div class="text-[10px] text-slate-500">Right</div><div class="text-sm font-black text-emerald-700">${myAtt.rightCount}</div></div>
-                <div><div class="text-[10px] text-slate-500">Wrong</div><div class="text-sm font-black text-rose-600">${myAtt.wrongCount}</div></div>
+              <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-xl grid grid-cols-2 sm:grid-cols-5 gap-2 text-center font-bold">
+                <div><div class="text-[10px] text-slate-500">Rank</div><div class="text-sm font-black text-amber-700">${rankStr}</div></div>
+                <div><div class="text-[10px] text-slate-500">Score</div><div class="text-sm font-black text-blue-700">${myAtt.score}</div></div>
+                <div><div class="text-[10px] text-slate-500">Percentile</div><div class="text-sm font-black text-purple-700">${myAtt.percentile ?? 100}%ile</div></div>
+                <div><div class="text-[10px] text-slate-500">Right/Wrong</div><div class="text-sm font-black text-emerald-700">${myAtt.rightCount}/${myAtt.wrongCount}</div></div>
+                <div><div class="text-[10px] text-slate-500">Stage-2 (50%ile)</div><div class="text-xs font-black ${myAtt.qualifiedStage2?'text-emerald-700':'text-rose-600'}">${myAtt.qualifiedStage2?'QUALIFIED ✅':'NOT QUALIFIED'}</div></div>
               </div>
-            ` : `<div class="p-3 bg-amber-50 border border-amber-200 rounded-xl font-bold text-amber-900">✅ Exam Submitted! Result will be declared on ${ex.resultTime ? new Date(ex.resultTime).toLocaleString("en-IN") : "Admin Announcement"}.</div>`)
+            ` : `<div class="p-3 bg-amber-50 border border-amber-200 rounded-xl font-bold text-amber-900">✅ Exam Submitted! Result will be declared at ${ex.resultTime ? new Date(ex.resultTime).toLocaleString("en-IN") : "Scheduled Time"}.</div>`)
             : (isStarted ? `<button type="button" onclick="openCBTInstructionsScreen('${ex.cbtId}')" class="bg-pink-600 text-white font-extrabold px-4 py-2.5 rounded-xl shadow">Read Instructions & Start Exam</button>`
             : `<div class="p-2.5 bg-blue-50 text-blue-900 rounded-xl font-extrabold">⏳ Exam Countdown: Starts in ${Math.max(1, Math.ceil((startMs - nowMs) / 60000))} Mins</div>`)}
           </div>`;
-        }).join("") || `<p class="text-center text-xs text-slate-400 py-8 font-bold">No Live CBT Exams scheduled for ${stu.currentClass}.</p>`;
+        }).join("") || `<p class="text-center text-xs text-slate-400 py-8 font-bold">No Live CBT Exams scheduled right now.</p>`;
         modal.classList.remove("hidden");
-
-      } else if (modId === "SCHOLARSHIP") {
-        modal.classList.add("hidden");
-        openPublicModal("scholarshipPublicModal", false);
 
       } else if (modId === "FEES") {
         titleEl.innerText = `Student Fee Status & Receipt — ${stu.studentName}`;
@@ -1858,25 +1989,24 @@ Capital of Rajasthan is? | Jodhpur | Udaipur | Jaipur | Ajmer | C</textarea>
         const paidFee = Number(stu.paidFee || 0);
         const dueFee = Math.max(0, totalFee - paidFee);
         bodyEl.innerHTML = `
+          ${stu.feeRelaxationNote ? `<div class="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs font-extrabold text-emerald-800"><i class="fa-solid fa-award mr-1"></i> ${stu.feeRelaxationNote}</div>` : ""}
           <div class="grid grid-cols-3 gap-3 text-center">
             <div class="p-3.5 bg-slate-100 rounded-xl"><div class="text-xs font-bold text-slate-500">Total Applicable Fee</div><div class="text-lg font-black text-slate-900">₹${totalFee}</div></div>
             <div class="p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl"><div class="text-xs font-bold text-emerald-700">Paid Fee</div><div class="text-lg font-black text-emerald-800">₹${paidFee}</div></div>
             <div class="p-3.5 bg-rose-50 border border-rose-200 rounded-xl"><div class="text-xs font-bold text-rose-700">Pending Due</div><div class="text-lg font-black text-rose-800">₹${dueFee}</div></div>
-          </div>
-          <p class="text-xs text-slate-500 text-center">For fee payment or scholarship concession queries, contact School Office Helpline: 9772564359.</p>
-        `;
+          </div>`;
         modal.classList.remove("hidden");
 
       } else if (modId === "LIVE_CLASS") {
-        titleEl.innerText = `Live & Recorded Classes (${stu.currentClass})`;
+        titleEl.innerText = `In-App Live & Recorded Classes (${stu.currentClass})`;
         const list = Object.values(allLiveClasses).filter(c => c.targetClass === stu.currentClass || c.targetClass === "ALL").reverse();
-        bodyEl.innerHTML = list.map(c => `<div class="p-4 border rounded-xl bg-slate-50 flex justify-between items-center text-xs"><div><span class="font-extrabold text-red-600">${c.subject}</span><h4 class="font-bold text-sm mt-0.5">${c.topic}</h4><p class="text-[10px] text-slate-400">${c.createdAt}</p></div><a href="${c.url}" target="_blank" class="bg-red-600 text-white font-extrabold px-4 py-2 rounded-xl"><i class="fa-solid fa-play mr-1"></i> Join Class</a></div>`).join("") || `<p class="text-center text-xs text-slate-400 py-8 font-bold">No Live Classes active right now.</p>`;
+        bodyEl.innerHTML = list.map(c => `<div class="p-4 border rounded-xl bg-slate-50 flex justify-between items-center text-xs"><div><span class="font-extrabold text-red-600">${c.subject}</span><h4 class="font-bold text-sm mt-0.5">${c.topic}</h4><p class="text-[10px] text-slate-400">${c.createdAt}</p></div><button type="button" onclick="openInAppVideoPlayer('${c.url}', '${c.subject} — ${c.topic}', '${c.targetClass}')" class="bg-red-600 text-white font-extrabold px-4 py-2 rounded-xl shadow"><i class="fa-solid fa-play mr-1"></i> Watch In-App</button></div>`).join("") || `<p class="text-center text-xs text-slate-400 py-8 font-bold">No Live Classes active right now.</p>`;
         modal.classList.remove("hidden");
 
       } else if (modId === "BUS_TRACKING") {
-        titleEl.innerText = `School Bus Live GPS Tracking`;
+        titleEl.innerText = `In-App School Bus Live GPS Radar`;
         const routes = Object.values(allBusRoutes).reverse();
-        bodyEl.innerHTML = routes.map(b => `<div class="p-4 border rounded-xl bg-yellow-50/50 border-yellow-300 flex flex-wrap justify-between items-center gap-3 text-xs"><div><span class="bg-yellow-500 text-slate-950 font-black px-2.5 py-0.5 rounded-full text-[10px]">${b.route}</span><h4 class="font-extrabold text-sm mt-1">${b.status}</h4><p class="text-slate-600">Driver: ${b.driver} • Updated: ${b.updatedAt}</p></div><a href="${b.gpsUrl}" target="_blank" class="bg-emerald-600 text-white font-extrabold px-4 py-2 rounded-xl"><i class="fa-solid fa-location-dot mr-1"></i> Track Live on Map</a></div>`).join("") || `<p class="text-center text-xs text-slate-400 py-8 font-bold">No bus routes updated yet.</p>`;
+        bodyEl.innerHTML = routes.map(b => `<div class="p-4 border rounded-xl bg-yellow-50/50 border-yellow-300 flex flex-wrap justify-between items-center gap-3 text-xs"><div><span class="bg-yellow-500 text-slate-950 font-black px-2.5 py-0.5 rounded-full text-[10px]">${b.route}</span><h4 class="font-extrabold text-sm mt-1">${b.status}</h4><p class="text-slate-600">Driver: ${b.driver} • Updated: ${b.updatedAt}</p></div><button type="button" onclick="openInAppMapModal('${b.gpsUrl}', '${b.route} — Live GPS', 'Driver: ${b.driver} | ${b.status}')" class="bg-emerald-600 text-white font-extrabold px-4 py-2 rounded-xl shadow"><i class="fa-solid fa-location-dot mr-1"></i> Open In-App Live Map</button></div>`).join("") || `<p class="text-center text-xs text-slate-400 py-8 font-bold">No bus routes updated yet.</p>`;
         modal.classList.remove("hidden");
 
       } else if (modId === "DAILY_TEST") {
@@ -1895,14 +2025,10 @@ Capital of Rajasthan is? | Jodhpur | Udaipur | Jaipur | Ajmer | C</textarea>
         titleEl.innerText = `Academic Exam Results & Annual Report — ${stu.studentName}`;
         bodyEl.innerHTML = `
           <div class="p-4 rounded-xl ${rep.isBothComplete ? 'bg-emerald-50 border-emerald-200' : 'bg-amber-50 border-amber-200'} border flex flex-wrap justify-between items-center gap-3 text-xs">
-            <div>
-              <div class="font-extrabold text-sm">${rep.isBothComplete ? `Combined Total: ${rep.grandObt}/${rep.grandMax} (${rep.overallPct}%)` : `Annual Report Card Status: Waiting for Complete Half-Yearly & Yearly Marks`}</div>
-              <div class="text-slate-600">Half-Yearly: ${rep.hyRec ? 'Uploaded ✅' : 'Pending ⏳'} | Annual Exam: ${rep.yrRec ? 'Uploaded ✅' : 'Pending ⏳'}</div>
-            </div>
+            <div><div class="font-extrabold text-sm">${rep.isBothComplete ? `Combined Total: ${rep.grandObt}/${rep.grandMax} (${rep.overallPct}%)` : `Annual Report Card Locked: Waiting for Both Half-Yearly & Yearly Marks`}</div><div class="text-slate-600">Half-Yearly: ${rep.hyRec ? 'Uploaded ✅' : 'Pending ⏳'} | Annual Exam: ${rep.yrRec ? 'Uploaded ✅' : 'Pending ⏳'}</div></div>
             <button type="button" onclick="generateStudentAnnualReportPDF()" class="${rep.isBothComplete ? 'bg-emerald-600' : 'bg-slate-400'} text-white font-extrabold px-4 py-2 rounded-xl shadow"><i class="fa-solid fa-file-pdf mr-1"></i> Download Annual Report PDF</button>
           </div>
-          <div class="overflow-x-auto border rounded-xl"><table class="w-full text-left border-collapse text-xs"><thead class="bg-slate-900 text-white"><tr><th class="p-2.5">Subject</th><th class="p-2.5">Half-Yearly</th><th class="p-2.5">Annual Exam</th><th class="p-2.5">Combined</th></tr></thead><tbody class="divide-y">${rep.subjectRows.map(r => `<tr><td class="p-2.5 font-bold">${r.label}</td><td class="p-2.5">${rep.hyRec ? `${r.hyM}/${r.hyMax}` : '-'}</td><td class="p-2.5">${rep.yrRec ? `${r.yrM}/${r.yrMax}` : '-'}</td><td class="p-2.5 font-extrabold text-blue-700">${r.combinedObt}/${r.combinedMax}</td></tr>`).join("")}</tbody></table></div>
-        `;
+          <div class="overflow-x-auto border rounded-xl"><table class="w-full text-left border-collapse text-xs"><thead class="bg-slate-900 text-white"><tr><th class="p-2.5">Subject</th><th class="p-2.5">Half-Yearly</th><th class="p-2.5">Annual Exam</th><th class="p-2.5">Combined</th></tr></thead><tbody class="divide-y">${rep.subjectRows.map(r => `<tr><td class="p-2.5 font-bold">${r.label}</td><td class="p-2.5">${rep.hyRec ? `${r.hyM}/${r.hyMax}` : '-'}</td><td class="p-2.5">${rep.yrRec ? `${r.yrM}/${r.yrMax}` : '-'}</td><td class="p-2.5 font-extrabold text-blue-700">${r.combinedObt}/${r.combinedMax}</td></tr>`).join("")}</tbody></table></div>`;
         modal.classList.remove("hidden");
 
       } else if (modId === "ADMIT_CARD") {
@@ -1935,7 +2061,6 @@ Capital of Rajasthan is? | Jodhpur | Udaipur | Jaipur | Ajmer | C</textarea>
       }
     }
 
-    // ID Card, Master Students, Locks & 1st May Promotion
     async function generateStudentDigitalIdCardPDF(idOverride = null) {
       const stu = idOverride ? allStudents[idOverride] : loggedInStudent; if (!stu) return;
       const wrap = document.getElementById("pdfPrintWrapper"), area = document.getElementById("pdfPrintArea");
@@ -1949,7 +2074,7 @@ Capital of Rajasthan is? | Jodhpur | Udaipur | Jaipur | Ajmer | C</textarea>
     function renderMasterStudents() {
       const tbody = document.getElementById("masterStudentTableBody"); if (!tbody) return;
       const q = (document.getElementById("searchStudentInput")?.value || "").toLowerCase();
-      const list = Object.values(allStudents).filter(s => s.status !== "LEFT" && (s.studentName.toLowerCase().includes(q) || s.masterId.toLowerCase().includes(q) || s.currentClass.toLowerCase().includes(q)));
+      const list = Object.values(allStudents).filter(s => s.status !== "LEFT" && (s.studentName.toLowerCase().includes(q) || s.fatherName.toLowerCase().includes(q) || s.masterId.toLowerCase().includes(q) || s.currentClass.toLowerCase().includes(q)));
       tbody.innerHTML = list.map(s => `<tr><td class="p-2.5 font-extrabold text-blue-700">${s.masterId}<br/><span class="text-[10px] text-rose-600">Pass: ${s.password}</span></td><td class="p-2.5 font-bold">${s.studentName}</td><td class="p-2.5 font-semibold">${s.currentClass}<br/><span class="text-[10px] text-purple-700">Roll: ${s.rollNumber || 'N/A'}</span></td><td class="p-2.5">${s.fatherName}<br/><span class="text-[10px] text-slate-500">${s.mobile}</span></td><td class="p-2.5"><button type="button" onclick="manageStudentSpecificLocks('${s.masterId}')" class="bg-amber-100 text-amber-900 px-2.5 py-1 rounded text-xs font-bold">Locks (${Object.values(s.individualLocks||{}).filter(Boolean).length})</button></td><td class="p-2.5 text-right space-x-1"><button type="button" onclick="generateStudentDigitalIdCardPDF('${s.masterId}')" class="bg-blue-700 text-white px-2 py-1 rounded text-[11px] font-bold">ID</button><button type="button" onclick="generateStudentAdmitCardPDF('${s.masterId}')" class="bg-purple-700 text-white px-2 py-1 rounded text-[11px] font-bold">Admit</button><button type="button" onclick="generateStudentAnnualReportPDF('${s.masterId}')" class="bg-emerald-600 text-white px-2 py-1 rounded text-[11px] font-bold">Report</button><button type="button" onclick="generateSignedAdmissionPDF('${s.masterId}',true)" class="bg-slate-800 text-amber-300 px-2 py-1 rounded text-[11px] font-bold">Form</button></td></tr>`).join("") || `<tr><td colspan="6" class="p-4 text-center text-slate-400 font-bold">No Enrolled Students Found.</td></tr>`;
     }
 
@@ -1972,20 +2097,27 @@ Capital of Rajasthan is? | Jodhpur | Udaipur | Jaipur | Ajmer | C</textarea>
 
     function renderStudentDashboard(stu) {
       document.getElementById("stuDashPhoto").src = stu.photoBase64 || "https://via.placeholder.com/100";
-      document.getElementById("stuDashMasterId").innerText = `${stu.masterId} ${stu.rollNumber ? `• Roll: ${stu.rollNumber}` : ""}`;
+      document.getElementById("stuDashMasterId").innerText = `${stu.masterId} ${stu.isScholarshipOnly ? '• SCHOLARSHIP CANDIDATE' : (stu.rollNumber ? `• Roll: ${stu.rollNumber}` : '')}`;
       document.getElementById("stuDashName").innerText = stu.studentName;
-      document.getElementById("stuDashMeta").innerText = `${stu.currentClass} (${stu.stream || 'General'}) | Father: ${stu.fatherName}`;
+      document.getElementById("stuDashMeta").innerText = `${stu.currentClass} | Father: ${stu.fatherName}`;
+      document.getElementById("btnStuReportCard").classList.toggle("hidden", Boolean(stu.isScholarshipOnly));
+
       document.getElementById("studentModulesGrid").innerHTML = ALL_MODULES.map(m => {
         const gLock = globalPortalLocks[m.id] || "OPEN";
         const pLock = stu.individualLocks && stu.individualLocks[m.id];
-        const locked = gLock === "FULL_LOCK" || pLock;
-        return `<div onclick="openStudentModuleModal('${m.id}')" class="cursor-pointer bg-white p-3.5 rounded-2xl shadow-sm border hover:shadow-md transition flex flex-col justify-between gap-2.5 ${locked?'opacity-60 border-rose-200':'border-slate-200'}"><div class="flex items-center justify-between"><div class="w-10 h-10 rounded-xl ${m.color} text-white flex items-center justify-center shadow"><i class="fa-solid ${m.icon}"></i></div><span class="text-[10px] font-black px-2 py-0.5 rounded-full ${locked?'bg-rose-100 text-rose-700':'bg-emerald-100 text-emerald-700'}">${locked?'LOCKED':'ACTIVE'}</span></div><div><h4 class="font-extrabold text-xs sm:text-sm text-slate-900">${currentLang==='EN'?m.nameEN:m.nameHI}</h4><p class="text-[10px] text-slate-400">${stu.masterId}</p></div></div>`;
+        const schRestricted = stu.isScholarshipOnly && !m.allowForSch;
+        const locked = gLock === "FULL_LOCK" || pLock || schRestricted;
+        return `<div onclick="openStudentModuleModal('${m.id}')" class="cursor-pointer bg-white p-3.5 rounded-2xl shadow-sm border hover:shadow-md transition flex flex-col justify-between gap-2.5 ${locked?'opacity-55 border-rose-200':'border-slate-200'}"><div class="flex items-center justify-between"><div class="w-10 h-10 rounded-xl ${m.color} text-white flex items-center justify-center shadow"><i class="fa-solid ${m.icon}"></i></div><span class="text-[10px] font-black px-2 py-0.5 rounded-full ${locked?'bg-rose-100 text-rose-700':'bg-emerald-100 text-emerald-700'}">${schRestricted?'SCH LOCKED':(locked?'LOCKED':'ACTIVE')}</span></div><div><h4 class="font-extrabold text-xs sm:text-sm text-slate-900">${currentLang==='EN'?m.nameEN:m.nameHI}</h4><p class="text-[10px] text-slate-400">${stu.masterId}</p></div></div>`;
       }).join("");
     }
     function downloadCurrentStudentAdmissionPDF() { if (loggedInStudent) generateSignedAdmissionPDF(loggedInStudent.masterId, true); }
 
     let promotionDecisions = {};
-    const NEXT_CLASS_MAP = { "Nursery":"LKG","LKG":"UKG","UKG":"Class 1","Class 1":"Class 2","Class 2":"Class 3","Class 3":"Class 4","Class 4":"Class 5","Class 5":"Class 6","Class 6":"Class 7","Class 7":"Class 8","Class 8":"Class 9","Class 9":"Class 10","Class 10":"Class 11","Class 11":"Class 12","Class 12":"Passout" };
+    const NEXT_CLASS_MAP = {
+      "Nursery":"LKG","LKG":"UKG","UKG":"Class 1","Class 1":"Class 2","Class 2":"Class 3","Class 3":"Class 4","Class 4":"Class 5","Class 5":"Class 6","Class 6":"Class 7","Class 7":"Class 8","Class 8":"Class 9","Class 9":"Class 10","Class 10":"Class 11 Science",
+      "Class 11 Science":"Class 12 Science","Class 11 Arts":"Class 12 Arts","Class 11 Commerce":"Class 12 Commerce","Class 11 Agriculture":"Class 12 Agriculture",
+      "Class 12 Science":"Passout","Class 12 Arts":"Passout","Class 12 Commerce":"Passout","Class 12 Agriculture":"Passout"
+    };
     async function checkMay1PromotionPopup() {
       const now = new Date();
       if ((now.getMonth() + 1) >= 5 && Object.keys(allStudents).length > 0) {
@@ -2024,7 +2156,7 @@ Capital of Rajasthan is? | Jodhpur | Udaipur | Jaipur | Ajmer | C</textarea>
     function checkAndShowPendingTasksPopup(force = false) {
       const items = [];
       const pCount = Object.values(allAdmissions).filter(a => a.status === "PENDING").length;
-      if (pCount > 0) items.push(`${pCount} Pending Admission Form(s) awaiting approval.`);
+      if (pCount > 0) items.push(`${pCount} Pending Admission/Scholarship Form(s) awaiting approval.`);
       Object.values(adminTasksChecklist).forEach(t => { if (t.status === "PENDING") items.push(`${t.title} is pending!`); });
       if (items.length > 0 || force) {
         document.getElementById("pendingTasksListContainer").innerHTML = (items.length ? items : ["All tasks completed!"]).map(m => `<div class="p-2.5 bg-red-50 border border-red-200 rounded-xl text-xs font-bold text-red-900">${m}</div>`).join("");
@@ -2039,6 +2171,7 @@ Capital of Rajasthan is? | Jodhpur | Udaipur | Jaipur | Ajmer | C</textarea>
       document.getElementById(`btn_${tabId}`)?.classList.add("active-card");
       if (tabId === "tabResultsAdmin") { loadDailyTestMarksTable(); loadClassCustomSubjectsUI(); }
       if (tabId === "tabAdmitCardAdmin") loadAdmitCardConfigForClass();
+      if (tabId === "tabFeesAdmin") renderFeeSearchStudents();
     }
     function toggleLanguage() {
       currentLang = currentLang === "EN" ? "HI" : "EN";
@@ -2054,9 +2187,12 @@ Capital of Rajasthan is? | Jodhpur | Udaipur | Jaipur | Ajmer | C</textarea>
       document.getElementById("statPendingAdmissions").innerText = Object.values(allAdmissions).filter(a => a.status !== "APPROVED" && a.status !== "REJECTED").length;
     });
     db.ref("students").on("value", s => {
-      allStudents = s.val() || {}; renderMasterStudents(); loadAdminAttendanceSheet(); loadDailyTestMarksTable(); loadTermExamMarksTable();
+      allStudents = s.val() || {}; renderMasterStudents(); loadAdminAttendanceSheet(); loadDailyTestMarksTable(); loadTermExamMarksTable(); renderFeeSearchStudents();
       document.getElementById("statTotalStudents").innerText = Object.values(allStudents).filter(x => x.status !== "LEFT").length;
-      if (loggedInStudent && allStudents[loggedInStudent.masterId]) { loggedInStudent = allStudents[loggedInStudent.masterId]; renderStudentDashboard(loggedInStudent); }
+      if (loggedInStudent && !loggedInStudent.isScholarshipOnly && allStudents[loggedInStudent.masterId]) {
+        loggedInStudent = { ...allStudents[loggedInStudent.masterId], isScholarshipOnly: false };
+        renderStudentDashboard(loggedInStudent);
+      }
     });
     db.ref("classSubjects").on("value", s => { allClassSubjects = s.val() || {}; loadClassCustomSubjectsUI(); });
     db.ref("attendance").on("value", s => { allAttendance = s.val() || {}; loadAdminAttendanceSheet(); });
@@ -2075,8 +2211,17 @@ Capital of Rajasthan is? | Jodhpur | Udaipur | Jaipur | Ajmer | C</textarea>
     db.ref("termMarks").on("value", s => { allTermMarks = s.val() || {}; loadTermExamMarksTable(); });
     db.ref("admitConfigs").on("value", s => { allAdmitConfigs = s.val() || {}; loadAdmitCardConfigForClass(); });
     db.ref("cbtExams").on("value", s => { allCBTExams = s.val() || {}; renderAdminCBTList(); });
-    db.ref("scholarship").on("value", s => { allScholarshipData = s.val() || {}; renderAdminScholarshipCandidates(); });
-    db.ref("classFees").on("value", s => { allClassFees = s.val() || {}; });
+    db.ref("scholarship").on("value", s => {
+      allScholarshipData = s.val() || {};
+      renderAdminScholarshipCandidates();
+      if (loggedInStudent && loggedInStudent.isScholarshipOnly) {
+        const myCand = (allScholarshipData.candidates || {})[loggedInStudent.masterId];
+        if (myCand && myCand.convertedMasterId && allStudents[myCand.convertedMasterId]) {
+          startStudentSession({ ...allStudents[myCand.convertedMasterId], isScholarshipOnly: false }, localStorage.getItem("GSSS_SAVED_DEVICE_TOKEN"));
+        }
+      }
+    });
+    db.ref("classFees").on("value", s => { allClassFees = s.val() || {}; renderFeeSearchStudents(); });
     db.ref("liveClasses").on("value", s => {
       allLiveClasses = s.val() || {};
       const box = document.getElementById("adminLiveClassList");
@@ -2100,10 +2245,17 @@ Capital of Rajasthan is? | Jodhpur | Udaipur | Jaipur | Ajmer | C</textarea>
       if (localStorage.getItem("GSSS_ADMIN_LOGGED_IN") === "true") return startAdminSession();
       const savedId = localStorage.getItem("GSSS_SAVED_STUDENT_ID"), savedToken = localStorage.getItem("GSSS_SAVED_DEVICE_TOKEN");
       if (savedId && savedToken) {
-        db.ref(`students/${savedId}`).once("value", snap => {
-          const stu = snap.val();
-          if (stu && stu.status !== "LEFT" && (!stu.activeSessionToken || stu.activeSessionToken === savedToken)) startStudentSession(stu, savedToken);
-        });
+        if (savedId.startsWith("SCH-")) {
+          db.ref(`scholarship/candidates/${savedId}`).once("value", snap => {
+            const schStu = snap.val();
+            if (schStu && (!schStu.activeSessionToken || schStu.activeSessionToken === savedToken)) startStudentSession({ ...schStu, isScholarshipOnly: true }, savedToken);
+          });
+        } else {
+          db.ref(`students/${savedId}`).once("value", snap => {
+            const stu = snap.val();
+            if (stu && stu.status !== "LEFT" && (!stu.activeSessionToken || stu.activeSessionToken === savedToken)) startStudentSession({ ...stu, isScholarshipOnly: false }, savedToken);
+          });
+        }
       }
     });
   </script>
