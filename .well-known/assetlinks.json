@@ -1,8 +1,0 @@
-[{
-      "relation": ["delegate_permission/common.handle_all_urls"],
-      "target": {
-        "namespace": "android_app",
-        "package_name": "io.github.balvikasdhankoli341516_boop.twa",
-        "sha256_cert_fingerprints": ["B2:9E:94:55:83:15:97:5E:C3:59:55:92:2C:7E:5A:04:BF:AE:4D:7B:19:8B:28:D4:E7:CF:3A:50:38:AC:1A:C4"]
-      }
-    }]
