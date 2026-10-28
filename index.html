@@ -4,20 +4,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Gurukul Sr. Sec. School, Dhankoli | Complete Smart ERP & App</title>
-  <link rel="manifest" href="manifest.json" />
-<meta name="theme-color" content="#1e3a8a" />
-<script>
-  if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("sw.js");
-  }
-</script>
-  
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js"></script>
+
   <style>
     * { box-sizing: border-box; }
     body { font-family: 'Plus Jakarta Sans', 'Noto Sans Devanagari', sans-serif; background-color: #f1f5f9; overflow-x: hidden; -webkit-tap-highlight-color: transparent; }
@@ -3171,6 +3165,45 @@ Capital of Rajasthan is? | Jodhpur | Udaipur | Jaipur | Ajmer | C</textarea>
         }
       }
     });
+     // =========================================================
+    // PART 6: WHATSAPP-STYLE BACKGROUND PUSH NOTIFICATIONS
+    // =========================================================
+    const messaging = firebase.messaging();
+
+    async function enableBackgroundPushNotifications() {
+      try {
+        if (!("Notification" in window) || !("serviceWorker" in navigator)) return;
+        const permission = await Notification.requestPermission();
+        if (permission === "granted") {
+          const swReg = await navigator.serviceWorker.register("/firebase-messaging-sw.js");
+          const token = await messaging.getToken({
+            vapidKey: "BJrQUS526XP6RHmNw8aeQlfR0dsIJ54_HMM_-6OQ_go6w-EncAVNgX1twtfLHWUOscN9LMViAeAafwRhOHoyCPk",
+            serviceWorkerRegistration: swReg
+          });
+          if (token) {
+            const stuId = (loggedInStudent && loggedInStudent.masterId) || localStorage.getItem("GSSS_SAVED_STUDENT_ID") || ("GUEST_" + token.slice(0, 10));
+            const clsName = (loggedInStudent && loggedInStudent.currentClass) ? loggedInStudent.currentClass : "ALL";
+            await db.ref("fcmTokens/" + stuId).set({
+              token: token,
+              studentId: stuId,
+              className: clsName,
+              updatedAt: new Date().toISOString()
+            });
+          }
+        }
+      } catch (err) {
+        console.warn("Push Notification Setup:", err);
+      }
+    }
+
+    // App khulte hi aur Student Login hote hi phone ka Notification Token save karein
+    setTimeout(enableBackgroundPushNotifications, 3000);
+    const _origStartStudentSession = startStudentSession;
+    startStudentSession = function(stu, myToken) {
+      _origStartStudentSession(stu, myToken);
+      setTimeout(enableBackgroundPushNotifications, 1500);
+    };
+
   </script>
 </body>
 </html>
