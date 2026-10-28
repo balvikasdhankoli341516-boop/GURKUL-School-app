@@ -3203,7 +3203,41 @@ Capital of Rajasthan is? | Jodhpur | Udaipur | Jaipur | Ajmer | C</textarea>
       _origStartStudentSession(stu, myToken);
       setTimeout(enableBackgroundPushNotifications, 1500);
     };
+    // ADMIN AUTO-BROADCAST TO BACKGROUND PHONES
+    const FCM_PUSH_SERVER_URL = "https://script.google.com/macros/s/AKfycbxXnisfGZY68P3AMtzQoJPM16EVCLCv2ZKRSxLATgsUvfqDYEWCmmYLI6eA0Rz0FCBbTA/exec";
+    let allFcmTokens = {};
+    db.ref("fcmTokens").on("value", s => { allFcmTokens = s.val() || {}; });
 
+    db.ref("notifications").on("child_added", async snap => {
+      const notif = snap.val();
+      if (!notif || notif.fcmPushed) return;
+      if (localStorage.getItem("GSSS_ADMIN_LOGGED_IN") !== "true") return;
+      if (new Date(notif.createdAt).getTime() < (adminSessionOpenedAt - 10000)) return;
+
+      await db.ref("notifications/" + notif.id + "/fcmPushed").set(true);
+
+      const targetTokens = Object.values(allFcmTokens).filter(t => {
+        if (!t || !t.token) return false;
+        if (notif.targetType === "ALL") return true;
+        if (notif.targetType === "CLASS") return (t.className || "").toLowerCase() === (notif.targetValue || "").toLowerCase();
+        if (notif.targetType === "STUDENT") return (t.studentId || "").toUpperCase() === (notif.targetValue || "").toUpperCase();
+        return false;
+      }).map(t => t.token);
+
+      const uniqueTokens = [...new Set(targetTokens)];
+      if (uniqueTokens.length > 0 && FCM_PUSH_SERVER_URL.startsWith("https://")) {
+        fetch(FCM_PUSH_SERVER_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({
+            tokens: uniqueTokens,
+            title: notif.title,
+            body: notif.message
+          })
+        }).catch(e => console.warn("FCM Push Error:", e));
+      }
+    });
+    
   </script>
 </body>
 </html>
