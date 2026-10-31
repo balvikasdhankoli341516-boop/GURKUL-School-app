@@ -6203,5 +6203,268 @@ Capital of Rajasthan is? | Jodhpur | Udaipur | Jaipur | Ajmer | C</textarea>
       }
     });
   </script>
+    <!-- ========================================================= -->
+  <!-- ADDON PATCH: ANIMATED STARTUP LOADER & INSTANT BLUR SHIELD -->
+  <!-- ========================================================= -->
+  <style>
+    /* 1. Startup Animated Loader Styles */
+    #gsssStartupLoader {
+      position: fixed;
+      inset: 0;
+      z-index: 100000;
+      background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 60%, #172554 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      transition: opacity 0.35s ease, visibility 0.35s ease;
+    }
+    #gsssStartupLoader.loader-hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+    .gsss-pulse-ring {
+      position: relative;
+      width: 108px;
+      height: 108px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .gsss-pulse-ring::before {
+      content: "";
+      position: absolute;
+      inset: -8px;
+      border-radius: 9999px;
+      border: 4px solid transparent;
+      border-top-color: #fbbf24;
+      border-bottom-color: #38bdf8;
+      animation: gsssSpin 1.1s linear infinite;
+    }
+    .gsss-pulse-ring::after {
+      content: "";
+      position: absolute;
+      inset: -16px;
+      border-radius: 9999px;
+      border: 2px dashed rgba(251, 191, 36, 0.45);
+      animation: gsssSpinReverse 2.2s linear infinite;
+    }
+    @keyframes gsssSpin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    @keyframes gsssSpinReverse {
+      0% { transform: rotate(360deg); }
+      100% { transform: rotate(0deg); }
+    }
+    .gsss-progress-bar {
+      width: 190px;
+      height: 5px;
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 99px;
+      overflow: hidden;
+      margin-top: 18px;
+    }
+    .gsss-progress-fill {
+      width: 45%;
+      height: 100%;
+      background: linear-gradient(90deg, #fbbf24, #38bdf8, #fbbf24);
+      border-radius: 99px;
+      animation: gsssLoadSlide 1.1s ease-in-out infinite alternate;
+    }
+    @keyframes gsssLoadSlide {
+      0% { transform: translateX(-30%); width: 35%; }
+      100% { transform: translateX(150%); width: 55%; }
+    }
+
+    /* 2. 0ms Instant Blur on Recent Apps / Home / Back / Focus Loss */
+    body.gsss-instant-blur header,
+    body.gsss-instant-blur main,
+    body.gsss-instant-blur section,
+    body.gsss-instant-blur #studentModuleViewerModal,
+    body.gsss-instant-blur #inAppVideoModal {
+      filter: blur(30px) brightness(0.25) !important;
+      -webkit-filter: blur(30px) brightness(0.25) !important;
+      transition: none !important;
+      pointer-events: none !important;
+      user-select: none !important;
+    }
+    #gsssBlurShieldOverlay {
+      position: fixed;
+      inset: 0;
+      z-index: 99998;
+      background: rgba(2, 6, 23, 0.78);
+      backdrop-filter: blur(28px);
+      -webkit-backdrop-filter: blur(28px);
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      text-align: center;
+      padding: 24px;
+    }
+    body.gsss-instant-blur #gsssBlurShieldOverlay {
+      display: flex !important;
+    }
+  </style>
+
+  <!-- 1. FULL-SCREEN ANIMATED STARTUP LOADER -->
+  <div id="gsssStartupLoader">
+    <div class="gsss-pulse-ring">
+      <img src="https://gsssdhankoli.github.io/Logo.png/logo.png" alt="Logo" class="w-20 h-20 rounded-full bg-white p-1 border-2 border-amber-400 shadow-2xl object-contain" />
+    </div>
+    <h2 class="mt-6 text-base sm:text-lg font-extrabold tracking-wide text-amber-300 text-center px-4">GURUKUL SENIOR SECONDARY SCHOOL DHANKOLI</h2>
+    <p id="gsssLoaderSubText" class="text-xs text-blue-200 font-semibold mt-1">Loading Your Secure Digital Campus...</p>
+    <div class="gsss-progress-bar"><div class="gsss-progress-fill"></div></div>
+  </div>
+
+  <!-- 2. INSTANT BLUR SHIELD FOR RECENT APPS / HOME / BACK BUTTON -->
+  <div id="gsssBlurShieldOverlay" onclick="deactivateInstantBlurShield()">
+    <img src="https://gsssdhankoli.github.io/Logo.png/logo.png" class="w-16 h-16 rounded-full bg-white p-1 border-2 border-amber-400 mb-3" />
+    <h3 class="text-base font-extrabold text-amber-300">GURUKUL SECURITY SHIELD ACTIVE</h3>
+    <p class="text-xs text-slate-300 max-w-xs mt-1">Screen is blurred for privacy protection. Tap anywhere to resume.</p>
+  </div>
+
+  <script>
+    (function() {
+      // =========================================================
+      // PART A: HIDE LOGIN FLASH & CONTROL STARTUP LOADER
+      // =========================================================
+      const hasSavedAdmin = localStorage.getItem("GSSS_ADMIN_LOGGED_IN") === "true";
+      const hasSavedStudent = Boolean(localStorage.getItem("GSSS_SAVED_STUDENT_ID") && localStorage.getItem("GSSS_SAVED_DEVICE_TOKEN"));
+
+      if (hasSavedAdmin || hasSavedStudent) {
+        const pubView = document.getElementById("publicAuthView");
+        if (pubView) pubView.classList.add("hidden");
+        const subTxt = document.getElementById("gsssLoaderSubText");
+        if (subTxt) {
+          subTxt.innerText = hasSavedAdmin
+            ? "Opening Master Admin Control Panel..."
+            : `Welcome Back (${localStorage.getItem("GSSS_SAVED_STUDENT_ID")}) • Loading Dashboard...`;
+        }
+      }
+
+      window.hideGsssStartupLoader = function() {
+        const loader = document.getElementById("gsssStartupLoader");
+        if (loader) loader.classList.add("loader-hidden");
+      };
+
+      // Wrap startAdminSession & startStudentSession so loader hides only after dashboard is ready
+      const _prevStartAdmin = window.startAdminSession;
+      if (typeof _prevStartAdmin === "function") {
+        window.startAdminSession = async function() {
+          await _prevStartAdmin.apply(this, arguments);
+          setTimeout(hideGsssStartupLoader, 250);
+        };
+      }
+
+      const _prevStartStudent = window.startStudentSession;
+      if (typeof _prevStartStudent === "function") {
+        window.startStudentSession = function(stu, myToken) {
+          _prevStartStudent.apply(this, arguments);
+          setTimeout(hideGsssStartupLoader, 250);
+        };
+      }
+
+      const _prevLogout = window.logoutUser;
+      if (typeof _prevLogout === "function") {
+        window.logoutUser = function() {
+          _prevLogout.apply(this, arguments);
+          hideGsssStartupLoader();
+        };
+      }
+
+      window.addEventListener("DOMContentLoaded", () => {
+        if (!hasSavedAdmin && !hasSavedStudent) {
+          // Not logged in -> show login page smoothly after 500ms
+          setTimeout(hideGsssStartupLoader, 500);
+        } else {
+          // Fallback safety: if network is slow or session expired, hide loader after 4s and ensure a view is visible
+          setTimeout(() => {
+            const adminVisible = !document.getElementById("adminDashboardView")?.classList.contains("hidden");
+            const stuVisible = !document.getElementById("studentDashboardView")?.classList.contains("hidden");
+            if (!adminVisible && !stuVisible) {
+              document.getElementById("publicAuthView")?.classList.remove("hidden");
+            }
+            hideGsssStartupLoader();
+          }, 4000);
+        }
+      });
+
+      // =========================================================
+      // PART B: INSTANT BLUR ON RECENT APPS / HOME / BACK & FLAG_SECURE
+      // =========================================================
+      function isScreenshotProtectionActive() {
+        const isAdmin = localStorage.getItem("GSSS_ADMIN_LOGGED_IN") === "true";
+        const isAllowed = (typeof globalPortalLocks !== "undefined" && globalPortalLocks["ALLOW_SCREENSHOTS"] === "ALLOWED");
+        return !isAdmin && !isAllowed;
+      }
+
+      window.activateInstantBlurShield = function() {
+        if (!isScreenshotProtectionActive()) return;
+        document.body.classList.add("gsss-instant-blur");
+      };
+
+      window.deactivateInstantBlurShield = function() {
+        document.body.classList.remove("gsss-instant-blur");
+      };
+
+      // 1. Instant Blur when Recent Apps / Home / Notification Bar / Power+Vol is pressed
+      window.addEventListener("blur", () => {
+        activateInstantBlurShield();
+      });
+
+      document.addEventListener("visibilitychange", () => {
+        if (document.hidden) {
+          activateInstantBlurShield();
+        } else {
+          setTimeout(deactivateInstantBlurShield, 150);
+        }
+      });
+
+      window.addEventListener("focus", () => {
+        setTimeout(deactivateInstantBlurShield, 150);
+      });
+
+      window.addEventListener("pagehide", () => {
+        activateInstantBlurShield();
+      });
+
+      // 2. Intercept Back Button so pressing Back blurs & protects screen instead of sudden exit
+      window.addEventListener("load", () => {
+        try { window.history.pushState({ gsssGuard: true }, ""); } catch (e) {}
+      });
+
+      window.addEventListener("popstate", () => {
+        if (loggedInStudent || localStorage.getItem("GSSS_ADMIN_LOGGED_IN") === "true") {
+          const viewerModal = document.getElementById("studentModuleViewerModal");
+          if (viewerModal && !viewerModal.classList.contains("hidden")) {
+            closeStudentModuleViewer();
+          } else {
+            activateInstantBlurShield();
+          }
+          try { window.history.pushState({ gsssGuard: true }, ""); } catch (e) {}
+        }
+      });
+
+      // 3. Sync Native Android FLAG_SECURE Bridge whenever Admin toggles ALLOW_SCREENSHOTS
+      function syncNativeAndroidFlagSecure() {
+        const shouldBlock = isScreenshotProtectionActive();
+        try {
+          if (window.Android && typeof window.Android.setFlagSecure === "function") {
+            window.Android.setFlagSecure(shouldBlock);
+          }
+        } catch (e) {}
+      }
+
+      db.ref("portalLocks/ALLOW_SCREENSHOTS").on("value", () => {
+        setTimeout(syncNativeAndroidFlagSecure, 100);
+      });
+    })();
+  </script>
+
 </body>
 </html>
