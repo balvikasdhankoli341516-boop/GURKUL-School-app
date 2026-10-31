@@ -5384,5 +5384,824 @@ Capital of Rajasthan is? | Jodhpur | Udaipur | Jaipur | Ajmer | C</textarea>
       setTimeout(enableBackgroundPushNotifications, 1200);
     };
   </script>
+  <!-- ========================================================= -->
+  <!-- MASTER PATCH: FIXES ALL 7 ISSUES WITHOUT CHANGING OLD CODE -->
+  <!-- ========================================================= -->
+  <style>
+    body.gsss-screenshot-locked, body.gsss-screenshot-locked * {
+      -webkit-user-select: none !important;
+      user-select: none !important;
+      -webkit-touch-callout: none !important;
+    }
+    #antiScreenshotCurtain {
+      position: fixed;
+      inset: 0;
+      z-index: 99999;
+      background: #020617;
+      color: #ffffff;
+      display: none;
+       flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 24px;
+    }
+  </style>
+
+  <!-- Anti-Screenshot Security Blackout Screen -->
+  <div id="antiScreenshotCurtain">
+    <i class="fa-solid fa-shield-halved text-5xl text-rose-500 mb-3"></i>
+    <h2 class="text-lg font-extrabold text-amber-300">SCREENSHOT & SCREEN CAPTURE PROHIBITED!</h2>
+    <p class="text-xs text-slate-300 max-w-sm mt-1">Taking screenshots or recording the screen is strictly disabled by Gurukul Senior Secondary School Dhankoli Administration.</p>
+    <button type="button" onclick="document.getElementById('antiScreenshotCurtain').style.display='none'" class="mt-4 bg-blue-600 text-white font-extrabold px-5 py-2 rounded-xl text-xs">Return to App</button>
+  </div>
+
+  <script>
+    // =========================================================
+    // 1. UNIVERSAL DELETE & GHOST RECORD CLEANER (FIXES #1 & #2)
+    // =========================================================
+    let editingDailyTestId = null;
+    let editingCBTExamId = null;
+
+    async function deleteFirebaseNodeByKey(path, label = "Record") {
+      const ok = await showCustomConfirm(`Are you sure you want to permanently delete this ${label}?`, "Confirm Delete");
+      if (!ok) return;
+      try {
+        await db.ref(path).remove();
+        await showCustomAlert(`${label} deleted successfully!`, "Deleted", "SUCCESS");
+      } catch (err) {
+        await showCustomAlert(`Delete failed: ${err.message}`, "Error", "DANGER");
+      }
+    }
+
+    // Automatically cleans corrupted/blank records like [:], • (), and blank GPS nodes
+    async function autoCleanCorruptedGhostRecords() {
+      try {
+        // 1. Clean blank notifications
+        const nSnap = await db.ref("notifications").once("value");
+        const nObj = nSnap.val() || {};
+        for (const [k, v] of Object.entries(nObj)) {
+          if (!v || typeof v !== "object" || (!v.title && !v.message)) {
+            await db.ref(`notifications/${k}`).remove();
+          }
+        }
+        // 2. Clean blank scholarship candidates
+        const sSnap = await db.ref("scholarship/candidates").once("value");
+        const sObj = sSnap.val() || {};
+        for (const [k, v] of Object.entries(sObj)) {
+          if (!v || typeof v !== "object" || !v.studentName) {
+            await db.ref(`scholarship/candidates/${k}`).remove();
+          }
+        }
+        // 3. Clean blank bus routes
+        const bSnap = await db.ref("busRoutes").once("value");
+        const bObj = bSnap.val() || {};
+        for (const [k, v] of Object.entries(bObj)) {
+          if (!v || typeof v !== "object" || !v.route) {
+            await db.ref(`busRoutes/${k}`).remove();
+          }
+        }
+      } catch (e) {
+        console.warn("Ghost cleanup warning:", e);
+      }
+    }
+
+    function renderNotificationsListKeySafe() {
+      const box = document.getElementById("adminSentNotifsList");
+      if (!box) return;
+      const entries = Object.entries(allNotifications || {}).filter(([k, n]) => n && (n.title || n.message)).reverse();
+      box.innerHTML = entries.map(([fbKey, n]) => `
+        <div class="p-2.5 border rounded-xl bg-slate-50 flex justify-between items-center gap-2 text-xs">
+          <div>
+            <span class="font-extrabold text-rose-700">[${escapeHtml(n.targetType || 'ALL')}: ${escapeHtml(n.targetValue || 'ALL')}]</span>
+            <strong class="text-slate-900"> ${escapeHtml(n.title || '')}</strong>
+            <p class="text-[11px] text-slate-600">${escapeHtml(n.message || '')}</p>
+          </div>
+          <button type="button" onclick="deleteFirebaseNodeByKey('notifications/${fbKey}', 'Notification')" class="bg-rose-100 hover:bg-rose-200 text-rose-700 font-extrabold px-2.5 py-1 rounded-lg shrink-0">Delete</button>
+        </div>
+      `).join("") || `<p class="text-xs text-slate-400">No notifications sent yet.</p>`;
+    }
+
+    function renderStudyContentListKeySafe() {
+      const box = document.getElementById("adminContentListContainer");
+      if (!box) return;
+      const entries = Object.entries(allHomeworkAndPYQ || {}).filter(([k, i]) => i && i.title).reverse();
+      box.innerHTML = entries.map(([fbKey, i]) => `
+        <div class="p-2.5 border rounded-xl bg-slate-50 flex justify-between items-center gap-2 text-xs">
+          <span><strong>[${escapeHtml(i.category)} • ${escapeHtml(i.targetClass)}]</strong> ${escapeHtml(i.subject)}: ${escapeHtml(i.title)}</span>
+          <button type="button" onclick="deleteFirebaseNodeByKey('studyContent/${fbKey}', 'Study Material')" class="bg-rose-100 text-rose-700 font-extrabold px-2.5 py-1 rounded-lg shrink-0">Delete</button>
+        </div>
+      `).join("") || `<p class="text-xs text-slate-400">No homework or PYQ uploaded yet.</p>`;
+    }
+
+    function renderLiveClassListKeySafe() {
+      const box = document.getElementById("adminLiveClassList");
+      if (!box) return;
+      const entries = Object.entries(allLiveClasses || {}).filter(([k, c]) => c && c.subject).reverse();
+      box.innerHTML = entries.map(([fbKey, c]) => `
+        <div class="p-2 border rounded-lg bg-white flex justify-between items-center gap-2 text-xs">
+          <span><strong>${escapeHtml(c.targetClass)}:</strong> ${escapeHtml(c.subject)} (${escapeHtml(c.topic)})</span>
+          <button type="button" onclick="deleteFirebaseNodeByKey('liveClasses/${fbKey}', 'Live Class')" class="bg-rose-100 text-rose-700 font-extrabold px-2.5 py-1 rounded-lg shrink-0">Delete</button>
+        </div>
+      `).join("") || `<p class="text-xs text-slate-400">No live classes published yet.</p>`;
+    }
+
+    function renderBusRoutesListKeySafe() {
+      const box = document.getElementById("adminBusRoutesList");
+      if (!box) return;
+      const entries = Object.entries(allBusRoutes || {}).filter(([k, b]) => b && b.route).reverse();
+      box.innerHTML = entries.map(([fbKey, b]) => `
+        <div class="p-2 border rounded-lg bg-white flex justify-between items-center gap-2 text-xs">
+          <span><strong>${escapeHtml(b.route)} (${escapeHtml(b.hardwareProtocol || 'GPS')}):</strong> ${escapeHtml(b.status)}</span>
+          <button type="button" onclick="deleteFirebaseNodeByKey('busRoutes/${fbKey}', 'Bus Route')" class="bg-rose-100 text-rose-700 font-extrabold px-2.5 py-1 rounded-lg shrink-0">Delete</button>
+        </div>
+      `).join("") || `<p class="text-xs text-slate-400">No bus routes saved yet.</p>`;
+    }
+
+    // Fix stopDriverLiveGPSStream so it NEVER creates a blank bus node when no bus is bound
+    stopDriverLiveGPSStream = async function(cfg = null) {
+      if (driverGPSWatchId !== null) {
+        navigator.geolocation.clearWatch(driverGPSWatchId);
+        driverGPSWatchId = null;
+      }
+      if (driverWakeLockObj) {
+        try { await driverWakeLockObj.release(); } catch (e) {}
+        driverWakeLockObj = null;
+      }
+      const btn = document.getElementById("btnDriverLiveGPS");
+      if (btn) {
+        btn.className = "bg-emerald-600 text-white px-2.5 py-1 rounded-lg text-[10px] font-extrabold shadow";
+        btn.innerHTML = `<i class="fa-solid fa-satellite-dish"></i> Start Driver Phone GPS`;
+      }
+      if (cfg && cfg.id && cfg.route && allBusRoutes && allBusRoutes[cfg.id]) {
+        await db.ref(`busRoutes/${cfg.id}`).update({
+          status: "Parked / Off-Duty (Auto-Resumes 6:00 AM)",
+          ignition: "OFF"
+        });
+      }
+    };
+
+    // =========================================================
+    // 2. DAILY TEST & TERM EXAM EDIT + DELETE SYSTEM (FIXES #2 & #4)
+    // =========================================================
+    renderPublishedDailyTests = function() {
+      const box = document.getElementById("publishedDailyTestsList");
+      if (!box) return;
+      const entries = Object.entries(allDailyTests || {}).filter(([k, t]) => t && t.subject).reverse();
+      box.innerHTML = entries.map(([fbKey, t]) => `
+        <div class="p-2.5 border rounded-xl bg-slate-50 flex flex-wrap justify-between items-center gap-2 text-xs">
+          <span><strong class="text-emerald-700">[${escapeHtml(t.targetClass)} • ${escapeHtml(t.date)}]</strong> ${escapeHtml(t.subject)} (Max: ${t.maxMarks})</span>
+          <div class="flex gap-1.5">
+            <button type="button" onclick="editExistingDailyTest('${fbKey}')" class="bg-indigo-600 text-white font-bold px-2.5 py-1 rounded-lg"><i class="fa-solid fa-pen mr-1"></i>Edit Marks</button>
+            <button type="button" onclick="deleteFirebaseNodeByKey('dailyTests/${fbKey}', 'Daily Test')" class="bg-rose-600 text-white font-bold px-2.5 py-1 rounded-lg"><i class="fa-solid fa-trash mr-1"></i>Delete</button>
+          </div>
+        </div>
+      `).join("") || `<p class="text-xs text-slate-400">No daily tests uploaded yet.</p>`;
+    };
+
+    function editExistingDailyTest(fbKey) {
+      const t = allDailyTests[fbKey];
+      if (!t) return;
+      editingDailyTestId = fbKey;
+      document.getElementById("dt_class").value = t.targetClass;
+      document.getElementById("dt_date").value = t.date;
+      document.getElementById("dt_subject").value = t.subject;
+      document.getElementById("dt_maxMarks").value = t.maxMarks;
+      loadDailyTestMarksTable();
+      setTimeout(() => {
+        const marks = t.marks || {};
+        Object.entries(marks).forEach(([stuId, mVal]) => {
+          const inp = document.getElementById(`dtMark_${stuId}`);
+          if (inp) inp.value = mVal;
+        });
+      }, 80);
+      showCustomAlert(`Loaded "${t.subject}" (${t.targetClass}) for editing! Modify any student's marks below and click "Publish Daily Test" to update.`, "Edit Daily Test Mode", "INFO");
+    }
+
+    saveDailyTestResult = async function() {
+      const cls = document.getElementById("dt_class").value;
+      const date = document.getElementById("dt_date").value;
+      const subject = document.getElementById("dt_subject").value.trim();
+      const maxMarks = Number(document.getElementById("dt_maxMarks").value) || 20;
+      if (!subject || !date) return showCustomAlert("Please enter Subject/Topic and Date for the Daily Test.", "Missing Details", "DANGER");
+
+      const list = Object.values(allStudents).filter(s => s.status !== "LEFT" && s.currentClass === cls);
+      const marksMap = {};
+      list.forEach(s => {
+        const val = document.getElementById(`dtMark_${s.masterId}`)?.value.trim();
+        if (val !== undefined && val !== "") {
+          marksMap[s.masterId] = val.toUpperCase() === "AB" ? "AB" : (isNaN(Number(val)) ? "AB" : Number(val));
+        }
+      });
+
+      if (!Object.keys(marksMap).length) return showCustomAlert("Please enter marks for at least one student.", "No Marks Entered", "DANGER");
+
+      const testId = editingDailyTestId || `DT_${Date.now()}`;
+      await db.ref(`dailyTests/${testId}`).set({
+        testId, targetClass: cls, date, subject, maxMarks, marks: marksMap, createdAt: new Date().toISOString()
+      });
+      editingDailyTestId = null;
+      document.getElementById("dt_subject").value = "";
+      await showCustomAlert(`Daily Test Result for ${cls} (${subject}) saved & updated!`, "Saved", "SUCCESS");
+    };
+
+    // Add Delete/Clear Result button for each student & whole class in Half-Yearly / Yearly Exam Table
+    loadTermExamMarksTable = function() {
+      const term = document.getElementById("term_examType")?.value;
+      const cls = document.getElementById("term_class")?.value;
+      const thead = document.getElementById("termExamEntryHead");
+      const tbody = document.getElementById("termExamEntryBody");
+      if (!thead || !tbody || !term || !cls) return;
+
+      const subs = getSubjectsForClass(cls);
+      thead.innerHTML = `
+        <tr>
+          <th class="p-2">Student (Roll / ID)</th>
+          ${subs.map(sub => `<th class="p-2">${escapeHtml(sub)}</th>`).join("")}
+          <th class="p-2 text-right">PDF / Delete Result</th>
+        </tr>
+      `;
+
+      const list = Object.values(allStudents)
+        .filter(s => s.status !== "LEFT" && s.currentClass === cls)
+        .sort((a, b) => (a.studentName || "").localeCompare(b.studentName || ""));
+      if (!list.length) {
+        tbody.innerHTML = `<tr><td colspan="${subs.length + 2}" class="p-4 text-center text-slate-400 font-bold">No active students enrolled in ${escapeHtml(cls)}.</td></tr>`;
+        return;
+      }
+
+      const existing = (allTermMarks[term] && allTermMarks[term][cls]) ? allTermMarks[term][cls] : {};
+      tbody.innerHTML = list.map(s => {
+        const sm = (existing[s.masterId] && existing[s.masterId].subjectMarks) ? existing[s.masterId].subjectMarks : {};
+        const hasSavedResult = Boolean(existing[s.masterId]);
+        return `
+          <tr class="hover:bg-slate-50">
+            <td class="p-2 font-bold">${escapeHtml(s.studentName)}<br/><span class="text-[10px] text-purple-700 font-extrabold">Roll: ${escapeHtml(s.rollNumber || 'N/A')} • ${escapeHtml(s.masterId)}</span></td>
+            ${subs.map((sub, idx) => `
+              <td class="p-1.5">
+                <input type="text" id="tm_${s.masterId}_${idx}" value="${sm[sub] ?? ''}" placeholder="Marks / AB" class="w-20 px-2 py-1 border rounded text-xs font-bold uppercase bg-white" />
+              </td>
+            `).join("")}
+            <td class="p-1.5 text-right space-x-1 whitespace-nowrap">
+              <button type="button" onclick="${term === 'HALF_YEARLY' ? `generateStudentHalfYearlyResultPDF('${s.masterId}')` : `generateStudentAnnualReportPDF('${s.masterId}')`}" class="bg-emerald-600 text-white px-2 py-1 rounded text-[10px] font-bold">PDF</button>
+              ${hasSavedResult ? `<button type="button" onclick="deleteSingleStudentTermResult('${term}','${cls}','${s.masterId}')" class="bg-rose-600 text-white px-2 py-1 rounded text-[10px] font-bold" title="Delete/Reset this student's result"><i class="fa-solid fa-trash"></i></button>` : ""}
+            </td>
+          </tr>
+        `;
+      }).join("");
+    };
+
+    async function deleteSingleStudentTermResult(term, cls, masterId) {
+      const ok = await showCustomConfirm(`Delete uploaded ${term} marks for student ${masterId} (${cls})?`, "Confirm Result Delete");
+      if (!ok) return;
+      await db.ref(`termMarks/${term}/${cls}/${masterId}`).remove();
+      await showCustomAlert(`Marks deleted for ${masterId}. You can now enter fresh marks and click Save & Publish.`, "Result Deleted", "SUCCESS");
+    }
+
+    // =========================================================
+    // 3. FEE CORRECTION, OVERWRITE & INSTALLMENT EDIT/DELETE (FIX #3)
+    // =========================================================
+    function ensureFeeCorrectionUIBox() {
+      const feePaidInput = document.getElementById("fee_paidNow");
+      if (!feePaidInput || document.getElementById("fee_directPaidOverride")) return;
+      const gridWrap = feePaidInput.closest(".grid");
+      if (!gridWrap) return;
+
+      const extraDiv = document.createElement("div");
+      extraDiv.className = "sm:col-span-5 bg-white p-3 rounded-xl border border-blue-200 space-y-2 mt-2";
+      extraDiv.innerHTML = `
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div class="text-xs font-extrabold text-rose-700"><i class="fa-solid fa-pen-to-square mr-1"></i> Fee Mistake Correction & Installment Editor (गलत चढ़ी फीस सुधारें / हटाएं)</div>
+          <div class="flex items-center gap-2">
+            <input type="number" id="fee_directPaidOverride" placeholder="Correct Total Paid ₹" class="w-40 px-2.5 py-1 border-2 border-rose-400 rounded-lg text-xs font-extrabold bg-rose-50" />
+            <button type="button" onclick="overwriteStudentTotalPaidFee()" class="bg-rose-600 hover:bg-rose-700 text-white font-extrabold px-3 py-1.5 rounded-lg text-xs shadow">Set Exact Paid Fee</button>
+          </div>
+        </div>
+        <div id="adminStudentInstallmentsEditor" class="space-y-1 text-xs"></div>
+      `;
+      gridWrap.parentNode.appendChild(extraDiv);
+    }
+
+    const _origSelectStudentForFeeEdit = selectStudentForFeeEdit;
+    selectStudentForFeeEdit = function(masterId) {
+      ensureFeeCorrectionUIBox();
+      _origSelectStudentForFeeEdit(masterId);
+      const stu = allStudents[masterId];
+      if (!stu) return;
+      const f = getStudentFeeSummary(stu);
+      const dirInp = document.getElementById("fee_directPaidOverride");
+      if (dirInp) dirInp.value = f.paid;
+      renderAdminStudentInstallmentEditor(masterId);
+    };
+
+    function renderAdminStudentInstallmentEditor(masterId) {
+      const box = document.getElementById("adminStudentInstallmentsEditor");
+      const stu = allStudents[masterId];
+      if (!box || !stu) return;
+      const f = getStudentFeeSummary(stu);
+      if (!f.installments.length) {
+        box.innerHTML = `<p class="text-[11px] text-slate-400">No installments recorded for ${escapeHtml(stu.studentName)}. Use "Set Exact Paid Fee" above to directly change Total Paid Fee.</p>`;
+        return;
+      }
+      box.innerHTML = f.installments.map((inst, idx) => `
+        <div class="p-2 border rounded-lg bg-slate-50 flex flex-wrap items-center justify-between gap-2">
+          <span><strong>#${idx + 1} (${escapeHtml(inst.receiptNo)})</strong> • Date: ${escapeHtml(inst.date)} • Amount: <strong class="text-emerald-700">₹${inst.amount}</strong></span>
+          <div class="flex gap-1.5">
+            <button type="button" onclick="editSingleFeeInstallment('${masterId}', ${idx})" class="bg-indigo-600 text-white px-2.5 py-1 rounded font-bold text-[11px]"><i class="fa-solid fa-pen mr-1"></i>Edit ₹</button>
+            <button type="button" onclick="deleteSingleFeeInstallment('${masterId}', ${idx})" class="bg-rose-600 text-white px-2.5 py-1 rounded font-bold text-[11px]"><i class="fa-solid fa-trash mr-1"></i>Delete</button>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    async function overwriteStudentTotalPaidFee() {
+      const id = document.getElementById("fee_stuId").value.trim().toUpperCase();
+      const stu = allStudents[id];
+      if (!stu) return showCustomAlert("Select a student first!", "No Student Selected", "DANGER");
+      const newPaidVal = Number(document.getElementById("fee_directPaidOverride").value);
+      if (isNaN(newPaidVal) || newPaidVal < 0) return showCustomAlert("Enter a valid Paid Fee amount (0 or more).", "Invalid Amount", "DANGER");
+
+      const newInst = newPaidVal > 0 ? [{
+        receiptNo: `RCP-${CURRENT_SESSION.yearPrefix}-CORR-${id.slice(-4)}`,
+        amount: newPaidVal,
+        date: new Date().toLocaleDateString("en-IN"),
+        session: CURRENT_SESSION.sessionString
+      }] : [];
+
+      await db.ref(`students/${id}`).update({
+        paidFee: newPaidVal,
+        feeInstallments: newInst.length ? newInst : null,
+        lastInstallmentAmount: newPaidVal
+      });
+      stu.paidFee = newPaidVal;
+      stu.feeInstallments = newInst;
+      renderFeeSearchStudents();
+      renderAdminStudentInstallmentEditor(id);
+      await showCustomAlert(`Total Paid Fee for ${stu.studentName} corrected to ₹${newPaidVal}!`, "Fee Corrected", "SUCCESS");
+    }
+
+    async function editSingleFeeInstallment(masterId, idx) {
+      const stu = allStudents[masterId];
+      if (!stu) return;
+      const f = getStudentFeeSummary(stu);
+      const inst = f.installments[idx];
+      if (!inst) return;
+      const newAmtStr = await showCustomPrompt(`Edit Installment #${idx + 1} (${inst.receiptNo}) Amount (₹):`, String(inst.amount), "Edit Fee Installment");
+      if (newAmtStr === null || newAmtStr === "") return;
+      const newAmt = Math.max(0, Number(newAmtStr) || 0);
+      f.installments[idx].amount = newAmt;
+      const newTotalPaid = f.installments.reduce((sum, x) => sum + (Number(x.amount) || 0), 0);
+      await db.ref(`students/${masterId}`).update({
+        paidFee: newTotalPaid,
+        feeInstallments: f.installments,
+        lastInstallmentAmount: newAmt
+      });
+      stu.paidFee = newTotalPaid;
+      stu.feeInstallments = f.installments;
+      renderFeeSearchStudents();
+      renderAdminStudentInstallmentEditor(masterId);
+      await showCustomAlert(`Installment updated to ₹${newAmt}. New Total Paid Fee: ₹${newTotalPaid}`, "Installment Updated", "SUCCESS");
+    }
+
+    async function deleteSingleFeeInstallment(masterId, idx) {
+      const stu = allStudents[masterId];
+      if (!stu) return;
+      const f = getStudentFeeSummary(stu);
+      const inst = f.installments[idx];
+      if (!inst) return;
+      const ok = await showCustomConfirm(`Delete Installment #${idx + 1} (₹${inst.amount}) for ${stu.studentName}?`, "Delete Wrong Installment");
+      if (!ok) return;
+      f.installments.splice(idx, 1);
+      const newTotalPaid = f.installments.reduce((sum, x) => sum + (Number(x.amount) || 0), 0);
+      await db.ref(`students/${masterId}`).update({
+        paidFee: newTotalPaid,
+        feeInstallments: f.installments.length ? f.installments : null,
+        lastInstallmentAmount: f.installments.length ? f.installments[f.installments.length - 1].amount : 0
+      });
+      stu.paidFee = newTotalPaid;
+      stu.feeInstallments = f.installments;
+      renderFeeSearchStudents();
+      renderAdminStudentInstallmentEditor(masterId);
+      await showCustomAlert(`Wrong installment deleted! Updated Total Paid Fee: ₹${newTotalPaid}`, "Deleted", "SUCCESS");
+    }
+
+    // =========================================================
+    // 4. ONLINE CBT & SCHOLARSHIP EXAM UPLOAD & RUNNER FIX (FIX #5)
+    // =========================================================
+    createLiveCBTExam = async function() {
+      const title = document.getElementById("cbt_title").value.trim();
+      const targetClass = document.getElementById("cbt_class").value;
+      const category = document.getElementById("cbt_category").value;
+      const startTime = document.getElementById("cbt_startTime").value || new Date().toISOString().slice(0, 16);
+      const duration = Number(document.getElementById("cbt_duration").value) || 30;
+      const plusMark = Number(document.getElementById("cbt_plusMark").value) || 4;
+      const minusMark = Number(document.getElementById("cbt_minusMark").value) || 1;
+      const passPctCutoff = Number(document.getElementById("cbt_passPctCutoff").value) || 40;
+      const resultMode = document.getElementById("cbt_resultMode").value;
+      const resultTime = document.getElementById("cbt_resultTime").value;
+      const rawLines = document.getElementById("cbt_bulkQuestions").value.trim().split("\n").filter(Boolean);
+
+      if (!title || !rawLines.length) {
+        return showCustomAlert("Please enter Exam Title and at least 1 Question.", "Missing Info", "DANGER");
+      }
+
+      const publicQuestions = rawLines.map((line, i) => {
+        const parts = line.split("|").map(x => x.trim());
+        const ansChar = (parts[5] || "A").toUpperCase();
+        return {
+          qNo: i + 1,
+          q: parts[0] || `Question ${i + 1}`,
+          A: parts[1] || "Option A",
+          B: parts[2] || "Option B",
+          C: parts[3] || "Option C",
+          D: parts[4] || "Option D",
+          ansKeyEnc: btoa(ansChar) // Stored inside cbtExams so Firebase rules never block upload!
+        };
+      });
+
+      const cbtId = editingCBTExamId || `CBT_${Date.now()}`;
+      const existingAttempts = (editingCBTExamId && allCBTExams[editingCBTExamId] && allCBTExams[editingCBTExamId].attempts) ? allCBTExams[editingCBTExamId].attempts : {};
+
+      const examPayload = {
+        cbtId, title, targetClass, category, startTime, duration, plusMark, minusMark,
+        passPctCutoff, resultMode, resultTime,
+        percentilePublished: false,
+        status: "ACTIVE",
+        questions: publicQuestions,
+        attempts: existingAttempts,
+        createdAt: new Date().toISOString()
+      };
+
+      // Save directly to cbtExams/{cbtId} (100% allowed by Firebase rules)
+      await db.ref(`cbtExams/${cbtId}`).set(examPayload);
+      allCBTExams[cbtId] = examPayload;
+      editingCBTExamId = null;
+
+      const nId = `NOTIF_${Date.now()}`;
+      await db.ref(`notifications/${nId}`).set({
+        id: nId,
+        targetType: targetClass === "ALL" ? "ALL" : "CLASS",
+        targetValue: targetClass,
+        title: `${category === 'SCHOLARSHIP_PHASE_1' ? 'Scholarship Phase-1 CBT' : 'Live CBT Exam'}: ${title}`,
+        message: `Online Examination "${title}" is now LIVE! Open your ${category === 'SCHOLARSHIP_PHASE_1' ? 'Scholarship Portal' : 'Live CBT Portal'} to start the test.`,
+        createdAt: new Date().toISOString()
+      });
+
+      renderAdminCBTList();
+      await showCustomAlert(`✅ CBT Exam "${title}" (${publicQuestions.length} Questions) uploaded & live in Student App!`, "CBT Uploaded Successfully", "SUCCESS");
+    };
+
+    renderAdminCBTList = function() {
+      const box = document.getElementById("adminCBTListContainer");
+      if (!box) return;
+      const entries = Object.entries(allCBTExams || {}).filter(([k, ex]) => ex && ex.title).reverse();
+      box.innerHTML = entries.map(([fbKey, ex]) => {
+        const attCount = Object.keys(ex.attempts || {}).length;
+        return `
+          <div class="p-3 border rounded-xl bg-slate-50 space-y-2 text-xs">
+            <div class="flex justify-between items-center">
+              <span class="font-extrabold text-pink-700">${escapeHtml(ex.title)} (${escapeHtml(ex.targetClass)} • ${ex.category === 'SCHOLARSHIP_PHASE_1' ? 'SCHOLARSHIP CBT' : 'REGULAR CBT'})</span>
+              <span class="px-2 py-0.5 rounded font-black text-[10px] ${ex.status === 'ACTIVE' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}">${escapeHtml(ex.status)}</span>
+            </div>
+            <div class="text-[11px] text-slate-600">
+              Questions: <strong>${(ex.questions || []).length}</strong> • Cutoff: <strong>${ex.passPctCutoff || 40}%</strong> • Marks: +${ex.plusMark}/-${ex.minusMark} • Attempts: <strong>${attCount}</strong>
+            </div>
+            <div class="flex flex-wrap gap-1.5">
+              <button type="button" onclick="editExistingCBTExam('${fbKey}')" class="bg-indigo-600 text-white px-2.5 py-1 rounded font-bold"><i class="fa-solid fa-pen mr-1"></i>Edit Paper</button>
+              <button type="button" onclick="db.ref('cbtExams/${fbKey}/status').set('${ex.status === 'ACTIVE' ? 'STOPPED' : 'ACTIVE'}')" class="bg-amber-500 text-white px-2.5 py-1 rounded font-bold">${ex.status === 'ACTIVE' ? 'Pause' : 'Resume'}</button>
+              <button type="button" onclick="releaseScheduledCBTResultAndEmail('${fbKey}')" class="bg-blue-700 text-white px-2.5 py-1 rounded font-bold">Declare % Result</button>
+              <button type="button" onclick="generateAdminCBTPercentile('${fbKey}')" class="bg-purple-700 text-white px-2.5 py-1 rounded font-bold">%ile</button>
+              <button type="button" onclick="deleteFirebaseNodeByKey('cbtExams/${fbKey}', 'CBT Exam')" class="bg-rose-600 text-white px-2.5 py-1 rounded font-bold"><i class="fa-solid fa-trash"></i> Delete</button>
+            </div>
+          </div>
+        `;
+      }).join("") || `<p class="text-xs text-slate-400">No CBT exams created yet.</p>`;
+    };
+
+    function editExistingCBTExam(fbKey) {
+      const ex = allCBTExams[fbKey];
+      if (!ex) return;
+      editingCBTExamId = fbKey;
+      document.getElementById("cbt_title").value = ex.title || "";
+      document.getElementById("cbt_class").value = ex.targetClass || "ALL";
+      document.getElementById("cbt_category").value = ex.category || "REGULAR";
+      document.getElementById("cbt_startTime").value = ex.startTime || "";
+      document.getElementById("cbt_duration").value = ex.duration || 30;
+      document.getElementById("cbt_plusMark").value = ex.plusMark || 4;
+      document.getElementById("cbt_minusMark").value = ex.minusMark || 1;
+      document.getElementById("cbt_passPctCutoff").value = ex.passPctCutoff || 40;
+      document.getElementById("cbt_bulkQuestions").value = (ex.questions || []).map(q => {
+        let ans = "A";
+        try { ans = q.ansKeyEnc ? atob(q.ansKeyEnc) : (q.ans || "A"); } catch (e) {}
+        return `${q.q} | ${q.A} | ${q.B} | ${q.C} | ${q.D} | ${ans}`;
+      }).join("\n");
+      showCustomAlert(`Loaded CBT Paper "${ex.title}" for editing! Modify questions or settings and click "Publish Live CBT Exam".`, "Edit CBT Mode", "INFO");
+    }
+
+    // Fix startLiveCBTAttempt so it never writes to blocked cbtActiveTimers node
+    startLiveCBTAttempt = async function(cbtId) {
+      if (!document.getElementById("cbtAgreeCheck")?.checked) {
+        return showCustomAlert("Please tick the checkbox to accept exam instructions first.", "Instructions Required", "DANGER");
+      }
+      const ex = allCBTExams[cbtId];
+      if (!ex || !loggedInStudent) return;
+
+      const timerKey = `GSSS_CBT_START_${cbtId}_${loggedInStudent.masterId}`;
+      const savedAnswersKey = `GSSS_CBT_ANS_${cbtId}_${loggedInStudent.masterId}`;
+
+      let startedAtMs = Number(localStorage.getItem(timerKey)) || 0;
+      if (!startedAtMs) {
+        startedAtMs = Date.now();
+        localStorage.setItem(timerKey, String(startedAtMs));
+      }
+
+      const endTimeMs = startedAtMs + (Number(ex.duration || 30) * 60 * 1000);
+      const savedAns = JSON.parse(localStorage.getItem(savedAnswersKey) || "{}");
+      const initialSecLeft = Math.max(0, Math.floor((endTimeMs - Date.now()) / 1000));
+
+      activeCBTState = { cbtId, answers: savedAns, endTimeMs, secondsLeft: initialSecLeft };
+      renderLiveCBTQuestionsUI();
+
+      if (cbtCountdownInterval) clearInterval(cbtCountdownInterval);
+      cbtCountdownInterval = setInterval(() => {
+        const rem = Math.max(0, Math.floor((activeCBTState.endTimeMs - Date.now()) / 1000));
+        activeCBTState.secondsLeft = rem;
+        const tEl = document.getElementById("liveCBTTimerBadge");
+        if (tEl) {
+          tEl.innerText = `${String(Math.floor(rem / 60)).padStart(2, '0')}:${String(rem % 60).padStart(2, '0')}`;
+        }
+        if (rem <= 0) {
+          clearInterval(cbtCountdownInterval);
+          submitLiveCBTAttempt();
+        }
+      }, 1000);
+    };
+
+    // Fix submitLiveCBTAttempt to read ansKeyEnc directly from ex.questions
+    submitLiveCBTAttempt = async function() {
+      if (cbtCountdownInterval) clearInterval(cbtCountdownInterval);
+      if (!activeCBTState || !loggedInStudent) return;
+      const ex = allCBTExams[activeCBTState.cbtId];
+      if (!ex) return;
+
+      let rightCount = 0, wrongCount = 0, leftCount = 0;
+      (ex.questions || []).forEach((q, idx) => {
+        const chosen = activeCBTState.answers[idx];
+        let correctOpt = "A";
+        try {
+          correctOpt = (q.ansKeyEnc ? atob(q.ansKeyEnc) : (q.ans || "A")).toUpperCase();
+        } catch (e) {}
+        if (!chosen) leftCount++;
+        else if (chosen === correctOpt) rightCount++;
+        else wrongCount++;
+      });
+
+      const maxMarks = (ex.questions || []).length * (Number(ex.plusMark) || 4);
+      const score = (rightCount * ex.plusMark) - (wrongCount * ex.minusMark);
+      const percentage = maxMarks > 0 ? Number(Math.max(0, (score / maxMarks) * 100).toFixed(2)) : 0;
+      const cutoffPct = Number(ex.passPctCutoff) || 40;
+      const qualifiedStage2 = percentage >= cutoffPct && score > 0;
+
+      const attemptData = {
+        masterId: loggedInStudent.masterId,
+        studentName: loggedInStudent.studentName,
+        score, maxMarks, percentage, rightCount, wrongCount, leftCount, qualifiedStage2,
+        answers: activeCBTState.answers,
+        submittedAt: new Date().toISOString()
+      };
+
+      await db.ref(`cbtExams/${ex.cbtId}/attempts/${loggedInStudent.masterId}`).set(attemptData);
+
+      const isExistingSchCand = Boolean(
+        loggedInStudent.isScholarshipOnly ||
+        (allScholarshipData && allScholarshipData.candidates && allScholarshipData.candidates[loggedInStudent.masterId])
+      );
+      if (ex.category === "SCHOLARSHIP_PHASE_1" && isExistingSchCand) {
+        await db.ref(`scholarship/candidates/${loggedInStudent.masterId}`).update({
+          phase1Score: `${score}/${maxMarks}`,
+          phase1Percentage: percentage,
+          phase1Status: qualifiedStage2 ? `QUALIFIED (${percentage}%)` : `NOT QUALIFIED (${percentage}%)`
+        });
+      }
+
+      await showCustomAlert(`✅ Exam Submitted!\nScore: ${score}/${maxMarks} (${percentage}%)`, "Exam Submitted", "SUCCESS");
+      openStudentModuleModal(ex.category === "SCHOLARSHIP_PHASE_1" ? "SCHOLARSHIP" : "LIVE_CBT");
+    };
+
+    // Key-safe Scholarship Candidates List
+    renderAdminScholarshipCandidates = function() {
+      const box = document.getElementById("adminScholarshipAppsList");
+      if (!box) return;
+      const entries = Object.entries(allScholarshipData.candidates || {}).filter(([k, c]) => c && c.studentName).reverse();
+      box.innerHTML = entries.map(([fbKey, c]) => {
+        const cId = c.masterId || fbKey;
+        const paperMarks = c.offline100Marks !== undefined ? `${c.offline100Marks}/100 (${c.offline100Marks}%)` : (c.phase1Score || "Pending");
+        return `
+          <div class="p-3 border rounded-xl bg-white space-y-2 text-xs">
+            <div class="flex justify-between items-center">
+              <div>
+                <span class="font-extrabold text-cyan-800">${escapeHtml(cId)}</span> • <strong>${escapeHtml(c.studentName)}</strong> (${escapeHtml(c.currentClass || c.classApplying || '')})<br/>
+                <span class="text-[10px] text-slate-500">Father: ${escapeHtml(c.fatherName || '')} | Pass: <strong class="text-rose-600">${escapeHtml(c.password || '')}</strong> | Marks: <strong>${escapeHtml(paperMarks)}</strong></span>
+              </div>
+              <span class="px-2 py-0.5 rounded text-[10px] font-black ${c.convertedMasterId ? 'bg-emerald-100 text-emerald-800' : 'bg-cyan-100 text-cyan-900'}">${escapeHtml(c.convertedMasterId ? `Converted: ${c.convertedMasterId}` : (c.phase1Status || 'REGISTERED'))}</span>
+            </div>
+            <div class="flex flex-wrap items-center justify-between gap-1.5 pt-1.5 border-t">
+              <div class="flex flex-wrap gap-1">
+                <button type="button" onclick="openFullStudentPreview('${fbKey}','SCHOLARSHIP')" class="bg-slate-800 text-amber-300 px-2.5 py-1 rounded font-bold"><i class="fa-solid fa-eye"></i> View</button>
+                <button type="button" onclick="updateScholarship100MarkScore('${fbKey}')" class="bg-purple-700 text-white px-2.5 py-1 rounded font-bold"><i class="fa-solid fa-marker"></i> 100-Mark Score</button>
+                <button type="button" onclick="openUniversalEditModal('${fbKey}','SCHOLARSHIP')" class="bg-indigo-600 text-white px-2.5 py-1 rounded font-bold"><i class="fa-solid fa-pen"></i> Edit</button>
+                <button type="button" onclick="deleteFirebaseNodeByKey('scholarship/candidates/${fbKey}', 'Scholarship Candidate')" class="bg-rose-600 text-white px-2.5 py-1 rounded font-bold"><i class="fa-solid fa-trash"></i></button>
+              </div>
+              ${!c.convertedMasterId ? `
+                <button type="button" onclick="convertScholarshipToPermanentAdmission('${fbKey}')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1 rounded font-extrabold shadow">
+                  <i class="fa-solid fa-user-check mr-1"></i> Permanent Admission
+                </button>
+              ` : ""}
+            </div>
+          </div>
+        `;
+      }).join("") || `<p class="text-xs text-slate-400">No approved scholarship candidates yet.</p>`;
+    };
+
+    // =========================================================
+    // 5. SCHOLARSHIP PHASE-2 "EXAM COMPLETED" TIMER FIX (FIX #7)
+    // =========================================================
+    formatCountdownString = function(targetIso) {
+      if (!targetIso) return "SCHEDULE PENDING";
+      const startMs = new Date(targetIso).getTime();
+      if (isNaN(startMs)) return "SCHEDULE PENDING";
+      const nowMs = Date.now();
+      const diff = startMs - nowMs;
+
+      // Default Phase-2 Offline Exam duration = 3 Hours (180 mins)
+      const cfg = (allScholarshipData && allScholarshipData.config) ? allScholarshipData.config : {};
+      const durationMs = (Number(cfg.examDurationHours) || 3) * 3600000;
+      const endMs = startMs + durationMs;
+
+      if (nowMs > endMs) {
+        return "✅ EXAMINATION COMPLETED (परीक्षा संपन्न)";
+      }
+      if (diff <= 0) {
+        return "🔴 OFFLINE EXAM LIVE NOW";
+      }
+      const d = Math.floor(diff / 86400000);
+      const h = Math.floor((diff % 86400000) / 3600000);
+      const m = Math.floor((diff % 3600000) / 60000);
+      const s = Math.floor((diff % 60000) / 1000);
+      return `${String(d).padStart(2, '0')}d : ${String(h).padStart(2, '0')}h : ${String(m).padStart(2, '0')}m : ${String(s).padStart(2, '0')}s`;
+    };
+// =========================================================
+    // 6. STRICT ANTI-SCREENSHOT SYSTEM WITH ADMIN TOGGLE (FIX #6)
+    // =========================================================
+    let isScreenshotAllowedByAdmin = false;
+
+    function applyScreenshotProtectionState() {
+      const isAdmin = localStorage.getItem("GSSS_ADMIN_LOGGED_IN") === "true";
+      const allowState = globalPortalLocks["ALLOW_SCREENSHOTS"] === "ALLOWED";
+      isScreenshotAllowedByAdmin = allowState;
+
+      const btn = document.getElementById("btnAdminScreenshotToggle");
+      if (btn) {
+        btn.className = allowState
+          ? "bg-emerald-600 text-white text-xs font-extrabold px-3 py-2 rounded-xl flex items-center gap-1.5 shadow"
+          : "bg-rose-700 text-white text-xs font-extrabold px-3 py-2 rounded-xl flex items-center gap-1.5 shadow";
+        btn.innerHTML = allowState
+          ? `<i class="fa-solid fa-camera"></i> Screenshots: ALLOWED`
+          : `<i class="fa-solid fa-ban"></i> Screenshots: BLOCKED`;
+      }
+
+      // Inform Native Android Wrapper if available
+      try {
+        if (window.Android && typeof window.Android.setFlagSecure === "function") {
+          window.Android.setFlagSecure(!allowState && !isAdmin);
+        }
+      } catch (e) {}
+
+      if (!allowState && !isAdmin) {
+        document.body.classList.add("gsss-screenshot-locked");
+      } else {
+        document.body.classList.remove("gsss-screenshot-locked");
+        document.getElementById("antiScreenshotCurtain").style.display = "none";
+      }
+    }
+
+    async function toggleAdminScreenshotPermission() {
+      const current = globalPortalLocks["ALLOW_SCREENSHOTS"] === "ALLOWED";
+      const nextState = current ? "BLOCKED" : "ALLOWED";
+      await db.ref("portalLocks/ALLOW_SCREENSHOTS").set(nextState);
+      globalPortalLocks["ALLOW_SCREENSHOTS"] = nextState;
+      applyScreenshotProtectionState();
+      await showCustomAlert(
+        nextState === "ALLOWED"
+          ? "Screenshots are now ALLOWED for students."
+          : "Screenshots are now 100% STRICTLY PROHIBITED for students!",
+        "Screenshot Security Updated",
+        nextState === "ALLOWED" ? "SUCCESS" : "DANGER"
+      );
+    }
+
+    function triggerScreenshotBlockCurtain() {
+      if (isScreenshotAllowedByAdmin || localStorage.getItem("GSSS_ADMIN_LOGGED_IN") === "true") return;
+      const curtain = document.getElementById("antiScreenshotCurtain");
+      if (curtain) curtain.style.display = "flex";
+      triggerPhoneVibrationAndSound();
+    }
+
+    // Block 3-Finger Screenshot Swipe, PrintScreen, Copy, ContextMenu & App-Switcher Capture
+    window.addEventListener("touchstart", e => {
+      if (e.touches && e.touches.length >= 3) {
+        e.preventDefault();
+        triggerScreenshotBlockCurtain();
+      }
+    }, { passive: false });
+
+    window.addEventListener("keydown", e => {
+      if (isScreenshotAllowedByAdmin || localStorage.getItem("GSSS_ADMIN_LOGGED_IN") === "true") return;
+      if (
+        e.key === "PrintScreen" ||
+        ((e.ctrlKey || e.metaKey) && ["p", "s", "u", "c"].includes(e.key.toLowerCase())) ||
+        (e.metaKey && e.shiftKey)
+      ) {
+        e.preventDefault();
+        triggerScreenshotBlockCurtain();
+      }
+    });
+
+    window.addEventListener("keyup", e => {
+      if (e.key === "PrintScreen") triggerScreenshotBlockCurtain();
+    });
+
+    document.addEventListener("contextmenu", e => {
+      if (!isScreenshotAllowedByAdmin && localStorage.getItem("GSSS_ADMIN_LOGGED_IN") !== "true") {
+        e.preventDefault();
+      }
+    });
+
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden && !isScreenshotAllowedByAdmin && localStorage.getItem("GSSS_ADMIN_LOGGED_IN") !== "true") {
+        const curtain = document.getElementById("antiScreenshotCurtain");
+        if (curtain) curtain.style.display = "flex";
+      }
+    });
+
+    
+    // =========================================================
+    // 7. ATTACH KEY-SAFE LISTENERS & ADMIN BUTTONS ON STARTUP
+    // =========================================================
+    window.addEventListener("DOMContentLoaded", () => {
+      ensureFeeCorrectionUIBox();
+
+      // Add Admin Screenshot Toggle Button to Admin Top Control Bar
+      const adminTopBar = document.querySelector("#adminDashboardView .flex-wrap.items-center.gap-2");
+      if (adminTopBar && !document.getElementById("btnAdminScreenshotToggle")) {
+        const ssBtn = document.createElement("button");
+        ssBtn.type = "button";
+        ssBtn.id = "btnAdminScreenshotToggle";
+        ssBtn.onclick = toggleAdminScreenshotPermission;
+        ssBtn.className = "bg-rose-700 text-white text-xs font-extrabold px-3 py-2 rounded-xl flex items-center gap-1.5 shadow";
+        ssBtn.innerHTML = `<i class="fa-solid fa-ban"></i> Screenshots: BLOCKED`;
+        adminTopBar.prepend(ssBtn);
+      }
+
+      db.ref("portalLocks").on("value", s => {
+        globalPortalLocks = s.val() || {};
+        applyScreenshotProtectionState();
+      });
+
+      // Keep key-safe lists always synced
+      db.ref("notifications").on("value", s => {
+        allNotifications = s.val() || {};
+        renderNotificationsListKeySafe();
+      });
+      db.ref("dailyTests").on("value", s => {
+        allDailyTests = s.val() || {};
+        renderPublishedDailyTests();
+      });
+      db.ref("cbtExams").on("value", s => {
+        allCBTExams = s.val() || {};
+        renderAdminCBTList();
+      });
+      db.ref("scholarship").on("value", s => {
+        allScholarshipData = s.val() || {};
+        renderAdminScholarshipCandidates();
+      });
+      db.ref("studyContent").on("value", s => {
+        allHomeworkAndPYQ = s.val() || {};
+        renderStudyContentListKeySafe();
+      });
+      db.ref("liveClasses").on("value", s => {
+        allLiveClasses = s.val() || {};
+        renderLiveClassListKeySafe();
+      });
+      db.ref("busRoutes").on("value", s => {
+        allBusRoutes = s.val() || {};
+        renderBusRoutesListKeySafe();
+      });
+
+      if (localStorage.getItem("GSSS_ADMIN_LOGGED_IN") === "true") {
+        setTimeout(autoCleanCorruptedGhostRecords, 1500);
+      }
+    });
+  </script>
 </body>
 </html>
