@@ -6465,6 +6465,102 @@ Capital of Rajasthan is? | Jodhpur | Udaipur | Jaipur | Ajmer | C</textarea>
       });
     })();
   </script>
+<!-- ========================================================= -->
+<!-- ADDON PATCH: SIDE-BUTTON DETERRENT, WATERMARK & BLUR LOCK -->
+<!-- ========================================================= -->
+<style>
+  #gsssSecurityWatermark {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 9998;
+    overflow: hidden;
+    display: flex;
+    flex-wrap: wrap;
+    align-content: space-around;
+    justify-content: space-around;
+    opacity: 0.14;
+    user-select: none;
+  }
+  .gsss-wm-item {
+    transform: rotate(-28deg);
+    font-size: 13px;
+    font-weight: 900;
+    color: #0f172a;
+    white-space: nowrap;
+    padding: 25px;
+  }
+</style>
 
+<div id="gsssSecurityWatermark"></div>
+
+<script>
+  (function() {
+    const curtain = document.getElementById("antiScreenshotCurtain");
+    document.body.classList.add("gsss-screenshot-locked");
+
+    function showBlackoutCurtain() {
+      if (curtain) curtain.style.display = "flex";
+    }
+
+    // 1. 3-Finger & Multi-Touch Screenshot Block
+    window.addEventListener("touchstart", function(e) {
+      if (e.touches && e.touches.length >= 2) {
+        showBlackoutCurtain();
+      }
+    }, { passive: false });
+
+    // 2. Side-Button Popup / Volume Bar / App Switch / Blur Trap
+    window.addEventListener("blur", showBlackoutCurtain);
+    document.addEventListener("visibilitychange", function() {
+      if (document.hidden) showBlackoutCurtain();
+    });
+    window.addEventListener("resize", function() {
+      // Split-screen ya floating window kholne par block karega
+      if (window.outerHeight - window.innerHeight > 250) {
+        showBlackoutCurtain();
+      }
+    });
+
+    // 3. Hardware Key / PrintScreen / Volume Key Listeners
+    window.addEventListener("keydown", function(e) {
+      if (
+        e.key === "PrintScreen" ||
+        e.key === "VolumeDown" ||
+        e.key === "AudioVolumeDown" ||
+        (e.ctrlKey && (e.key === "p" || e.key === "s" || e.key === "u")) ||
+        (e.metaKey && e.shiftKey)
+      ) {
+        e.preventDefault();
+        showBlackoutCurtain();
+      }
+    });
+
+    // 4. Right-Click & Long-Press Copy Block
+    window.addEventListener("contextmenu", function(e) {
+      e.preventDefault();
+    });
+
+    // 5. Live Student ID Watermark (Taaki side-button screenshot me Student ki ID aa jaye)
+    function updateStudentWatermark() {
+      const wmBox = document.getElementById("gsssSecurityWatermark");
+      if (!wmBox) return;
+      const stu = typeof loggedInStudent !== "undefined" ? loggedInStudent : null;
+      const label = stu
+        ? `${stu.masterId} • ${stu.studentName} • ${stu.mobile || ""}`
+        : "GURUKUL SCHOOL DHANKOLI • PROTECTED";
+
+      let html = "";
+      for (let i = 0; i < 24; i++) {
+        html += `<div class="gsss-wm-item">${label}</div>`;
+      }
+      wmBox.innerHTML = html;
+    }
+
+    updateStudentWatermark();
+    setInterval(updateStudentWatermark, 3000);
+  })();
+</script>
+  
 </body>
 </html>
